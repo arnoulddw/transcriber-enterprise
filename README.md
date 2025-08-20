@@ -26,7 +26,11 @@ The application intelligently handles large audio files by automatically splitti
 -   **Workflow Engine:** Execute custom AI-driven workflows on transcribed text using configured LLMs (ex. Google Gemini, OpenAI models) to extract insights, summarize content, or perform other NLP tasks.
 -   **Saved & Template Workflows:** Users can create, save, and reuse their custom workflow prompts. Administrators can define system-wide template workflows.
 -   **Admin Panel (Multi-Mode):** A dedicated interface for administrators to manage users, configure roles and permissions, view system metrics, and access application logs.
+-   **Cost Management (Multi-Mode):**
+    -   **Pricing Configuration:** Administrators can define costs for different services, including transcription models (per minute), title generation (per execution), and workflows (per execution). This allows for accurate tracking of operational expenses.
+    -   **Cost Analytics:** The admin panel provides detailed cost analytics, breaking down expenses by component (transcriptions, title generations, workflows) and by user role over various time periods (24 hours, 7 days, 30 days, all time). This helps in monitoring and managing the costs associated with API usage.
 -   **Dockerized Deployment:** Simplified setup and deployment using Docker and Docker Compose, including a pre-configured MySQL database service.
+-   **API Key Handling Strategy:** In `multi-user` mode, the application employs a role-based API key strategy. If a user's role has the "Allow API Key Management" permission, the system uses the user's personal API key. If the permission is not granted, the application automatically falls back to using the globally configured API key from the environment variables for all operations. This ensures that services remain functional even for users without individual key management privileges.
 
 ![Screenshot of the Transcriber Platform App](transcriber-platform-screenshot.png)
 
