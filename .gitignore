@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-wheel-metadata/
+.installed.cfg
+*.egg-info/
+pip-selfcheck.json
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# General
+.DS_Store
+*.log
+.env
+.vscode/
+*.db
+*.sqlite3
+
+# Transcriber Platform
+runtime/transcriber_task.lock
