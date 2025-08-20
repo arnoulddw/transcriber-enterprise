@@ -25,7 +25,15 @@ The application intelligently handles large audio files by automatically splitti
 -   **Automated Title Generation:** AI-powered, automatic title generation for completed transcriptions, enhancing organization and browsability.
 -   **Workflow Engine:** Execute custom AI-driven workflows on transcribed text using configured LLMs (ex. Google Gemini, OpenAI models) to extract insights, summarize content, or perform other NLP tasks.
 -   **Saved & Template Workflows:** Users can create, save, and reuse their custom workflow prompts. Administrators can define system-wide template workflows.
--   **Admin Panel (Multi-Mode):** A dedicated interface for administrators to manage users, configure roles and permissions, view system metrics, and access application logs.
+-   **Admin Panel (Multi-Mode):** A comprehensive interface for administrators with detailed analytics and management tools:
+    -   **User Management:** View, manage, and inspect individual user details and usage statistics.
+    -   **Role & Permission Configuration:** Full control over creating, editing, and deleting user roles and their specific permissions.
+    -   **Template Workflow Management:** Create and manage system-wide workflow templates for all users.
+    -   **Usage & Cost Analytics:** Detailed dashboards to monitor transcription minutes, workflow executions, and associated costs by component and user role.
+    -   **Performance & Error Insights:** A dedicated dashboard to track system performance and identify operational errors.
+-   **Internationalization (i18n):** A multi-language user interface with support for English, Spanish, French, and Dutch.
+-   **Asynchronous Task Processing:** Long-running tasks like transcription and title generation are handled in the background, ensuring the web interface remains fast and responsive.
+-   **Data Retention & Soft Deletion:** Deleted transcriptions are "soft-deleted" and can be retained for a configurable period before permanent removal, preventing accidental data loss.
 -   **Cost Management (Multi-Mode):**
     -   **Pricing Configuration:** Administrators can define costs for different services, including transcription models (per minute), title generation (per execution), and workflows (per execution). This allows for accurate tracking of operational expenses.
     -   **Cost Analytics:** The admin panel provides detailed cost analytics, breaking down expenses by component (transcriptions, title generations, workflows) and by user role over various time periods (24 hours, 7 days, 30 days, all time). This helps in monitoring and managing the costs associated with API usage.
