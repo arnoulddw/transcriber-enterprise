@@ -22,14 +22,13 @@ The application intelligently handles large audio files by automatically splitti
 -   **User Authentication & Management:** Secure user registration, login via username/password or Google Sign-In, and password reset functionality in `multi` user mode.
 -   **Role-Based Access Control (RBAC):** Granular control over feature access, API usage, and operational limits through a flexible role and permission system in `multi` user mode.
 -   **User-Specific API Key Management:** In `multi` mode, users can securely store and manage their personal API keys for AssemblyAI, OpenAI, and Google Gemini.
--   **Automated Title Generation:** AI-powered, automatic title generation for completed transcriptions using Google Gemini, enhancing organization and browsability.
--   **Workflow Engine:** Execute custom AI-driven workflows on transcribed text using configured LLMs (e.g., Google Gemini, OpenAI models) to extract insights, summarize content, or perform other NLP tasks.
+-   **Automated Title Generation:** AI-powered, automatic title generation for completed transcriptions, enhancing organization and browsability.
+-   **Workflow Engine:** Execute custom AI-driven workflows on transcribed text using configured LLMs (ex. Google Gemini, OpenAI models) to extract insights, summarize content, or perform other NLP tasks.
 -   **Saved & Template Workflows:** Users can create, save, and reuse their custom workflow prompts. Administrators can define system-wide template workflows.
 -   **Admin Panel (Multi-Mode):** A dedicated interface for administrators to manage users, configure roles and permissions, view system metrics, and access application logs.
 -   **Dockerized Deployment:** Simplified setup and deployment using Docker and Docker Compose, including a pre-configured MySQL database service.
 
 ![Screenshot of the Transcriber Platform App](transcriber-platform-screenshot.png)
-*(Replace with an actual screenshot of your application)*
 
 ## Usage
 
