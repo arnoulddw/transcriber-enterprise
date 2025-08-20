@@ -1,8 +1,8 @@
 # Transcriber Platform
 
-**A powerful, self-hostable transcription solution designed for small to medium-sized businesses (SMBs), teams, and individuals who need full control over their data and transcription workflow.**
+**A powerful, self-hostable transcription solution designed for small to medium-sized businesses (SMBs), teams and individuals who need full control over their data and transcription workflow.**
 
-Transcriber Platform turns audio into accurate, organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **AssemblyAI**, **OpenAI Whisper**, and **OpenAI GPT-4o**. It intelligently handles large files, supports single and multi-user modes, and includes powerful administrative tools for managing users, costs, and custom AI workflows.
+Transcriber Platform turns audio into accurate, organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **AssemblyAI**, **OpenAI Whisper** and **OpenAI GPT-4o**. It intelligently handles large files, supports single and multi-user modes and includes powerful administrative tools for managing users, costs and custom AI workflows.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/arnoulddw/transcriber-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -30,21 +30,21 @@ Transcriber Platform turns audio into accurate, organized text through a user-fr
 -   **Context Prompting:** Improve accuracy for jargon or specific names by providing context hints to OpenAI models.
 
 ### User Experience
--   **Intuitive Web Interface:** Clean and simple UI for uploading files, managing history, and running workflows.
--   **Comprehensive History:** View, copy, download (.txt), and delete past transcriptions.
+-   **Intuitive Web Interface:** Clean and simple UI for uploading files, managing history and running workflows.
+-   **Comprehensive History:** View, copy, download (.txt) and delete past transcriptions.
 -   **Asynchronous Processing:** Long tasks run in the background, keeping the UI fast and responsive.
 -   **Internationalization (i1n):** Multi-language support (English, Spanish, French, Dutch).
 
 ### Multi-User & Admin Features
 -   **Dual Deployment Modes:**
     -   `single`: Simple, no-login mode using global API keys. Perfect for personal use.
-    -   `multi`: Full-featured user mode with registration, login, and individual API key management.
--   **Secure User Authentication:** Supports username/password, Google Sign-In, and password resets.
--   **Role-Based Access Control (RBAC):** Granularly control permissions for features, API usage, and more.
+    -   `multi`: Full-featured user mode with registration, login and individual API key management.
+-   **Secure User Authentication:** Supports username/password, Google Sign-In and password resets.
+-   **Role-Based Access Control (RBAC):** Granularly control permissions for features, API usage and more.
 -   **Smart API Key Handling:** If a user has permission to manage keys, their personal key is used. Otherwise, the system seamlessly falls back to the global API key, ensuring uninterrupted service.
 -   **Comprehensive Admin Panel:**
     -   **User Management:** View and manage all users and their usage.
-    -   **Cost & Usage Analytics:** Detailed dashboards to track transcription minutes, workflow costs, and API expenses by user and role.
+    -   **Cost & Usage Analytics:** Detailed dashboards to track transcription minutes, workflow costs and API expenses by user and role.
     -   **System-wide Templates:** Create and manage workflow templates available to all users.
     
     
@@ -67,7 +67,7 @@ Get the platform running in under 5 minutes. This is the recommended method.
     cp .env.example .env
     nano .env 
     ```
-    -   **Crucially, you must set:** `SECRET_KEY`, your API keys (`OPENAI_API_KEY`, etc.), and `MYSQL_PASSWORD`, `MYSQL_USER`, `MYSQL_DB`.
+    -   **Crucially, you must set:** `SECRET_KEY`, your API keys (`OPENAI_API_KEY`, etc.) and `MYSQL_PASSWORD`, `MYSQL_USER`, `MYSQL_DB`.
     -   For multi-user mode, also set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to create your admin account.
 
 3.  **Build and Run**
@@ -86,7 +86,7 @@ This section provides more detailed setup instructions.
 
 -   **API Keys:** You need API keys for the services you plan to use:
     -   [AssemblyAI](https://www.assemblyai.com/)
-    -   [OpenAI](https://platform.openai.com/) (for Whisper, GPT-4o, and LLM workflows)
+    -   [OpenAI](https://platform.openai.com/) (for Whisper, GPT-4o and LLM workflows)
     -   [Google Gemini](https://ai.google.dev/) (for title generation and LLM workflows)
 -   **Docker & Docker Compose:** Required for the recommended installation method.
 -   **Google Client ID (Optional):** Required for Google Sign-In in `multi` user mode.
@@ -177,7 +177,7 @@ The application is configured using environment variables in a `.env` file. The 
     pip install -r requirements.txt
     ```
 4.  **Set up MySQL:** Ensure you have a running MySQL server. Create a database and user.
-5.  **Configure `.env`:** Create the file and add your `SECRET_KEY`, API keys, and local MySQL connection details (`MYSQL_HOST=localhost`, etc.).
+5.  **Configure `.env`:** Create the file and add your `SECRET_KEY`, API keys and local MySQL connection details (`MYSQL_HOST=localhost`, etc.).
 6.  **Initialize the Database:**
     ```bash
     export FLASK_APP=app
