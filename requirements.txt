@@ -8,7 +8,7 @@ gunicorn
 # Transcription APIs
 assemblyai
 openai
-google-genai # <<< ADDED
+google-genai
 google-api-core 
 
 # Configuration and Utilities
