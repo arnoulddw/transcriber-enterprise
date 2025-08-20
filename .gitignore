@@ -26,4 +26,4 @@ package-lock.json
 *.sqlite3
 
 # Transcriber Platform
-runtime/transcriber_task.lock
+runtime/
