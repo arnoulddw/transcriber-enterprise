@@ -65,3 +65,4 @@ coverage.xml
 .pytest_cache/
 .tox/
 nosetests.xml
+.gitignore
