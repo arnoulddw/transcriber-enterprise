@@ -1,0 +1,310 @@
+<!-- app/templates/admin/performance_errors.html -->
+{# Template for the Performance & Errors page #}
+{% extends "admin/base_admin.html" %}
+
+{% block subtitle %}Performance & Errors{% endblock %} {# Updated subtitle to match content #}
+
+{% block admin_head_extra %}
+    {{ super() }}
+    {# Removed custom styles as they are now handled by Tailwind utilities #}
+{% endblock %}
+
+{% block admin_content %}
+    <p class="text-sm text-gray-600 mb-6">Monitor the reliability of the transcription process and workflow analysis.</p>
+
+    {% if metrics.get('error') %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert"> {# Increased mb-4 to mb-6 #}
+            <i class="material-icons left tiny mr-2">warning</i> {# Added mr-2 for spacing #}
+            <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
+        </div>
+    {% endif %}
+
+    {# Transcription Error Metrics #}
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">Transcription Performance</h2> {# Changed h5 to h2 #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {# Overall Transcription Error Rate Table #}
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Transcription Error Rate (%)</h3> {# Changed h6 to h3, added text-lg #}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class for responsive stacking #}
+                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th> {# Centered header #}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% set periods_data = ['24h', '7d', '30d', 'all'] %}
+                        {% for period in periods_data %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                            <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Rate" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('overall_transcription_error_rate', {}).get(period, 0)|raw_number }}" data-format="percent">
+                                {% set rate = metrics.get('overall_transcription_error_rate', {}).get(period, 'N/A') %}
+                                {% if rate != 'N/A' and rate is not none %}
+                                    {{ rate | round(method='ceil') | int }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {# API-Specific Transcription Error Rates Table #}
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">API-Specific Transcription Error Rates (%)</h3> {# Changed h6 to h3, added text-lg #}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
+                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal leading-tight">API</th>
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 24h</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7d</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30d</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">All Time</th> {# Centered header #}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% set periods_data_api = ['24h', '7d', '30d', 'all'] %}
+                        {% for api_name, display_name in {'gpt-4o-transcribe': 'GPT-4o', 'whisper': 'Whisper', 'assemblyai': 'AssemblyAI'}.items() %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                            <td data-label="API" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
+                            {% for period in periods_data_api %}
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="format-number px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 0)|raw_number }}" data-format="percent">
+                                    {% set rate = metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 'N/A') %}
+                                    {% if rate != 'N/A' and rate is not none %}
+                                        {{ rate | round(method='ceil') | int }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Common Transcription Error Types #}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Transcription Error Messages (Top 10)</h3> {# Changed h6 to h3, added text-lg #}
+        <div class="tab-group" id="transcriptionErrorTabGroup">
+            <div role="tablist" aria-label="Transcription Error Periods" class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
+                    {% set transcription_error_periods = [
+                        {'key': '24h', 'id_suffix': 'Trans24h', 'label': 'Last 24h'},
+                        {'key': '7d', 'id_suffix': 'Trans7d', 'label': 'Last 7d'},
+                        {'key': '30d', 'id_suffix': 'Trans30d', 'label': 'Last 30d'},
+                        {'key': 'all', 'id_suffix': 'TransAll', 'label': 'All Time'}
+                    ] %}
+                    {% for period_info in transcription_error_periods %}
+                    <button
+                        id="tab-btn-{{ period_info.id_suffix }}"
+                        data-tab-target="#tab-panel-{{ period_info.id_suffix }}"
+                        role="tab"
+                        aria-controls="tab-panel-{{ period_info.id_suffix }}"
+                        aria-selected="{{ 'true' if loop.first else 'false' }}"
+                        {% if loop.first %}data-headlessui-state="selected"{% endif %}
+                        class="tab-button whitespace-nowrap py-3 px-1 sm:px-2 md:px-4 border-b-2 font-medium text-xs sm:text-sm
+                               ui-selected:text-primary ui-selected:border-primary
+                               ui-not-selected:text-gray-500 ui-not-selected:hover:text-gray-700 ui-not-selected:hover:border-gray-300 ui-not-selected:border-transparent
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-75 rounded-t-md"
+                    >
+                        {{ period_info.label }}
+                    </button>
+                    {% endfor %}
+                </nav>
+            </div>
+            <div class="mt-4">
+                {% for period_info in transcription_error_periods %}
+                    {% set period_key = period_info.key %}
+                    {% set panel_id = "tab-panel-" ~ period_info.id_suffix %}
+                    {% set errors = metrics.get('common_transcription_errors', {}).get(period_key, []) %}
+                    <div
+                        id="{{ panel_id }}"
+                        role="tabpanel"
+                        tabindex="0"
+                        aria-labelledby="tab-btn-{{ period_info.id_suffix }}"
+                        class="tab-panel {{ 'hidden' if not loop.first }}"
+                    >
+                        {% if errors %}
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 common-errors-table data-table"> {# Added data-table class #}
+                                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error Message</th>
+                                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th> {# Centered header #}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for error in errors %}
+                                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ error.count|raw_number }}" data-format="integer">{{ error.count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-4">No transcription errors recorded in this period.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {# Workflow Error Metrics #}
+    <div class="border-t border-gray-200 my-6"></div>
+    <h2 class="text-xl font-semibold text-gray-700 mb-4 mt-6">Workflow Performance</h2> {# Changed h5 to h2 #}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {# Overall Workflow Error Rate Table #}
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Workflow Error Rate (%)</h3> {# Changed h6 to h3, added text-lg #}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
+                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th> {# Centered header #}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% set periods_data_wf_overall = ['24h', '7d', '30d', 'all'] %}
+                        {% for period in periods_data_wf_overall %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                            <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Rate" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('overall_workflow_error_rate', {}).get(period, 0)|raw_number }}" data-format="percent">
+                                {% set rate = metrics.get('overall_workflow_error_rate', {}).get(period, 'N/A') %}
+                                {% if rate != 'N/A' and rate is not none %}
+                                    {{ rate | round(method='ceil') | int }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <small class="text-gray-500 text-xs block mt-2">Based on workflows attempted (status not 'idle').</small>
+        </div>
+        {# Workflow Model-Specific Error Rates Table #}
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Workflow Model Error Rates (%)</h3> {# Changed h6 to h3, added text-lg #}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
+                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal leading-tight">Model</th>
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 24h</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7d</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30d</th> {# Centered header #}
+                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">All Time</th> {# Centered header #}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% set periods_data_wf_model = ['24h', '7d', '30d', 'all'] %}
+                        {% for model_id, display_name in supported_workflow_models.items() %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                            <td data-label="Model" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
+                            {% for period in periods_data_wf_model %}
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="format-number px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 0)|raw_number }}" data-format="percent">
+                                    {% set rate = metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 'N/A') %}
+                                    {% if rate != 'N/A' and rate is not none %}
+                                        {{ rate | round(method='ceil') | int }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Common Workflow Error Types #}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Workflow Error Messages (Top 10)</h3> {# Changed h6 to h3, added text-lg #}
+        <div class="tab-group" id="workflowErrorTabGroup">
+            <div role="tablist" aria-label="Workflow Error Periods" class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
+                     {% set workflow_error_periods = [
+                        {'key': '24h', 'id_suffix': 'Workflow24h', 'label': 'Last 24h'},
+                        {'key': '7d', 'id_suffix': 'Workflow7d', 'label': 'Last 7d'},
+                        {'key': '30d', 'id_suffix': 'Workflow30d', 'label': 'Last 30d'},
+                        {'key': 'all', 'id_suffix': 'WorkflowAll', 'label': 'All Time'}
+                    ] %}
+                    {% for period_info in workflow_error_periods %}
+                    <button
+                        id="tab-btn-{{ period_info.id_suffix }}"
+                        data-tab-target="#tab-panel-{{ period_info.id_suffix }}"
+                        role="tab"
+                        aria-controls="tab-panel-{{ period_info.id_suffix }}"
+                        aria-selected="{{ 'true' if loop.first else 'false' }}"
+                        {% if loop.first %}data-headlessui-state="selected"{% endif %}
+                        class="tab-button whitespace-nowrap py-3 px-1 sm:px-2 md:px-4 border-b-2 font-medium text-xs sm:text-sm
+                               ui-selected:text-primary ui-selected:border-primary
+                               ui-not-selected:text-gray-500 ui-not-selected:hover:text-gray-700 ui-not-selected:hover:border-gray-300 ui-not-selected:border-transparent
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-75 rounded-t-md"
+                    >
+                        {{ period_info.label }}
+                    </button>
+                    {% endfor %}
+                </nav>
+            </div>
+            <div class="mt-4">
+                {% for period_info in workflow_error_periods %}
+                    {% set period_key = period_info.key %}
+                    {% set panel_id = "tab-panel-" ~ period_info.id_suffix %}
+                    {% set errors = metrics.get('common_workflow_errors', {}).get(period_key, []) %}
+                    <div
+                        id="{{ panel_id }}"
+                        role="tabpanel"
+                        tabindex="0"
+                        aria-labelledby="tab-btn-{{ period_info.id_suffix }}"
+                        class="tab-panel {{ 'hidden' if not loop.first }}"
+                    >
+                        {% if errors %}
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 common-errors-table data-table"> {# Added data-table class #}
+                                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error Message</th>
+                                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th> {# Centered header #}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for error in errors %}
+                                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ error.count|raw_number }}" data-format="integer">{{ error.count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-4">No workflow errors recorded in this period.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block admin_scripts %}
+    {{ super() }}
+    {# The admin.js script should handle tab initialization #}
+{% endblock %}

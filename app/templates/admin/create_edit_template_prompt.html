@@ -1,0 +1,171 @@
+<!-- app/templates/admin/create_edit_template_prompt.html -->
+{# Template for creating or editing template prompts #}
+{% extends "admin/base_admin.html" %}
+
+{% block subtitle %}{{ title | replace('Template Prompt', 'Workflow Template') }}{% endblock %}
+
+{% block admin_head_extra %}
+    {{ super() }}
+    {# Spinner styles are handled by Tailwind utilities on the button if needed via JS #}
+{% endblock %}
+
+{% block admin_content %}
+    <p class="text-sm text-gray-600 mb-6">{{ 'Define the details for the new workflow template.' if 'Create' in title else 'Modify the details for this workflow template.' }}</p>
+
+    <form id="templateWorkflowForm" method="POST" action="" class="space-y-6">
+        {{ form.hidden_tag() }}
+        {% if prompt_id %}
+        <input type="hidden" id="templatePromptId" name="prompt_id" value="{{ prompt_id }}">
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div class="md:col-span-2">
+                <label for="{{ form.title.id }}" class="block text-sm font-medium text-gray-700">{{ form.title.label.text }}</label>
+                {{ form.title(class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.title.errors else ""), required=True, autofocus=True, id=form.title.id) }}
+                {% if form.title.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.title.errors[0] }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.language.id }}" class="block text-sm font-medium text-gray-700">{{ form.language.label.text }}</label>
+                {{ form.language(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm", id=form.language.id) }}
+                {% if form.language.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.language.errors[0] }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Label Color</label>
+            <div class="mt-1 flex items-center space-x-2" id="templateColorOptions">
+                {# Color options will be added by JS #}
+            </div>
+            {% set current_color = template.color if template else form.color.data if form.color.data else '#ffffff' %}
+            {{ form.color(id="templateColor", value=current_color, class="hidden") }}
+            {% if form.color.errors %} {# Added error display for color if any server-side validation occurs #}
+                <p class="mt-2 text-sm text-red-600">{{ form.color.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.prompt_text.id }}" class="block text-sm font-medium text-gray-700">{{ form.prompt_text.label.text }}</label>
+            {{ form.prompt_text(class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.prompt_text.errors else ""), rows="6", required=True, id=form.prompt_text.id) }}
+            {% if form.prompt_text.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.prompt_text.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center space-x-4 pt-4">
+            <button type="button" id="saveTemplateWorkflowBtn"
+                    class="btn-save disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="material-icons left tiny -ml-1 mr-2">save</i>{{ 'Save Workflow Template' if 'Create' in title else 'Save Changes' }}
+            </button>
+            <a href="{{ url_for('admin_panel.manage_template_workflows') }}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                Cancel
+            </a>
+        </div>
+    </form>
+{% endblock %}
+
+{% block admin_scripts %}
+    {{ super() }}
+    {# MODIFIED: Explicitly load admin.js #}
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script>
+        const templatePastelColors = [
+            "#ffffff", "#ffd1dc", "#aec6cf", "#cfffd1", "#fffacd", "#e6e6fa", "#ffb347"
+        ];
+        const templateColorNameMap = window.COLOR_NAME_MAP || {
+            "#ffffff": "Default", "#ffd1dc": "Pink", "#aec6cf": "Blue Grey",
+            "#cfffd1": "Mint Green", "#fffacd": "Lemon", "#e6e6fa": "Lavender",
+            "#ffb347": "Orange"
+        };
+
+        function populateTemplateColorPicker(containerId, hiddenInputId) {
+            const container = document.getElementById(containerId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            if (!container || !hiddenInput) {
+                console.warn("[AdminCreateEditTemplatePromptJS] Color picker container or hidden input not found:", containerId, hiddenInputId);
+                return;
+            }
+
+            container.innerHTML = '';
+
+            templatePastelColors.forEach(color => {
+                const option = document.createElement('div');
+                option.className = 'w-6 h-6 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary';
+                if (color === "#ffffff") {
+                    option.classList.add('border-gray-300');
+                }
+                option.dataset.color = color;
+                option.style.backgroundColor = color;
+                option.setAttribute('title', templateColorNameMap[color] || color);
+                option.setAttribute('role', 'radio'); // ARIA role
+                option.setAttribute('aria-checked', 'false');
+                option.setAttribute('tabindex', '0'); // Make focusable
+
+                option.addEventListener('click', function() {
+                    selectColor(this, container, hiddenInput);
+                });
+                option.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        selectColor(this, container, hiddenInput);
+                    }
+                });
+                container.appendChild(option);
+            });
+
+            const initialColor = hiddenInput.value || '#ffffff';
+            const initialOption = container.querySelector(`div[data-color="${initialColor}"]`);
+            if (initialOption) {
+                selectColor(initialOption, container, hiddenInput); // Select initial color
+            } else {
+                const defaultWhiteOption = container.querySelector('div[data-color="#ffffff"]');
+                if (defaultWhiteOption) {
+                    selectColor(defaultWhiteOption, container, hiddenInput);
+                }
+                hiddenInput.value = '#ffffff';
+            }
+        }
+
+        function selectColor(selectedOption, colorContainer, hiddenInput) {
+            const selectedColor = selectedOption.dataset.color;
+            hiddenInput.value = selectedColor;
+
+            colorContainer.querySelectorAll('div[data-color]').forEach(el => {
+                el.classList.remove('ring-2', 'ring-offset-1', 'ring-primary', 'border-gray-700');
+                el.setAttribute('aria-checked', 'false');
+                if (el.dataset.color === "#ffffff") {
+                    el.classList.add('border-gray-300');
+                }
+            });
+
+            selectedOption.classList.add('ring-2', 'ring-offset-1', 'ring-primary');
+            selectedOption.setAttribute('aria-checked', 'true');
+            if (selectedColor === "#ffffff") {
+                selectedOption.classList.remove('border-gray-300');
+                selectedOption.classList.add('border-gray-700');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTemplateColorPicker('templateColorOptions', 'templateColor');
+
+            const saveBtn = document.getElementById('saveTemplateWorkflowBtn');
+            if (saveBtn) {
+                 saveBtn.addEventListener('click', function() {
+                     // The handleSaveTemplateWorkflow function is expected to be in admin.js
+                     // MODIFIED: Call via window object
+                     if (typeof window.handleSaveTemplateWorkflow === 'function') {
+                         window.handleSaveTemplateWorkflow();
+                     } else {
+                         console.error("window.handleSaveTemplateWorkflow function not found in admin.js");
+                         alert('Error: Save function not available.');
+                     }
+                 });
+             }
+        });
+    </script>
+{% endblock %}

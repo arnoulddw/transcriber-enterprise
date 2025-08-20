@@ -1,0 +1,41 @@
+# ./requirements.txt
+# Python package dependencies
+
+# Core Flask and Web Server
+flask
+gunicorn
+
+# Transcription APIs
+assemblyai
+openai
+google-genai # <<< ADDED
+google-api-core 
+
+# Configuration and Utilities
+python-dotenv
+pydub # For audio manipulation (splitting)
+
+# Multi-User Features & Security
+Flask-Login
+Flask-Bcrypt
+Flask-WTF          # For forms and CSRF protection
+cryptography       # For encrypting API keys
+Flask-Limiter      # For rate limiting
+itsdangerous       # For generating secure timed tokens (password reset)
+google-auth        # For Google ID token verification
+requests           # Dependency for google-auth transport
+cachecontrol       # Dependency for google-auth caching
+
+# Email Sending
+Flask-Mail
+
+# Internationalization
+Flask-Babel
+
+# Database Connector
+mysql-connector-python
+
+# Optional but recommended
+email-validator    # Often needed by Flask-WTF for email validation if using EmailField
+python-json-logger # Optional: For structured JSON logging if desired later
+python-dateutil

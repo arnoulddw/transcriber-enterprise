@@ -1,0 +1,769 @@
+<!-- app/templates/base.html -->
+{# Base template for all user-facing pages. Provides structure, nav, footer, common scripts/styles. #}
+<!DOCTYPE html>
+<html lang="{{ current_language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}{{ _('Transcriber Platform') }}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind_output.css') }}">
+    {# main.css is mostly empty after Tailwind migration, can be removed in Phase 6 if it remains so. #}
+    {# <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"> #}
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-body-bg text-default-text flex flex-col min-h-screen font-sans">
+    {# Notification container for dynamic messages #}
+    <div id="notification-container" class="fixed top-16 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-[100] flex flex-col items-center gap-2.5 pointer-events-none"></div>
+
+    <header>
+        <nav class="bg-primary text-white shadow-md">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        {% block mobile_trigger %}
+                            {% if is_multi_user %}
+                            <button type="button"
+                                    id="mobile-menu-button"
+                                    aria-expanded="false"
+                                    aria-controls="mobile-nav"
+                                    class="-ml-2 mr-2 p-2 rounded-md text-gray-100 hover:text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white lg:hidden flex items-center">
+                                <span class="sr-only">{{ _('Open main menu') }}</span>
+                                <i class="material-icons">menu</i>
+                            </button>
+                            {% endif %}
+                        {% endblock mobile_trigger %}
+                        <a href="{{ url_for('main.index') }}" class="text-xl font-semibold text-white {% block brand_logo_adjust_class %}{% endblock %}">
+                            {{ _('Transcriber Platform') }}
+                        </a>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="hidden lg:flex lg:items-center lg:space-x-4">
+                            {% if is_multi_user %}
+                                {% if current_user.is_authenticated %}
+                                    <div class="relative" id="desktop-user-menu-container">
+                                        <button type="button"
+                                                class="flex items-center text-sm rounded-full text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-dark focus:ring-white p-1 pr-2"
+                                                id="user-menu-button-desktop" aria-expanded="false" aria-haspopup="true">
+                                            <span class="sr-only">{{ _('Open user menu') }}</span>
+                                            <i class="material-icons mr-1">account_circle</i>
+                                            {{ display_name | default(current_user.username) }}
+                                            <i class="material-icons ml-1">arrow_drop_down</i>
+                                        </button>
+                                        <div id="user-dropdown-desktop"
+                                             class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transform opacity-0 scale-95 transition-ease-out duration-100 z-50"
+                                             role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button-desktop" tabindex="-1">
+                                            <div class="py-1" role="none">
+                                                <a href="#!" id="profileSettingsBtn" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">person_outline</i>{{ _('User Settings') }}</a>
+                                                {% if current_user.role and current_user.role.allow_api_key_management %}
+                                                <a href="#!" id="apiKeysBtn" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">vpn_key</i>{{ _('Manage API Keys') }}</a>
+                                                {% endif %}
+                                                {% if user_permissions.allow_workflows %}
+                                                <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">playlist_add_check</i>{{ _('Manage your Workflows') }}</a>
+                                                {% endif %}
+                                                {% set is_admin_user = current_user.role and current_user.role.access_admin_panel %}
+                                                {% if is_admin_user %}
+                                                <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">admin_panel_settings</i>{{ _('Admin Panel') }}</a>
+                                                {% endif %}
+                                                {% if current_user.role and (current_user.role.allow_api_key_management or is_admin_user or user_permissions.allow_workflows) %}
+                                                <div class="border-t border-gray-200 my-1" role="separator"></div>
+                                                {% endif %}
+                                                <a href="{{ url_for('auth.logout') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">exit_to_app</i>{{ _('Logout') }}</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    {% if request.endpoint != 'auth.login' %}
+                                    <a href="{{ url_for('auth.login') }}" class="text-gray-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium">{{ _('Login') }}</a>
+                                    {% endif %}
+                                    {% if request.endpoint != 'auth.register' %}
+                                    <a href="{{ url_for('auth.register') }}" class="text-gray-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium">{{ _('Register') }}</a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        {# Language Picker - visible on mobile for login/register pages #}
+                        {% if not current_user.is_authenticated and request.endpoint in ['auth.login', 'auth.register'] %}
+                        <div class="relative ml-3" id="language-menu-container">
+                            <button type="button"
+                                    class="flex items-center text-sm text-gray-100 hover:text-white px-3 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-dark focus:ring-white"
+                                    id="language-menu-button" aria-expanded="false" aria-haspopup="true">
+                                <i class="material-icons mr-1 text-base">language</i>
+                                {% set lang_map_short = {'en': 'EN', 'es': 'ES', 'fr': 'FR', 'nl': 'NL'} %}
+                                {% set current_lang_code = session.get('language', current_language) %}
+                                <span>{{ lang_map_short.get(current_lang_code, current_lang_code | upper) }}</span>
+                                <i class="material-icons ml-1 text-base">arrow_drop_down</i>
+                            </button>
+                            <div id="language-dropdown"
+                                 class="hidden absolute right-0 mt-2 w-40 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transform opacity-0 scale-95 transition-ease-out duration-100 z-50"
+                                 role="menu" aria-orientation="vertical" aria-labelledby="language-menu-button" tabindex="-1">
+                                <div class="py-1" role="none">
+                                    {% set lang_map_full = {'en': _('English picker'), 'es': _('Español'), 'fr': _('Français'), 'nl': _('Nederlands')} %}
+                                    {% for lang_code in config.SUPPORTED_LANGUAGES %}
+                                        <a href="{{ url_for('main.set_language', lang=lang_code) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">{{ lang_map_full.get(lang_code, lang_code) }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        {% if is_multi_user %}
+        {# Mobile Sidenav - Implemented with Tailwind and Vanilla JS #}
+        <div id="mobile-nav"
+             class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-50 lg:hidden"
+             role="dialog" aria-modal="true" aria-labelledby="mobile-nav-title" aria-hidden="true" tabindex="-1">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+                    <h2 id="mobile-nav-title" class="text-lg font-medium text-gray-800">
+                        {% if current_user.is_authenticated %}{{ display_name | default(current_user.username) }}{% else %}{{ _('Menu') }}{% endif %}
+                    </h2>
+                    <button type="button" id="close-mobile-nav-button" class="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center">
+                        <span class="sr-only">{{ _('Close menu') }}</span>
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+
+                {% if current_user.is_authenticated %}
+                    <nav class="mt-2 space-y-1">
+                        <a href="#!" id="profileSettingsBtnMobile" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-gray-500">person_outline</i>{{ _('User Settings') }}
+                        </a>
+                        {% if current_user.role and current_user.role.allow_api_key_management %}
+                        <a href="#!" id="apiKeysBtnMobile" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-gray-500">vpn_key</i>{{ _('Manage API Keys') }}
+                        </a>
+                        {% endif %}
+                        {% if user_permissions.allow_workflows %}
+                        <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-gray-500">playlist_add_check</i>{{ _('Manage your Workflows') }}
+                        </a>
+                        {% endif %}
+                        {% set is_admin_user = current_user.role and current_user.role.access_admin_panel %}
+                        {% if is_admin_user %}
+                        <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-gray-500">admin_panel_settings</i>{{ _('Admin Panel') }}
+                        </a>
+                        {% endif %}
+                        <div class="border-t border-gray-200 my-2"></div>
+                        <a href="{{ url_for('auth.logout') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-gray-500">exit_to_app</i>{{ _('Logout') }}
+                        </a>
+                    </nav>
+                {% else %}
+                    <nav class="mt-2 space-y-1">
+                        {% if request.endpoint != 'auth.login' %}
+                        <a href="{{ url_for('auth.login') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">{{ _('Login') }}</a>
+                        {% endif %}
+                        {% if request.endpoint != 'auth.register' %}
+                        <a href="{{ url_for('auth.register') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">{{ _('Register') }}</a>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+        <div id="sidenav-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-40 lg:hidden transition-opacity duration-300 ease-in-out opacity-0"></div>
+        {% endif %}
+    </header>
+
+    <main class="flex-grow pt-5 pb-10">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mx-auto sm:px-6 lg:px-8">
+                    {% for category, message in messages %}
+                        {% set category_color_map = {
+                            'danger': 'bg-alert-error text-white',
+                            'success': 'bg-alert-success text-white',
+                            'warning': 'bg-alert-warning text-gray-800',
+                            'info': 'bg-alert-info text-white'
+                        } %}
+                        {% set icon_map = {
+                            'danger': 'error_outline',
+                            'success': 'check_circle_outline',
+                            'warning': 'warning_amber',
+                            'info': 'info_outline'
+                        } %}
+                        <div class="flash-message-box {{ category_color_map.get(category, 'bg-alert-info text-white') }} p-3 rounded-md my-4 flex items-center shadow" role="alert">
+                             <i class="material-icons mr-2">{{ icon_map.get(category, 'info_outline') }}</i>
+                            <span>{{ _(message) }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="container mx-auto sm:px-6 lg:px-8">
+            {% block content %}{% endblock %}
+        </div>
+
+        {# API Key Modal - Implemented with Tailwind and Vanilla JS #}
+        {% if is_multi_user and current_user.role and current_user.role.allow_api_key_management %}
+        <div id="apiKeyModal"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 ease-in-out opacity-0"
+             role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle" aria-hidden="true">
+            <div id="apiKeyModalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity duration-300 ease-in-out opacity-0"></div>
+            <div id="apiKeyModalPanel"
+                 class="relative bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg sm:w-full
+                        max-h-[90vh] flex flex-col
+                        opacity-0 scale-95 duration-300 ease-out">
+                <div class="flex items-start justify-between p-4 border-b border-gray-200 rounded-t">
+                    <h3 id="apiKeyModalTitle" class="text-xl font-semibold text-gray-900">
+                        {{ _('Manage API Keys') }}
+                    </h3>
+                    <button type="button" id="apiKeyModalCloseButtonHeader"
+                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                            aria-label="Close modal">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6 overflow-y-auto">
+                    <p class="text-sm text-gray-600">
+                        {{ _('Enter your personal API keys for the transcription and workflow services. These keys are stored securely and used only for your transcription requests.') }}
+                        {{ _('You can get your keys here:') }}
+                        <ul class="list-disc list-inside ml-4 mt-1 space-y-1">
+                            <li><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">OpenAI</a></li>
+                            <li><a href="https://www.assemblyai.com/dashboard/signup" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">AssemblyAI</a></li>
+                            <li><a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Google</a></li>
+                        </ul>
+                    </p>
+                    <form id="apiKeyForm" class="space-y-4">
+                        <div>
+                            <label for="apiKeyServiceSelect" class="block text-sm font-medium text-gray-700">{{ _('API Service') }}</label>
+                            <select id="apiKeyServiceSelect" name="service" class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                <option value="" disabled selected>{{ _('Choose service') }}</option>
+                                <option value="openai">{{ _('OpenAI (Whisper/GPT-4o)') }}</option>
+                                <option value="assemblyai">{{ _('AssemblyAI') }}</option>
+                                <option value="gemini">{{ _('Google (Gemini)') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="apiKeyInput" class="block text-sm font-medium text-gray-700">{{ _('API Key') }}</label>
+                            <input id="apiKeyInput" type="password" name="api_key" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" autocomplete="off">
+                        </div>
+                        <button class="btn-save" type="submit">
+                            {{ _('Save Key') }} <i class="material-icons text-base ml-2">save</i>
+                        </button>
+                    </form>
+                    <div class="border-b border-gray-200 my-6"></div>
+                    <h5 class="text-lg font-medium text-gray-900 mb-3">{{ _('Configured Keys') }}</h5>
+                    <ul class="divide-y divide-gray-200">
+                        {% if user_permissions.use_api_openai_whisper or user_permissions.use_api_openai_gpt_4o_transcribe %}
+                        <li class="py-3 flex justify-between items-center">
+                            <span class="text-sm text-gray-700">{{ _('OpenAI (Whisper/GPT-4o)') }}</span>
+                            <div class="flex items-center">
+                                <span id="openaiKeyStatus" class="text-sm text-gray-500 mr-3">{{ _('Checking...') }}</span>
+                                <span id="openaiKeyActions"></span>
+                            </div>
+                        </li>
+                        {% endif %}
+                        {% if user_permissions.use_api_assemblyai %}
+                        <li class="py-3 flex justify-between items-center">
+                            <span class="text-sm text-gray-700">{{ _('AssemblyAI') }}</span>
+                            <div class="flex items-center">
+                                <span id="assemblyaiKeyStatus" class="text-sm text-gray-500 mr-3">{{ _('Checking...') }}</span>
+                                <span id="assemblyaiKeyActions"></span>
+                            </div>
+                        </li>
+                        {% endif %}
+                        {% if user_permissions.use_api_google_gemini %}
+                        <li class="py-3 flex justify-between items-center">
+                            <span class="text-sm text-gray-700">{{ _('Google (Gemini)') }}</span>
+                            <div class="flex items-center">
+                                <span id="geminiKeyStatus" class="text-sm text-gray-500 mr-3">{{ _('Checking...') }}</span>
+                                <span id="geminiKeyActions"></span>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="flex items-center justify-end p-4 space-x-2 border-t border-gray-200 rounded-b">
+                    <button type="button" id="apiKeyModalCloseButtonFooter"
+                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                        {{ _('Close') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# User Settings Modal (Profile Modal) - Implemented with Tailwind and Vanilla JS #}
+        {% if is_multi_user and current_user.is_authenticated %}
+        <div id="profileModal"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 ease-in-out opacity-0"
+             role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" aria-hidden="true">
+            <div id="profileModalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity duration-300 ease-in-out opacity-0"></div>
+            <div id="profileModalPanel"
+                 class="relative bg-white rounded-lg shadow-xl transform transition-all sm:max-w-2xl sm:w-full
+                        max-h-[90vh] flex flex-col
+                        opacity-0 scale-95 duration-300 ease-out">
+                <div class="flex items-start justify-between p-4 border-b border-gray-200 rounded-t">
+                    <h3 id="profileModalTitle" class="text-xl font-semibold text-gray-900">
+                        {{ _('User Settings') }}
+                    </h3>
+                    <button type="button" id="profileModalCloseButtonHeader"
+                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                            aria-label="Close modal">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6 overflow-y-auto">
+                    <form id="profileForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="profileUsername" class="block text-sm font-medium text-gray-700">{{ _('Username') }}</label>
+                                <input id="profileUsername" type="text" name="username" value="{{ current_user.username }}"
+                                       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                <span id="profileUsernameError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                            <div>
+                                <label for="profileEmail" class="block text-sm font-medium text-gray-700">{{ _('Email') }}</label>
+                                <input id="profileEmail" type="email" name="email" value="{{ current_user.email }}"
+                                       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                <span id="profileEmailError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                            <div>
+                                <label for="profileFirstName" class="block text-sm font-medium text-gray-700">{{ _('First Name') }}</label>
+                                <input id="profileFirstName" type="text" name="first_name" value="{{ current_user.first_name or '' }}"
+                                       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="profileLastName" class="block text-sm font-medium text-gray-700">{{ _('Last Name') }}</label>
+                                <input id="profileLastName" type="text" name="last_name" value="{{ current_user.last_name or '' }}"
+                                       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1">
+                            <div>
+                                <label for="profileLanguage" class="block text-sm font-medium text-gray-700">{{ _('Interface Language') }}</label>
+                                <select id="profileLanguage" name="language"
+                                        class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                    {# Options populated by JS #}
+                                </select>
+                                <span id="profileLanguageError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                        </div>
+                        <div class="pt-4">
+                            <h5 class="text-md font-medium text-gray-800 mb-3">{{ _('Preferences') }}</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="profileDefaultLanguage" class="block text-sm font-medium text-gray-700">{{ _('Default Transcription Language') }}</label>
+                                    <select id="profileDefaultLanguage" name="default_content_language"
+                                            class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="profileDefaultModel" class="block text-sm font-medium text-gray-700">{{ _('Default Transcription Model') }}</label>
+                                    <select id="profileDefaultModel" name="default_transcription_model"
+                                            class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                 <label class="flex items-center">
+                                    <input type="checkbox" id="enable_auto_title_generation" name="enable_auto_title_generation"
+                                           class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                                           {% if current_user.enable_auto_title_generation %}checked{% endif %}
+                                           {% if not user_permissions.allow_auto_title_generation %}disabled{% endif %}/>
+                                    <span class="ml-2 text-sm text-gray-700">{{ _('Automatically Generate Titles for Transcriptions') }}</span>
+                                </label>
+                                {% if not user_permissions.allow_auto_title_generation %}
+                                <p class="text-xs text-gray-500 ml-6">{{ _('This feature is not enabled for your account role.') }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-center pt-4">
+                            <button id="saveProfileBtn" type="submit"
+                                    class="btn-save">
+                                {{ _('Save Changes') }} <i class="material-icons text-base ml-2">save</i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="border-t border-gray-200 my-6"></div>
+                    <button id="changePasswordToggleBtn"
+                            class="w-full flex items-center justify-between py-2 text-sm font-medium text-primary hover:text-primary-dark focus:outline-none">
+                        <span class="flex items-center"><i class="material-icons tiny align-middle mr-1">lock_reset</i>{{ _('Change Password') }}</span>
+                        <i class="material-icons text-gray-500" id="passwordToggleIconDisplay">expand_more</i>
+                    </button>
+                    <div id="changePasswordSection" class="hidden mt-4 space-y-4">
+                        <form id="changePasswordForm" class="space-y-4">
+                            <input type="hidden" name="username" value="{{ current_user.username }}" autocomplete="username">
+                            <div>
+                                <label for="currentPassword" class="block text-sm font-medium text-gray-700">{{ _('Current Password') }}</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input id="currentPassword" type="password" name="current_password"
+                                           class="form-input block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm pr-10" autocomplete="current-password">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <i class="material-icons cursor-pointer text-gray-400 hover:text-gray-600" id="toggleCurrentPassword">visibility</i>
+                                    </div>
+                                </div>
+                                <span id="currentPasswordError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                            <div>
+                                <label for="newPassword" class="block text-sm font-medium text-gray-700">{{ _('New Password') }}</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input id="newPassword" type="password" name="new_password"
+                                           class="form-input block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm pr-10" autocomplete="new-password">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <i class="material-icons cursor-pointer text-gray-400 hover:text-gray-600" id="toggleNewPassword">visibility</i>
+                                    </div>
+                                </div>
+                                <span id="newPasswordError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                            <div>
+                                <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">{{ _('Confirm New Password') }}</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input id="confirmNewPassword" type="password" name="confirm_new_password"
+                                           class="form-input block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm pr-10" autocomplete="new-password">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <i class="material-icons cursor-pointer text-gray-400 hover:text-gray-600" id="toggleConfirmNewPassword">visibility</i>
+                                    </div>
+                                </div>
+                                <span id="confirmNewPasswordError" class="text-xs text-red-600 mt-1"></span>
+                            </div>
+                            <div class="text-center pt-2">
+                                <button id="submitPasswordChangeBtn" type="submit"
+                                        class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400">
+                                    {{ _('Update Password') }} <i class="material-icons text-base ml-2">lock_reset</i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end p-4 space-x-2 border-t border-gray-200 rounded-b">
+                    <button type="button" id="profileModalCloseButtonFooter"
+                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                        {{ _('Cancel') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Workflow Modal - Implemented with Tailwind and Vanilla JS #}
+        <div id="workflowModal"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 ease-in-out opacity-0"
+             role="dialog" aria-modal="true" aria-labelledby="workflowModalTitle" aria-hidden="true">
+            <div id="workflowModalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity duration-300 ease-in-out opacity-0"></div>
+            <div id="workflowModalPanel"
+                 class="relative bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg sm:w-full
+                        max-h-[90vh] flex flex-col
+                        opacity-0 scale-95 duration-300 ease-out">
+                <div class="flex items-start justify-between p-4 border-b border-gray-200 rounded-t">
+                    <h3 id="workflowModalTitle" class="text-xl font-semibold text-gray-900">
+                        {{ _('Run Workflow') }}
+                    </h3>
+                    <button type="button" id="workflowModalCloseButtonHeader"
+                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
+                            aria-label="Close modal">
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6 overflow-y-auto">
+                    <div>
+                        <p class="text-sm text-gray-600">{{ _('Apply AI analysis to the selected transcript using the workflow prompt below.') }}</p>
+                        <p class="text-sm text-gray-600 mt-2">
+                            {{ _('You can manage your workflows') }} <a href="{{ url_for('main.manage_prompts') }}" class="text-primary hover:underline">{{ _('here') }}</a>.
+                        </p>
+                    </div>
+                    <div>
+                        <select id="workflowPromptSelect"
+                                class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                            <option value="" selected>{{ _('Select a Workflow or Enter a Custom Prompt Below') }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="workflowPromptInput" class="block text-sm font-medium text-gray-700">{{ _('Custom Workflow Prompt') }}</label>
+                        <textarea id="workflowPromptInput" rows="4"
+                                  class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                  placeholder="{{ _('Enter your custom workflow prompt here (max 120 words)...') }}"></textarea>
+                        <p id="workflowPromptWordCount" class="mt-1 text-xs text-gray-500 text-right">0/120 {{ _('words') }}</p>
+                    </div>
+                    <input type="hidden" id="workflowTranscriptionId">
+                    <input type="hidden" id="workflowOperationId">
+                </div>
+                <div class="flex items-center justify-end p-4 space-x-2 border-t border-gray-200 rounded-b">
+                     <button type="button" id="workflowModalCloseButtonFooter"
+                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                        {{ _('Cancel') }}
+                    </button>
+                    <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                            type="button" id="submitWorkflowBtn" disabled>
+                        {{ _('Submit Workflow') }} <i class="material-icons text-base ml-2">send</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-200 text-gray-700 text-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="text-center">
+                {{ _('Transcriber Platform App') }} - © {{ now.year }}
+            </div>
+        </div>
+    </footer>
+
+    {# Removed Materialize JS Script #}
+    {# <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script> #}
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global variables available to other JS files
+            window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            window.IS_MULTI_USER = JSON.parse('{{ is_multi_user|default(false)|tojson|safe }}');
+            window.USER_PERMISSIONS = JSON.parse('{{ user_permissions|tojson|safe }}');
+            window.API_KEY_STATUS = JSON.parse('{{ initial_key_status|default({})|tojson|safe }}');
+            try {
+                window.SUPPORTED_LANGUAGE_MAP = JSON.parse('{{ supported_languages|tojson|safe }}');
+            } catch (e) { window.SUPPORTED_LANGUAGE_MAP = {}; console.error("Error parsing supported_languages map:", e); }
+            try {
+                window.SUPPORTED_LANGUAGES = JSON.parse('{{ SUPPORTED_UI_LANGS_CONFIG|tojson|safe }}');
+            } catch (e) { window.SUPPORTED_LANGUAGES = []; console.error("Error parsing supported_ui_languages list:", e); }
+            try {
+                window.COLOR_NAME_MAP = JSON.parse('{{ COLOR_NAME_MAP|tojson|safe }}');
+            } catch (e) { window.COLOR_NAME_MAP = {}; console.error("Error parsing color_name_map:", e); }
+            try {
+                window.API_NAME_MAP_FRONTEND = JSON.parse('{{ API_NAME_MAP_FRONTEND|tojson|safe }}');
+            } catch (e) { window.API_NAME_MAP_FRONTEND = {}; console.error("Error parsing api_name_map_frontend:", e); }
+            window.APP_DEBUG_MODE = JSON.parse('{{ app_debug | tojson }}');
+            window.CURRENT_UI_LANGUAGE = '{{ current_language }}';
+            window.i18n = {
+                readMore: "{{ _(' Read More') }}",
+                readLess: "{{ _(' Read Less') }}",
+                yourSavedWorkflows: "{{ _('Your Saved Workflows') }}",
+                systemDefined: "{{ _('System defined - ') }}",
+                startWorkflow: "{{ _('Start Workflow') }}",
+                workflowResult: "{{ _('Workflow Result') }}",
+                workflowError: "{{ _('Workflow Error') }}"
+            };
+            console.log("Application Debug Mode (Tailwind):", window.APP_DEBUG_MODE);
+
+            // Mobile Sidenav Logic (Vanilla JS)
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileNav = document.getElementById('mobile-nav');
+            const closeMobileNavButton = document.getElementById('close-mobile-nav-button');
+            const sidenavOverlay = document.getElementById('sidenav-overlay');
+            let firstFocusableElementMobile, lastFocusableElementMobile;
+
+            function getFocusableElementsMobile() {
+                if (!mobileNav) return [];
+                const focusable = Array.from(
+                    mobileNav.querySelectorAll(
+                        'a[href]:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), details:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )
+                ).filter(el => !el.hasAttribute('disabled') && !el.closest('.hidden'));
+                firstFocusableElementMobile = focusable[0];
+                lastFocusableElementMobile = focusable[focusable.length - 1];
+                return focusable;
+            }
+
+            function openMobileNav() {
+                if (!mobileNav || !sidenavOverlay || !mobileMenuButton) return;
+                mobileNav.classList.remove('-translate-x-full');
+                mobileNav.setAttribute('aria-hidden', 'false');
+                mobileMenuButton.setAttribute('aria-expanded', 'true');
+                sidenavOverlay.classList.remove('hidden', 'opacity-0');
+                sidenavOverlay.classList.add('opacity-100');
+                document.body.style.overflow = 'hidden';
+                getFocusableElementsMobile();
+                if (firstFocusableElementMobile) {
+                    firstFocusableElementMobile.focus();
+                } else {
+                    mobileNav.focus();
+                }
+            }
+
+            function closeMobileNav() {
+                if (!mobileNav || !sidenavOverlay || !mobileMenuButton) return;
+                mobileNav.classList.add('-translate-x-full');
+                mobileNav.setAttribute('aria-hidden', 'true');
+                mobileMenuButton.setAttribute('aria-expanded', 'false');
+                sidenavOverlay.classList.remove('opacity-100');
+                sidenavOverlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    sidenavOverlay.classList.add('hidden');
+                }, 300); // Match transition duration
+                document.body.style.overflow = '';
+                mobileMenuButton.focus();
+            }
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const isHidden = mobileNav.classList.contains('-translate-x-full');
+                    if (isHidden) {
+                        openMobileNav();
+                    } else {
+                        closeMobileNav();
+                    }
+                });
+            }
+            if (closeMobileNavButton) {
+                closeMobileNavButton.addEventListener('click', closeMobileNav);
+            }
+            if (sidenavOverlay) {
+                sidenavOverlay.addEventListener('click', closeMobileNav);
+            }
+
+            // Keyboard navigation for mobile sidenav
+            document.addEventListener('keydown', function(event) {
+                if (mobileNav && !mobileNav.classList.contains('-translate-x-full')) { // Only if mobile nav is open
+                    if (event.key === 'Escape') {
+                        closeMobileNav();
+                    }
+                    // Basic focus trap for Tab key
+                    if (event.key === 'Tab') {
+                        if (!firstFocusableElementMobile || !lastFocusableElementMobile) {
+                            getFocusableElementsMobile(); // Ensure they are calculated
+                        }
+                        if (event.shiftKey) { // Shift + Tab
+                            if (document.activeElement === firstFocusableElementMobile) {
+                                lastFocusableElementMobile.focus();
+                                event.preventDefault();
+                            }
+                        } else { // Tab
+                            if (document.activeElement === lastFocusableElementMobile) {
+                                firstFocusableElementMobile.focus();
+                                event.preventDefault();
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Desktop User Dropdown Logic (Vanilla JS)
+            const userMenuButtonDesktop = document.getElementById('user-menu-button-desktop');
+            const userDropdownDesktop = document.getElementById('user-dropdown-desktop');
+
+            if (userMenuButtonDesktop && userDropdownDesktop) {
+                userMenuButtonDesktop.addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent click from bubbling to document
+                    const isExpanded = userMenuButtonDesktop.getAttribute('aria-expanded') === 'true';
+                    userMenuButtonDesktop.setAttribute('aria-expanded', String(!isExpanded));
+                    
+                    // Toggle visibility and animation classes
+                    if (userDropdownDesktop.classList.contains('hidden')) {
+                        userDropdownDesktop.classList.remove('hidden');
+                        void userDropdownDesktop.offsetWidth; // Force reflow for transition
+                        userDropdownDesktop.classList.remove('opacity-0', 'scale-95');
+                        userDropdownDesktop.classList.add('opacity-100', 'scale-100');
+                    } else {
+                        userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                        userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            userDropdownDesktop.classList.add('hidden');
+                        }, 100); // Match transition duration
+                    }
+                });
+
+                // Close dropdown if clicked outside
+                document.addEventListener('click', function(event) {
+                    if (userDropdownDesktop && !userDropdownDesktop.classList.contains('hidden')) {
+                        if (!userMenuButtonDesktop.contains(event.target) && !userDropdownDesktop.contains(event.target)) {
+                            userMenuButtonDesktop.setAttribute('aria-expanded', 'false');
+                            userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                            userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                            setTimeout(() => {
+                                userDropdownDesktop.classList.add('hidden');
+                            }, 100);
+                        }
+                    }
+                });
+
+                // Close dropdown with Escape key
+                userDropdownDesktop.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape' && !userDropdownDesktop.classList.contains('hidden')) {
+                        userMenuButtonDesktop.setAttribute('aria-expanded', 'false');
+                        userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                        userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            userDropdownDesktop.classList.add('hidden');
+                        }, 100);
+                        userMenuButtonDesktop.focus(); // Return focus to the button
+                    }
+                });
+            }
+
+            // Language Dropdown Logic
+            const langMenuButton = document.getElementById('language-menu-button');
+            const langDropdown = document.getElementById('language-dropdown');
+
+            if (langMenuButton && langDropdown) {
+                langMenuButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    const isExpanded = langMenuButton.getAttribute('aria-expanded') === 'true';
+                    langMenuButton.setAttribute('aria-expanded', String(!isExpanded));
+                    
+                    if (langDropdown.classList.contains('hidden')) {
+                        langDropdown.classList.remove('hidden');
+                        void langDropdown.offsetWidth;
+                        langDropdown.classList.remove('opacity-0', 'scale-95');
+                        langDropdown.classList.add('opacity-100', 'scale-100');
+                    } else {
+                        langDropdown.classList.remove('opacity-100', 'scale-100');
+                        langDropdown.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            langDropdown.classList.add('hidden');
+                        }, 100);
+                    }
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (langDropdown && !langDropdown.classList.contains('hidden')) {
+                        if (!langMenuButton.contains(event.target) && !langDropdown.contains(event.target)) {
+                            langMenuButton.setAttribute('aria-expanded', 'false');
+                            langDropdown.classList.remove('opacity-100', 'scale-100');
+                            langDropdown.classList.add('opacity-0', 'scale-95');
+                            setTimeout(() => {
+                                langDropdown.classList.add('hidden');
+                            }, 100);
+                        }
+                    }
+                });
+
+                langDropdown.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape' && !langDropdown.classList.contains('hidden')) {
+                        langMenuButton.setAttribute('aria-expanded', 'false');
+                        langDropdown.classList.remove('opacity-100', 'scale-100');
+                        langDropdown.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            langDropdown.classList.add('hidden');
+                        }, 100);
+                        langMenuButton.focus();
+                    }
+                });
+            }
+        });
+    </script>
+    </script>
+
+    {% block scripts %}
+        {# Common scripts loaded after DOMContentLoaded and global vars setup #}
+        <script src="{{ url_for('static', filename='js/localization.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main_utils.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main_init.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main_actions.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/history.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main_poll.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/workflow_modal.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/workflow_polling.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/workflow_results.js') }}"></script>
+        {% block page_scripts %}{% endblock %}
+        {% block admin_scripts %}{% endblock %}
+        {% if is_multi_user %}
+            {% if current_user.is_authenticated and current_user.role and current_user.role.allow_api_key_management %}
+                <script src="{{ url_for('static', filename='js/user_settings.js') }}"></script>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+                <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+            {% endif %}
+        {% endif %}
+    {% endblock %}
+</body>
+</html>

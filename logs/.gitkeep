@@ -1,0 +1,4 @@
+# ./logs/.gitkeep
+# This file ensures the 'logs' directory is tracked by Git, even when empty.
+# Application log files (e.g., app.log) will be created here at runtime
+# and should typically be added to .gitignore.

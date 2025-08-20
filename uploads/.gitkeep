@@ -1,0 +1,4 @@
+# ./uploads/.gitkeep
+# This file ensures the 'uploads' directory is tracked by Git, even when empty.
+# Temporary audio files uploaded by users will be stored here during processing
+# and should typically be added to .gitignore.

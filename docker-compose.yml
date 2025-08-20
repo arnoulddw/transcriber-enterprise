@@ -1,0 +1,114 @@
+# ./docker-compose.yml
+# Defines Docker services, networks, and volumes for easy deployment
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: transcriber-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306" # Expose MySQL to host on MYSQL_HOST_PORT (default 3307)
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  transcriber-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transcriber-platform
+    ports:
+      - "${APP_PORT:-5004}:5004" # Expose app on APP_PORT (default 5004)
+    volumes:
+      - ./app:/app/app
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - ./runtime:/app/runtime
+    env_file:
+      - .env # Load variables from .env file
+    environment:
+      # --- Core App Settings ---
+      SECRET_KEY: ${SECRET_KEY} # CRITICAL: Must be set in .env
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-multi}
+      TZ: ${TZ:-UTC}
+
+      # --- API Keys (Global Fallbacks / Single-User Mode) ---
+      ASSEMBLYAI_API_KEY: ${ASSEMBLYAI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+
+      # --- Provider Configuration ---
+      DEFAULT_TRANSCRIPTION_PROVIDER: ${DEFAULT_TRANSCRIPTION_PROVIDER:-gpt-4o-transcribe}
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-gemini}
+
+      # --- Transcription Language Settings ---
+      DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-auto}
+      SUPPORTED_LANGUAGE_CODES: ${SUPPORTED_LANGUAGE_CODES:-en,nl,fr,es}
+
+      # --- Database (MySQL Configuration) ---
+      MYSQL_HOST: mysql # Service name defined above
+      MYSQL_PORT: 3306 # Internal port for MySQL service
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_POOL_SIZE: ${MYSQL_POOL_SIZE:-10}
+
+      # --- File Storage & Cleanup ---
+      DELETE_THRESHOLD: ${DELETE_THRESHOLD:-86400} # 24 hours in seconds
+
+      # --- Logging ---
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # --- Runtime State / Markers ---
+      # TASK_LOCK_FILE is defined in config.py using RUNTIME_DIR, no need to set here if using defaults
+
+      # --- Security Settings ---
+      BCRYPT_LOG_ROUNDS: ${BCRYPT_LOG_ROUNDS:-12}
+      RATELIMIT_DEFAULT: ${RATELIMIT_DEFAULT:-200 per day;50 per hour}
+
+      # --- Admin User Credentials (for initial setup) ---
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password} # WARNING: default for first-time Docker install; override in production # CRITICAL: Must be set in .env
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+
+      # --- Email Configuration ---
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USE_TLS: ${MAIL_USE_TLS:-true}
+      MAIL_USE_SSL: ${MAIL_USE_SSL:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_DEFAULT_SENDER: ${MAIL_DEFAULT_SENDER}
+      MAIL_DEBUG: ${MAIL_DEBUG:-false}
+
+      # --- OAuth Configuration ---
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+
+      # --- Data Retention Configuration ---
+      PHYSICAL_DELETION_DAYS: ${PHYSICAL_DELETION_DAYS:-120}
+
+      # --- Workflow Configuration ---
+      WORKFLOW_LLM_PROVIDER: ${WORKFLOW_LLM_PROVIDER:-gemini-2.0-flash}
+      WORKFLOW_MAX_OUTPUT_TOKENS: ${WORKFLOW_MAX_OUTPUT_TOKENS:-1024}
+      WORKFLOW_RATE_LIMIT: ${WORKFLOW_RATE_LIMIT:-10 per hour}
+
+      # --- Transcription Performance ---
+      TRANSCRIPTION_WORKERS: ${TRANSCRIPTION_WORKERS:-4}
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql_data: # Persist MySQL data

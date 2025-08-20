@@ -1,0 +1,844 @@
+# French translations for Transcriber.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the Transcriber
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-08-12 16:58+0200\n"
+"PO-Revision-Date: 2025-06-09 15:30+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app/__init__.py:341
+msgid "Service temporarily unavailable. Initialization in progress."
+msgstr "Service temporairement indisponible. Initialisation en cours."
+
+#: app/__init__.py:352 app/__init__.py:485
+msgid "Authentication required."
+msgstr "Authentification requise."
+
+#: app/__init__.py:355
+msgid "Please log in to access this page."
+msgstr "Veuillez vous connecter pour accéder à cette page."
+
+#: app/__init__.py:457
+msgid "Not Found"
+msgstr "Non trouvé"
+
+#: app/__init__.py:470 app/templates/errors/500.html:5
+msgid "Internal Server Error"
+msgstr "Erreur interne du serveur"
+
+#: app/__init__.py:477 app/templates/errors/403.html:5
+msgid "Forbidden"
+msgstr "Accès interdit"
+
+#: app/__init__.py:478
+msgid "You do not have permission to access this page."
+msgstr "Vous n'avez pas l'autorisation d'accéder à cette page."
+
+#: app/__init__.py:485
+msgid "Unauthorized"
+msgstr "Non autorisé"
+
+#: app/__init__.py:486
+msgid "Authentication required to access this page."
+msgstr "Authentification requise pour accéder à cette page."
+
+#: app/__init__.py:495
+#, python-format
+msgid "Too many requests: %(description)s. Please try again later."
+msgstr "Trop de requêtes : %(description)s. Veuillez réessayer plus tard."
+
+#: app/__init__.py:509
+#, python-format
+msgid "File is too large. The maximum allowed file size is %(size)sMB."
+msgstr "Le fichier est trop volumineux. La taille maximale autorisée est de %(size)s Mo."
+
+#: app/config.py:77
+msgid "Automatic Detection"
+msgstr "Détection automatique"
+
+#: app/config.py:78
+msgid "English"
+msgstr "Anglais"
+
+#: app/config.py:79
+msgid "Dutch"
+msgstr "Néerlandais"
+
+#: app/config.py:80
+msgid "French"
+msgstr "Français"
+
+#: app/config.py:81
+msgid "Spanish"
+msgstr "Espagnol"
+
+#: app/api/auth.py:101
+msgid "Invalid username or password."
+msgstr "Nom d'utilisateur ou mot de passe incorrect."
+
+#: app/api/auth.py:107
+msgid "An unexpected error occurred during login. Please try again."
+msgstr ""
+"Une erreur inattendue s'est produite lors de la connexion. Veuillez "
+"réessayer."
+
+#: app/api/auth.py:120
+msgid "User registration is disabled in single-user mode."
+msgstr "L'inscription des utilisateurs est désactivée en mode mono-utilisateur."
+
+#: app/api/auth.py:151
+#, python-format
+msgid "Account created for %(username)s! You can now log in."
+msgstr "Compte créé pour %(username)s ! Vous pouvez maintenant vous connecter."
+
+#: app/api/auth.py:155
+msgid "Registration failed. Please try again."
+msgstr "L'inscription a échoué. Veuillez réessayer."
+
+#: app/api/auth.py:164
+msgid "An unexpected error occurred during registration. Please try again."
+msgstr ""
+"Une erreur inattendue s'est produite lors de l'inscription. Veuillez "
+"réessayer."
+
+#: app/api/auth.py:180
+msgid "You have been logged out successfully."
+msgstr "Vous avez été déconnecté avec succès."
+
+#: app/api/auth.py:216
+msgid ""
+"If an account with that email exists, a password reset link has been "
+"sent. Please check your inbox and spam folder if you don't see it within "
+"a few minutes."
+msgstr ""
+"Si un compte avec cette adresse e-mail existe, un lien de "
+"réinitialisation du mot de passe a été envoyé. Veuillez vérifier votre "
+"boîte de réception et votre dossier de courrier indésirable si vous ne le"
+" voyez pas dans quelques minutes."
+
+#: app/api/auth.py:221
+msgid "An error occurred while processing your request. Please try again."
+msgstr ""
+"Une erreur s'est produite lors du traitement de votre demande. Veuillez "
+"réessayer."
+
+#: app/api/auth.py:241
+msgid "The password reset link is invalid or has expired."
+msgstr "Le lien de réinitialisation du mot de passe est invalide ou a expiré."
+
+#: app/api/auth.py:254
+msgid "Your password has been reset successfully. You can now log in."
+msgstr ""
+"Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant"
+" vous connecter."
+
+#: app/api/auth.py:258
+msgid "Password reset failed. Please try again."
+msgstr "La réinitialisation du mot de passe a échoué. Veuillez réessayer."
+
+#: app/api/auth.py:261
+msgid "An error occurred while resetting your password. Please try again."
+msgstr ""
+"Une erreur s'est produite lors de la réinitialisation de votre mot de "
+"passe. Veuillez réessayer."
+
+#: app/api/auth.py:280
+msgid "Already logged in."
+msgstr "Déjà connecté."
+
+#: app/api/auth.py:285
+msgid "Google Sign-In is not configured on the server."
+msgstr "La connexion via Google n'est pas configurée sur le serveur."
+
+#: app/api/auth.py:291
+msgid "Invalid request payload."
+msgstr "Charge utile de la requête invalide."
+
+#: app/api/auth.py:300
+msgid "Invalid Google token."
+msgstr "Jeton Google invalide."
+
+#: app/api/auth.py:306
+msgid "Failed to process Google Sign-In."
+msgstr "Échec du traitement de la connexion via Google."
+
+#: app/api/auth.py:335
+msgid "Login successful."
+msgstr "Connexion réussie."
+
+#: app/api/auth.py:342
+msgid "An unexpected server error occurred."
+msgstr "Une erreur de serveur inattendue s'est produite."
+
+#: app/api/user_settings.py:90
+msgid "Failed to retrieve user readiness status."
+msgstr "Échec de la récupération du statut de l'utilisateur."
+
+#: app/api/user_settings.py:110
+msgid "Failed to retrieve API key status."
+msgstr "Échec de la récupération du statut de la clé API."
+
+#: app/api/user_settings.py:130
+#, python-format
+msgid "API key for %(service)s saved successfully."
+msgstr "Clé API pour %(service)s enregistrée avec succès."
+
+#: app/api/user_settings.py:137
+msgid "An unexpected error occurred while saving the API key."
+msgstr ""
+"Une erreur inattendue s'est produite lors de l'enregistrement de la clé "
+"API."
+
+#: app/api/user_settings.py:141 app/api/user_settings.py:236
+#: app/api/user_settings.py:274
+msgid "Validation failed"
+msgstr "La validation a échoué"
+
+#: app/api/user_settings.py:156
+msgid "Invalid service specified in URL."
+msgstr "Service invalide spécifié dans l'URL."
+
+#: app/api/user_settings.py:162
+#, python-format
+msgid "API key for %(service)s deleted successfully."
+msgstr "Clé API pour %(service)s supprimée avec succès."
+
+#: app/api/user_settings.py:172
+msgid "An unexpected error occurred while deleting the API key."
+msgstr "Une erreur inattendue s'est produite lors de la suppression de la clé API."
+
+#: app/api/user_settings.py:199
+msgid "Failed to retrieve profile data."
+msgstr "Échec de la récupération des données du profil."
+
+#: app/api/user_settings.py:219
+msgid "Profile updated successfully."
+msgstr "Profil mis à jour avec succès."
+
+#: app/api/user_settings.py:232
+msgid "An unexpected error occurred while updating the profile."
+msgstr "Une erreur inattendue s'est produite lors de la mise à jour du profil."
+
+#: app/api/user_settings.py:249
+msgid "Password change is not available for accounts signed in via Google/OAuth."
+msgstr ""
+"Le changement de mot de passe n'est pas disponible pour les comptes "
+"connectés via Google/OAuth."
+
+#: app/api/user_settings.py:260
+msgid "Password changed successfully."
+msgstr "Mot de passe modifié avec succès."
+
+#: app/api/user_settings.py:270
+msgid "An unexpected error occurred while changing the password."
+msgstr "Une erreur inattendue s'est produite lors du changement de mot de passe."
+
+#: app/api/user_settings.py:305
+msgid "Failed to retrieve user prompts."
+msgstr "Échec de la récupération des Prompts de l'utilisateur."
+
+#: app/api/user_settings.py:316 app/api/user_settings.py:348
+msgid "Missing title or prompt_text in request body."
+msgstr "Titre ou texte du Prompt manquant dans le corps de la requête."
+
+#: app/api/user_settings.py:327
+msgid "Prompt saved successfully."
+msgstr "Prompt enregistré avec succès."
+
+#: app/api/user_settings.py:331
+msgid "Failed to save prompt (service returned None)."
+msgstr ""
+"Échec de l'enregistrement du Prompt (le service a retourné une valeur "
+"nulle)."
+
+#: app/api/user_settings.py:337
+msgid "An unexpected error occurred while saving the prompt."
+msgstr "Une erreur inattendue s'est produite lors de l'enregistrement du Prompt."
+
+#: app/api/user_settings.py:358
+msgid "Prompt updated successfully."
+msgstr "Prompt mis à jour avec succès."
+
+#: app/api/user_settings.py:360
+msgid "Failed to update prompt (check ownership or logs)."
+msgstr "Échec de la mise à jour du Prompt (vérifiez les droits ou les journaux)."
+
+#: app/api/user_settings.py:369
+msgid "An unexpected error occurred while updating the prompt."
+msgstr "Une erreur inattendue s'est produite lors de la mise à jour du Prompt."
+
+#: app/api/user_settings.py:380
+msgid "Prompt deleted successfully."
+msgstr "Prompt supprimé avec succès."
+
+#: app/api/user_settings.py:382
+msgid "Failed to delete prompt (check ownership or logs)."
+msgstr "Échec de la suppression du Prompt (vérifiez les droits ou les journaux)."
+
+#: app/api/user_settings.py:391
+msgid "An unexpected error occurred while deleting the prompt."
+msgstr "Une erreur inattendue s'est produite lors de la suppression du Prompt."
+
+#: app/templates/base.html:9 app/templates/base.html:38
+#: app/templates/index.html:5
+msgid "Transcriber Platform"
+msgstr "Plateforme de Transcription"
+
+#: app/templates/base.html:32
+msgid "Open main menu"
+msgstr "Ouvrir le menu principal"
+
+#: app/templates/base.html:49
+msgid "Open user menu"
+msgstr "Ouvrir le menu utilisateur"
+
+#: app/templates/base.html:58 app/templates/base.html:135
+#: app/templates/base.html:306
+msgid "User Settings"
+msgstr "Paramètres utilisateur"
+
+#: app/templates/base.html:60 app/templates/base.html:139
+#: app/templates/base.html:216
+msgid "Manage API Keys"
+msgstr "Gérer les clés API"
+
+#: app/templates/base.html:63 app/templates/base.html:144
+#: app/templates/manage_prompts.html:5 app/templates/manage_prompts.html:19
+msgid "Manage your Workflows"
+msgstr "Gérer vos Workflows"
+
+#: app/templates/base.html:67 app/templates/base.html:150
+msgid "Admin Panel"
+msgstr "Panneau d'administration"
+
+#: app/templates/base.html:72 app/templates/base.html:155
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: app/templates/base.html:78 app/templates/base.html:161
+msgid "Login"
+msgstr "Connexion"
+
+#: app/templates/base.html:81 app/templates/base.html:164
+msgid "Register"
+msgstr "S'inscrire"
+
+#: app/templates/base.html:103
+#, fuzzy
+msgid "English picker"
+msgstr "Anglais"
+
+#: app/templates/base.html:103
+msgid "Español"
+msgstr "Español"
+
+#: app/templates/base.html:103
+msgid "Français"
+msgstr "Français"
+
+#: app/templates/base.html:103
+msgid "Nederlands"
+msgstr "Nederlands"
+
+#: app/templates/base.html:124
+msgid "Menu"
+msgstr "Menu"
+
+#: app/templates/base.html:127
+msgid "Close menu"
+msgstr "Fermer le menu"
+
+#: app/templates/base.html:226
+msgid ""
+"Enter your personal API keys for the transcription and workflow services."
+" These keys are stored securely and used only for your transcription "
+"requests."
+msgstr ""
+"Entrez vos clés API personnelles pour les services de transcription et de"
+" Workflow. Ces clés sont stockées de manière sécurisée et utilisées "
+"uniquement pour vos demandes de transcription."
+
+#: app/templates/base.html:227
+msgid "You can get your keys here:"
+msgstr "Vous pouvez obtenir vos clés ici :"
+
+#: app/templates/base.html:236
+msgid "API Service"
+msgstr "Service API"
+
+#: app/templates/base.html:238
+msgid "Choose service"
+msgstr "Choisir un service"
+
+#: app/templates/base.html:239 app/templates/base.html:257
+msgid "OpenAI (Whisper/GPT-4o)"
+msgstr "OpenAI (Whisper/GPT-4o)"
+
+#: app/templates/base.html:240 app/templates/base.html:266
+msgid "AssemblyAI"
+msgstr "AssemblyAI"
+
+#: app/templates/base.html:241 app/templates/base.html:275
+msgid "Google (Gemini)"
+msgstr "Google (Gemini)"
+
+#: app/templates/base.html:245
+msgid "API Key"
+msgstr "Clé API"
+
+#: app/templates/base.html:249
+msgid "Save Key"
+msgstr "Enregistrer la clé"
+
+#: app/templates/base.html:253
+msgid "Configured Keys"
+msgstr "Clés configurées"
+
+#: app/templates/base.html:259 app/templates/base.html:268
+#: app/templates/base.html:277
+msgid "Checking..."
+msgstr "Vérification..."
+
+#: app/templates/base.html:287
+msgid "Close"
+msgstr "Fermer"
+
+#: app/templates/base.html:318
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: app/templates/base.html:324
+msgid "Email"
+msgstr "E-mail"
+
+#: app/templates/base.html:330
+msgid "First Name"
+msgstr "Prénom"
+
+#: app/templates/base.html:335
+msgid "Last Name"
+msgstr "Nom de famille"
+
+#: app/templates/base.html:342
+msgid "Interface Language"
+msgstr "Langue de l'interface"
+
+#: app/templates/base.html:351
+msgid "Preferences"
+msgstr "Préférences"
+
+#: app/templates/base.html:354
+msgid "Default Transcription Language"
+msgstr "Langue de transcription par défaut"
+
+#: app/templates/base.html:360
+msgid "Default Transcription Model"
+msgstr "Modèle de transcription par défaut"
+
+#: app/templates/base.html:372
+msgid "Automatically Generate Titles for Transcriptions"
+msgstr "Générer automatiquement des titres pour les transcriptions"
+
+#: app/templates/base.html:375
+msgid "This feature is not enabled for your account role."
+msgstr "Cette fonctionnalité n'est pas activée pour le rôle de votre compte."
+
+#: app/templates/base.html:382 app/templates/manage_prompts.html:127
+msgid "Save Changes"
+msgstr "Enregistrer les modifications"
+
+#: app/templates/base.html:389
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: app/templates/base.html:396
+msgid "Current Password"
+msgstr "Mot de passe actuel"
+
+#: app/templates/base.html:407
+msgid "New Password"
+msgstr "Nouveau mot de passe"
+
+#: app/templates/base.html:418
+msgid "Confirm New Password"
+msgstr "Confirmer le nouveau mot de passe"
+
+#: app/templates/base.html:431
+msgid "Update Password"
+msgstr "Mettre à jour le mot de passe"
+
+#: app/templates/base.html:440 app/templates/base.html:492
+#: app/templates/manage_prompts.html:123
+msgid "Cancel"
+msgstr "Annuler"
+
+#: app/templates/base.html:458
+msgid "Run Workflow"
+msgstr "Lancer le Workflow"
+
+#: app/templates/base.html:468
+msgid ""
+"Apply AI analysis to the selected transcript using the workflow prompt "
+"below."
+msgstr ""
+"Appliquer une analyse par IA à la transcription sélectionnée en utilisant"
+" le Workflow ci-dessous."
+
+#: app/templates/base.html:470
+msgid "You can manage your workflows"
+msgstr "Vous pouvez gérer vos Workflows"
+
+#: app/templates/base.html:470
+msgid "here"
+msgstr "ici"
+
+#: app/templates/base.html:476
+msgid "Select a Workflow or Enter a Custom Prompt Below"
+msgstr "Choisir un Workflow ou en créer un"
+
+#: app/templates/base.html:480
+msgid "Custom Workflow Prompt"
+msgstr "Prompt personnalisé"
+
+#: app/templates/base.html:483
+msgid "Enter your custom workflow prompt here (max 120 words)..."
+msgstr "Entrez votre Workflow personnalisé ici (120 mots max)..."
+
+#: app/templates/base.html:484 app/templates/index.html:108
+msgid "words"
+msgstr "mots"
+
+#: app/templates/base.html:496
+msgid "Submit Workflow"
+msgstr "Soumettre le Workflow"
+
+#: app/templates/base.html:506
+msgid "Transcriber Platform App"
+msgstr "Application Plateforme de Transcription"
+
+#: app/templates/base.html:537
+msgid " Read More"
+msgstr "Voir Plus"
+
+#: app/templates/base.html:538
+msgid " Read Less"
+msgstr "Voir Moins"
+
+#: app/templates/base.html:539 app/templates/manage_prompts.html:65
+msgid "Your Saved Workflows"
+msgstr "Vos Workflows enregistrés"
+
+#: app/templates/base.html:540
+msgid "System defined - "
+msgstr "Workflow intégré - "
+
+#: app/templates/base.html:541 app/templates/index.html:219
+msgid "Start Workflow"
+msgstr "Lancer le Workflow"
+
+#: app/templates/base.html:542 app/templates/index.html:236
+msgid "Workflow Result"
+msgstr "Résultat du Workflow"
+
+#: app/templates/base.html:543 app/templates/index.html:265
+msgid "Workflow Error"
+msgstr "Erreur de Workflow"
+
+#: app/templates/forgot_password.html:5
+msgid "Forgot Your Password"
+msgstr "Mot de passe oublié"
+
+#: app/templates/forgot_password.html:11
+msgid "Forgot Your Password?"
+msgstr "Mot de passe oublié ?"
+
+#: app/templates/forgot_password.html:13
+msgid ""
+"Enter your registered email address below, and we'll send you a link to "
+"reset your password."
+msgstr ""
+"Entrez votre adresse e-mail enregistrée ci-dessous, et nous vous "
+"enverrons un lien pour réinitialiser votre mot de passe."
+
+#: app/templates/forgot_password.html:34
+msgid "Send Reset Link"
+msgstr "Envoyer le lien de réinitialisation"
+
+#: app/templates/forgot_password.html:40
+msgid "Remember your password?"
+msgstr "Vous vous souvenez de votre mot de passe ?"
+
+#: app/templates/forgot_password.html:42 app/templates/login.html:141
+msgid "Login here"
+msgstr "Connectez-vous ici"
+
+#: app/templates/index.html:22
+msgid "Upload Audio File"
+msgstr "Télécharger un fichier audio"
+
+#: app/templates/index.html:26
+msgid "Audio File"
+msgstr "Fichier audio"
+
+#: app/templates/index.html:31
+msgid "Choose File"
+msgstr "Choisir un fichier"
+
+#: app/templates/index.html:37 app/templates/index.html:38
+msgid "Select an audio file (mp3, wav, m4a...)"
+msgstr "Sélectionnez un fichier audio (mp3, wav, m4a...)"
+
+#: app/templates/index.html:38
+msgid "Select audio file…"
+msgstr "Sélectionner un fichier audio..."
+
+#: app/templates/index.html:40
+#, fuzzy
+msgid ""
+"Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA,"
+" MPEG."
+msgstr ""
+"Taille max. : 200 MB. Formats supportés : MP3, M4A, WAV, OGG, WEBM, MPGA,"
+" MPEG."
+
+#: app/templates/index.html:45
+msgid "Transcription Model"
+msgstr "Modèle de transcription"
+
+#: app/templates/index.html:64
+msgid "Transcription Language"
+msgstr "Langue de transcription"
+
+#: app/templates/index.html:80
+msgid "Context prompt"
+msgstr "Prompt de contexte"
+
+#: app/templates/index.html:87
+msgid "Apply Workflow"
+msgstr "Appliquer un Workflow"
+
+#: app/templates/index.html:100
+msgid "Context prompt (Max 120 words)"
+msgstr "Prompt de contexte (120 mots max)"
+
+#: app/templates/index.html:104 app/templates/index.html:105
+msgid "(Optional) Provide context like names or jargon..."
+msgstr "(Optionnel) Fournissez du contexte comme des noms ou du jargon..."
+
+#: app/templates/index.html:106
+msgid "(Optional) Add context..."
+msgstr "(Optionnel) Ajouter du contexte..."
+
+#: app/templates/index.html:123
+msgid "TRANSCRIBE"
+msgstr "TRANSCRIRE"
+
+#: app/templates/index.html:136
+msgid "Waiting..."
+msgstr "En attente..."
+
+#: app/templates/index.html:141
+msgid "STOP"
+msgstr "ARRÊTER"
+
+#: app/templates/index.html:151
+msgid "Transcription History"
+msgstr "Historique des transcriptions"
+
+#: app/templates/index.html:155
+msgid "Clear All"
+msgstr "Tout effacer"
+
+#: app/templates/index.html:197
+msgid "(Failed)"
+msgstr "(Échec)"
+
+#: app/templates/index.html:230
+msgid "Processing Workflow..."
+msgstr "Traitement du Workflow en cours..."
+
+#: app/templates/index.html:239
+msgid "Ran:"
+msgstr "Exécuté :"
+
+#: app/templates/index.html:241 app/templates/index.html:270
+msgid "Workflow Label:"
+msgstr "Libellé du Workflow :"
+
+#: app/templates/index.html:243 app/templates/index.html:245
+#: app/templates/index.html:272 app/templates/index.html:274
+msgid "Prompt:"
+msgstr "Prompt :"
+
+#: app/templates/index.html:268
+msgid "Attempted:"
+msgstr "Tentative :"
+
+#: app/templates/index.html:290
+msgid "No completed transcriptions yet."
+msgstr "Aucune transcription terminée pour le moment."
+
+#: app/templates/index.html:301
+msgid "Previous"
+msgstr "Précédent"
+
+#: app/templates/index.html:332
+msgid "Next"
+msgstr "Suivant"
+
+#: app/templates/index.html:337
+#, python-format
+msgid "Showing %(length)s of %(total)s items"
+msgstr "Affiche %(length)s sur %(total)s éléments"
+
+#: app/templates/login.html:97
+msgid "Remember Me"
+msgstr "Se souvenir de moi"
+
+#: app/templates/login.html:102
+msgid "Forgot Password?"
+msgstr "Mot de passe oublié ?"
+
+#: app/templates/login.html:123
+msgid "Or continue with"
+msgstr "Ou continuer avec"
+
+#: app/templates/login.html:134
+msgid "Need an account?"
+msgstr "Besoin d'un compte ?"
+
+#: app/templates/login.html:136
+msgid "Register here"
+msgstr "Inscrivez-vous ici"
+
+#: app/templates/login.html:139
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+#: app/templates/manage_prompts.html:20
+msgid "Create, edit, or delete your reusable workflow prompts."
+msgstr "Créez, modifiez ou supprimez vos Workflows réutilisables."
+
+#: app/templates/manage_prompts.html:28
+msgid "Add New Workflow"
+msgstr "Ajouter un nouveau Workflow"
+
+#: app/templates/manage_prompts.html:32 app/templates/manage_prompts.html:101
+msgid "Workflow Label"
+msgstr "Libellé du Workflow"
+
+#: app/templates/manage_prompts.html:37 app/templates/manage_prompts.html:106
+msgid "Label Color"
+msgstr "Couleur du Libellé"
+
+#: app/templates/manage_prompts.html:46 app/templates/manage_prompts.html:114
+msgid "Workflow Prompt"
+msgstr "Prompt du Workflow"
+
+#: app/templates/manage_prompts.html:54
+msgid "Add Workflow"
+msgstr "Ajouter le Workflow"
+
+#: app/templates/manage_prompts.html:68 app/templates/manage_prompts.html:71
+msgid "Loading workflows..."
+msgstr "Chargement des Workflows..."
+
+#: app/templates/manage_prompts.html:69
+msgid "You have no saved workflows yet."
+msgstr "Vous n'avez aucun Workflow enregistré."
+
+#: app/templates/manage_prompts.html:70
+msgid "Error loading workflows:"
+msgstr "Erreur de chargement des Workflows :"
+
+#: app/templates/manage_prompts.html:88
+msgid "Edit Workflow"
+msgstr "Modifier le Workflow"
+
+#: app/templates/reset_password.html:5 app/templates/reset_password.html:11
+msgid "Reset Your Password"
+msgstr "Réinitialiser votre mot de passe"
+
+#: app/templates/reset_password.html:12
+msgid "Please enter your new password below."
+msgstr "Veuillez entrer votre nouveau mot de passe ci-dessous."
+
+#: app/templates/reset_password.html:48
+msgid "Reset Password"
+msgstr "Réinitialiser le mot de passe"
+
+#: app/templates/admin/costs.html:87
+msgid "Save Pricing Configuration"
+msgstr ""
+
+#: app/templates/errors/403.html:10
+msgid "403 - Forbidden"
+msgstr "403 - Accès interdit"
+
+#: app/templates/errors/403.html:11
+msgid ""
+"Sorry, you do not have permission to access this page or perform this "
+"action."
+msgstr ""
+"Désolé, vous n'avez pas la permission d'accéder à cette page ou "
+"d'effectuer cette action."
+
+#: app/templates/errors/403.html:12
+msgid "If you believe this is an error, please contact the administrator."
+msgstr ""
+"Si vous pensez qu'il s'agit d'une erreur, veuillez contacter "
+"l'administrateur."
+
+#: app/templates/errors/403.html:15 app/templates/errors/404.html:15
+#: app/templates/errors/500.html:19
+msgid "Go Home"
+msgstr "Retour à l'accueil"
+
+#: app/templates/errors/404.html:5
+msgid "Page Not Found"
+msgstr "Page non trouvée"
+
+#: app/templates/errors/404.html:10
+msgid "404 - Page Not Found"
+msgstr "404 - Page non trouvée"
+
+#: app/templates/errors/404.html:11
+msgid "Sorry, the page you are looking for could not be found."
+msgstr "Désolé, la page que vous recherchez n'a pas pu être trouvée."
+
+#: app/templates/errors/404.html:12
+msgid "Please check the URL or go back to the homepage."
+msgstr "Veuillez vérifier l'URL ou retourner à la page d'accueil."
+
+#: app/templates/errors/500.html:10
+msgid "500 - Internal Server Error"
+msgstr "500 - Erreur interne du serveur"
+
+#: app/templates/errors/500.html:11
+msgid "Sorry, something went wrong on our end."
+msgstr "Désolé, une erreur s'est produite de notre côté."
+
+#: app/templates/errors/500.html:12
+msgid ""
+"We have been notified and are looking into the issue. Please try again "
+"later."
+msgstr ""
+"Nous avons été notifiés et nous examinons le problème. Veuillez réessayer"
+" plus tard."
+
+#~ msgid "Rate limit exceeded: %(description)s"
+#~ msgstr "Limite de requêtes dépassée : %(description)s"
+

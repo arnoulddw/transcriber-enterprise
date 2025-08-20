@@ -1,0 +1,441 @@
+<!-- app/templates/index.html -->
+{# Main application page template: Upload form and transcription history. #}
+{% extends "base.html" %}
+
+{% block title %}{{ _('Transcriber Platform') }}{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+    /* Custom animation for title updates - kept as minimal custom CSS */
+    .title-wrapper { display: flex; align-items: center; }
+    .title-wrapper b { margin-bottom: 0 !important; }
+    @keyframes titleFadeIn { from { opacity: 0.5; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+    .title-updated { animation: titleFadeIn 0.5s ease-out; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    {# Upload Form Section #}
+    <div class="bg-white shadow-xl rounded-lg p-6 md:p-8">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6">{{ _('Upload Audio File') }}</h1>
+        <form id="transcription-form" enctype="multipart/form-data" class="space-y-6">
+            {# File Input #}
+            <div>
+                <label for="audioFile" class="block text-sm font-medium text-gray-700 mb-1">{{ _('Audio File') }}</label>
+                <div class="mt-1 flex items-center">
+                    <label for="audioFile"
+                           class="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary inline-flex items-center">
+                        <i class="material-icons tiny -ml-1 mr-2 align-middle">audiotrack</i>
+                        <span>{{ _('Choose File') }}</span>
+                    </label>
+                    <input type="file" id="audioFile" name="audio_file" required
+                           accept=".mp3,.m4a,.wav,.ogg,.webm,.mpga,.mpeg"
+                           class="sr-only">
+                    <span id="audioFilePath" class="ml-3 text-sm text-gray-500 truncate"
+                          data-placeholder-long="{{ _('Select an audio file (mp3, wav, m4a...)') }}"
+                          data-placeholder-short="{{ _('Select audio file…') }}">{{ _('Select an audio file (mp3, wav, m4a...)') }}</span>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">{{ _('Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA, MPEG.') }}</p>
+            </div>
+
+            {# API Select #}
+            <div>
+                <label for="apiSelect" class="block text-sm font-medium text-gray-700">{{ _('Transcription Model') }}</label>
+                <div class="mt-1">
+                    <select id="apiSelect" name="api_choice"
+                            class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                        {% if user_permissions.use_api_openai_gpt_4o_transcribe %}
+                        <option value="gpt-4o-transcribe" {% if 'gpt-4o-transcribe' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI GPT-4o Transcribe</option>
+                        {% endif %}
+                        {% if user_permissions.use_api_openai_whisper %}
+                        <option value="whisper" {% if 'whisper' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI Whisper</option>
+                        {% endif %}
+                        {% if user_permissions.use_api_assemblyai %}
+                        <option value="assemblyai" {% if 'assemblyai' == effective_default_api %}selected{% endif %} data-key-required="assemblyai">AssemblyAI</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            {# Language Select #}
+            <div class="mt-4">
+                <label for="languageSelect" class="block text-sm font-medium text-gray-700">{{ _('Transcription Language') }}</label>
+                <div class="mt-1">
+                    <select id="languageSelect" name="language_code"
+                            class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                        {% for code, name in supported_languages.items() %}
+                            <option value="{{ code }}" {% if code == effective_default_language %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {# Context Prompt & Workflow Buttons #}
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+                {% if user_permissions.allow_context_prompt %}
+                <button type="button" id="toggleContextPromptBtn"
+                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <i class="material-icons tiny -ml-0.5 mr-1.5">add_circle_outline</i>{{ _('Context prompt') }}
+                </button>
+                {% endif %}
+                {% if user_permissions.allow_workflows %}
+                <button type="button" id="applyWorkflowBtn"
+                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <i class="material-icons tiny -ml-0.5 mr-1.5" id="applyWorkflowBtnIcon">add_circle_outline</i>
+                    <span id="applyWorkflowBtnText">{{ _('Apply Workflow') }}</span>
+                    <span id="removeWorkflowBtn" class="ml-1.5 hidden cursor-pointer text-current hover:text-red-500 hover:bg-red-100 rounded-sm p-0.5 leading-none text-sm" title="Remove applied workflow">×</span>
+                </button>
+                <span id="selectedWorkflowInfo"
+                      class="text-xs font-medium rounded-full px-2.5 py-1"
+                      style="display: none;"></span>
+                {% endif %}
+            </div>
+
+            {# Context Prompt Textarea #}
+            {% if user_permissions.allow_context_prompt %}
+            <div id="contextPromptSection" class="hidden mt-4">
+                <div>
+                    <label for="contextPrompt" class="block text-sm font-medium text-gray-700">{{ _('Context prompt (Max 120 words)') }}</label>
+                    <div class="mt-1">
+                        <textarea id="contextPrompt" name="context_prompt" rows="3"
+                                  class="form-textarea block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                  placeholder="{{ _('(Optional) Provide context like names or jargon...') }}"
+                                  data-placeholder-long="{{ _('(Optional) Provide context like names or jargon...') }}"
+                                  data-placeholder-short="{{ _('(Optional) Add context...') }}"></textarea>
+                    </div>
+                    <p id="contextPromptError" class="mt-1 text-xs text-gray-500 text-right">0/120 {{ _('words') }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Hidden fields for pending workflow data #}
+            <input type="hidden" id="pendingWorkflowPromptText" name="pending_workflow_prompt_text">
+            <input type="hidden" id="pendingWorkflowPromptTitle" name="pending_workflow_prompt_title">
+            <input type="hidden" id="pendingWorkflowPromptColor" name="pending_workflow_prompt_color">
+            <input type="hidden" id="pendingWorkflowOriginPromptId" name="pending_workflow_origin_prompt_id">
+
+            {# Submit Button #}
+            <div class="mt-6">
+                <button type="button" id="transcribeBtn" disabled
+                        class="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ _('TRANSCRIBE') }} <i class="material-icons text-base ml-2">send</i>
+                </button>
+                <p id="transcribeBtnStatus" class="mt-2 text-xs text-red-600 text-center"></p>
+            </div>
+        </form>
+
+        {# Progress Display #}
+        <div id="progressContainer" class="hidden mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div id="progressBarContainer" class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div id="progressBar" class="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
+            <p class="text-center text-sm font-medium text-primary mb-2"><strong id="progressPercentage">0%</strong></p>
+            <div id="progressActivity" class="flex items-center justify-center text-sm text-blue-700 min-h-[24px]">
+                <i class="material-icons tiny mr-2">hourglass_empty</i> {{ _('Waiting...') }}
+            </div>
+            <div class="mt-4 text-center">
+                <button type="button" id="stopBtn"
+                        class="hidden inline-flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    {{ _('STOP') }} <i class="material-icons text-base ml-2">cancel</i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# Transcription History Section #}
+    <div class="mt-8 bg-white shadow-xl rounded-lg">
+        <div class="p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                 <h2 class="text-xl font-semibold text-gray-800 mb-2 sm:mb-0">{{ _('Transcription History') }}</h2>
+                 {% if transcriptions %}
+                 <button id="clearAllBtn"
+                         class="px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 flex items-center">
+                     {{ _('Clear All') }} <i class="material-icons text-base ml-2">delete_forever</i>
+                 </button>
+                 {% endif %}
+            </div>
+            <ul class="divide-y divide-gray-200" id="transcriptionHistory">
+                {% if transcriptions %}
+                    {% for transcription in transcriptions %}
+                        <li class="py-4"
+                            data-transcription-id="{{ transcription.id }}"
+                            data-full-text="{{ transcription.transcription_text | default('[Transcription text not available]', true) }}"
+                            data-poll-title="{{ 'true' if transcription.should_poll_title else 'false' }}"
+                            {# REMOVED: data-language attribute is no longer needed here #}
+                            {% if transcription.pending_workflow_prompt_text %}
+                                data-pending-workflow-prompt="{{ transcription.pending_workflow_prompt_text | e }}"
+                                data-pending-workflow-title="{{ (transcription.pending_workflow_prompt_title or 'Custom Workflow') | e }}"
+                                data-pending-workflow-color="{{ (transcription.pending_workflow_prompt_color or '#ffffff') | e }}"
+                            {% endif %}
+                            {% if transcription.llm_operation_prompt_id %}
+                                data-workflow-origin-prompt-id="{{ transcription.llm_operation_prompt_id }}"
+                            {% endif %}
+                            >
+                            {% set llm_status = (transcription.llm_operation_status | default('idle', true)).lower().strip() %}
+                            {% set has_meaningful_result = transcription.llm_operation_result and transcription.llm_operation_result | lower not in ['n/a', 'null', 'undefined', '[empty result]', 'none', '-'] %}
+                            {% set has_meaningful_error = transcription.llm_operation_error and transcription.llm_operation_error | lower not in ['n/a', 'null', 'undefined', '[empty result]', 'none', '-'] %}
+                            {% set should_display_workflow_panel = (llm_status == 'finished' and has_meaningful_result) or (llm_status == 'error' and has_meaningful_error) or (llm_status in ['pending', 'processing']) %}
+                            {% set show_generated_title_icon = transcription.title_generation_status == 'success' and transcription.generated_title %}
+
+                            <div class="history-item-content flex flex-col"> {# Removed lg:flex-row and lg:gap-5 #}
+                                <div class="transcript-panel w-full relative p-4">
+                                    <div class="flex justify-between items-start gap-4">
+                                        <div class="flex-grow min-w-0">
+                                            <div class="title-wrapper">
+                                                <b id="title-{{ transcription.id }}" class="text-gray-800 font-medium sm:truncate leading-tight">
+                                                    {{ transcription.generated_title if show_generated_title_icon else transcription.filename | e }}<i class="material-icons tiny text-primary align-middle ml-1 {{ 'hidden' if not show_generated_title_icon }}" id="title-icon-{{ transcription.id }}">auto_awesome</i>
+                                                </b>
+                                            </div>
+                                            <p class="meta text-xs text-gray-500">
+                                                {% set api_name = API_NAME_MAP_FRONTEND.get(transcription.api_used, transcription.api_used | capitalize if transcription.api_used else 'Unknown API') %}
+                                                {% set lang_name = supported_languages.get(transcription.detected_language, transcription.detected_language | capitalize if transcription.detected_language else 'N/A') %}
+                                                {% set duration_minutes = transcription.audio_length_minutes %}
+                                                {% set formatted_duration = (duration_minutes | round(method='ceil') | int ~ ' min') if duration_minutes is not none else 'N/A' %}
+                                                {{ api_name | e }} | {{ lang_name | e }} | {{ formatted_duration | e }} | <time datetime="{{ transcription.created_at | datetime_tz }}">{{ transcription.created_at | datetime_tz }}</time>
+                                                {% if transcription.status == 'error' %}<span class="text-red-600"> {{ _('(Failed)') }}</span>{% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-0.5">
+                                            <button class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Copy Transcript">
+                                                <i class="material-icons text-base">content_copy</i>
+                                            </button>
+                                            {% if user_permissions.allow_download_transcript %}
+                                            <button class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Download Transcript">
+                                                <i class="material-icons text-base">download</i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center" title="Delete Transcript">
+                                                <i class="material-icons text-base">delete</i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="transcription-text text-sm text-gray-700 mt-2 mb-2"></p> {# Content populated by JS #}
+                                    {% if user_permissions.allow_workflows %}
+                                    {# MODIFICATION: Removed conditional hidden class #}
+                                    <div class="start-workflow-action text-right mt-2.5">
+                                        <button class="start-workflow-btn bg-primary-light hover:bg-primary text-white text-xs px-2.5 py-1 rounded-full inline-flex items-center focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-light">
+                                            <i class="material-icons tiny -ml-0.5 mr-1">auto_awesome</i>{{ _('Start Workflow') }}
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="workflow-panel w-full mt-4 p-4 border border-gray-300 rounded-md bg-gray-50 relative pb-11 {{ 'hidden' if not should_display_workflow_panel }}"
+                                     {% if transcription.llm_operation_id %}data-operation-id="{{ transcription.llm_operation_id }}"{% endif %}>
+                                    {% if should_display_workflow_panel %}
+                                        {% if llm_status == 'pending' or llm_status == 'processing' %}
+                                            <div class="flex flex-col items-center justify-center text-gray-500 min-h-[100px]">
+                                                <span class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></span>
+                                                <span>{{ _('Processing Workflow...') }}</span>
+                                            </div>
+                                        {% elif llm_status == 'finished' and has_meaningful_result %}
+                                            <div class="flex justify-between items-start gap-4">
+                                                <div class="flex-grow min-w-0">
+                                                    <div class="panel-title flex-grow flex items-center font-medium text-primary-dark text-lg leading-tight">
+                                                        <i class="material-icons text-xl mr-2">auto_awesome</i>{{ _('Workflow Result') }}
+                                                    </div>
+                                                    <div class="workflow-meta text-xs text-gray-500 leading-snug">
+                                                        {{ _('Ran:') }} {% if transcription.llm_operation_ran_at %}<time datetime="{{ transcription.llm_operation_ran_at | datetime_tz }}">{{ transcription.llm_operation_ran_at | datetime_tz }}</time>{% else %}-{% endif %} |
+                                                        {% if transcription.matched_workflow_title %}
+                                                            {{ _('Workflow Label:') }} <span class="prompt-label-pill inline-block px-2 py-0.5 rounded-full text-xs font-medium ml-1 align-middle overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]" data-background-color="{{ transcription.matched_workflow_color | e }}">{{ transcription.matched_workflow_title | e }}</span>
+                                                        {% elif transcription.llm_operation_prompt %}
+                                                            {{ _('Prompt:') }} <span class="custom-prompt-preview italic">{{ transcription.llm_operation_prompt | e | truncate(80) }}...</span>
+                                                        {% else %}
+                                                            {{ _('Prompt:') }} [Not available]
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="workflow-actions flex-shrink-0 flex space-x-1">
+                                                    <button class="edit-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Edit Result"><i class="material-icons text-base">edit</i></button>
+                                                    <button class="copy-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Copy Result"><i class="material-icons text-base">content_copy</i></button>
+                                                    {% if user_permissions.allow_download_transcript %}
+                                                    <button class="download-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Download Result"><i class="material-icons text-base">download</i></button>
+                                                    {% endif %}
+                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
+                                                </div>
+                                            </div>
+                                            <div class="workflow-result-text text-sm text-gray-700 leading-relaxed break-words mt-2" data-full-text="{{ transcription.llm_operation_result | e }}">
+                                                {# Content populated by JS using marked.js if available, or preformatted text #}
+                                            </div>
+                                        {% elif llm_status == 'error' and has_meaningful_error %}
+                                            <div class="flex justify-between items-start gap-4">
+                                                <div class="flex-grow min-w-0">
+                                                    <div class="panel-title flex-grow flex items-center font-medium text-red-700 text-lg leading-tight">
+                                                        <i class="material-icons text-xl mr-2">error_outline</i>{{ _('Workflow Error') }}
+                                                    </div>
+                                                    <div class="workflow-meta text-xs text-gray-500 leading-snug">
+                                                        {{ _('Attempted:') }} {% if transcription.llm_operation_ran_at %}<time datetime="{{ transcription.llm_operation_ran_at | datetime_tz }}">{{ transcription.llm_operation_ran_at | datetime_tz }}</time>{% else %}<time datetime="{{ transcription.created_at | datetime_tz }}">{{ transcription.created_at | datetime_tz }}</time>{% endif %} |
+                                                        {% if transcription.matched_workflow_title %}
+                                                            {{ _('Workflow Label:') }} <span class="prompt-label-pill inline-block px-2 py-0.5 rounded-full text-xs font-medium ml-1 align-middle overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]" data-background-color="{{ transcription.matched_workflow_color | e }}">{{ transcription.matched_workflow_title | e }}</span>
+                                                        {% elif transcription.llm_operation_prompt %}
+                                                            {{ _('Prompt:') }} <span class="custom-prompt-preview italic">{{ transcription.llm_operation_prompt | e | truncate(80) }}...</span>
+                                                        {% else %}
+                                                            {{ _('Prompt:') }} [Not available]
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="workflow-actions flex-shrink-0 flex space-x-1">
+                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
+                                                </div>
+                                            </div>
+                                            <div class="workflow-result-text text-sm text-red-700 leading-relaxed break-words mt-2">{{ transcription.llm_operation_error | e }}</div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="py-4 text-center text-gray-500" id="history-placeholder">{{ _('No completed transcriptions yet.') }}</li>
+                {% endif %}
+            </ul>
+
+            {# Pagination #}
+            {% if pagination %}
+            <div class="mt-6 border-t border-gray-200 pt-4">
+                <div class="flex flex-col items-center"> {# Centering container for pagination and text #}
+                    <nav class="relative z-0 inline-flex flex-wrap justify-center rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="{{ url_for('main.index', page=pagination.current_page - 1) if pagination.has_prev else '#' }}"
+                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 {{ 'pointer-events-none opacity-50' if not pagination.has_prev }}">
+                            <span class="sr-only">{{ _('Previous') }}</span>
+                            <i class="material-icons text-sm">chevron_left</i>
+                        </a>
+                        {% set ns = namespace(prev_show_page=false) %} {# Initialize namespace for ellipsis logic #}
+                        {% for page_num in range(1, pagination.total_pages + 1) %}
+                            {# Logic to show limited page numbers (e.g., first, last, current, and neighbors) #}
+                            {% set show_page = false %}
+                            {% if pagination.total_pages <= 7 %} {# Show all if 7 or less pages #}
+                                {% set show_page = true %}
+                            {% elif page_num == 1 or page_num == pagination.total_pages %} {# Always show first and last #}
+                                {% set show_page = true %}
+                            {% elif page_num >= pagination.current_page - 1 and page_num <= pagination.current_page + 1 %} {# Show current and immediate neighbors #}
+                                {% set show_page = true %}
+                            {% elif (pagination.current_page <= 3 and page_num <= 3) or (pagination.current_page >= pagination.total_pages - 2 and page_num >= pagination.total_pages - 2) %} {# Show first 3 or last 3 if current is near start/end #}
+                                 {% set show_page = true %}
+                            {% endif %}
+
+                            {% if show_page %}
+                                <a href="{{ url_for('main.index', page=page_num) }}"
+                                   aria-current="{{ 'page' if page_num == pagination.current_page else 'false' }}"
+                                   class="relative inline-flex items-center px-4 py-2 border text-sm font-medium
+                                          {% if page_num == pagination.current_page %} z-10 bg-primary-light border-primary text-primary-dark {% else %} bg-white border-gray-300 text-gray-500 hover:bg-gray-50 {% endif %}">
+                                    {{ page_num }}
+                                </a>
+                            {% elif ns.prev_show_page and not show_page %} {# Use ns.prev_show_page #}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                            {% endif %}
+                            {% set ns.prev_show_page = show_page %} {# Update namespace variable #}
+                        {% endfor %}
+                        <a href="{{ url_for('main.index', page=pagination.current_page + 1) if pagination.has_next else '#' }}"
+                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 {{ 'pointer-events-none opacity-50' if not pagination.has_next }}">
+                            <span class="sr-only">{{ _('Next') }}</span>
+                            <i class="material-icons text-sm">chevron_right</i>
+                        </a>
+                    </nav>
+                    <div class="mt-3 text-sm text-gray-600">
+                        {{ _('Showing %(length)s of %(total)s items', length=transcriptions|length, total=pagination.total_items) }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Helper function to update placeholders based on screen size
+    function updatePlaceholders() {
+        const isSmallScreen = window.innerWidth < 600;
+        const inputs = document.querySelectorAll('input[data-placeholder-short], textarea[data-placeholder-short]');
+        inputs.forEach(input => {
+            const shortText = input.dataset.placeholderShort;
+            const longText = input.dataset.placeholderLong;
+            if (isSmallScreen && shortText) {
+                input.placeholder = shortText;
+            } else if (longText) {
+                input.placeholder = longText;
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof updatePlaceholders === 'function') {
+            updatePlaceholders();
+        } else { console.error("updatePlaceholders function not found."); }
+
+        // Initialize button states and context prompt validation
+        if (window.IS_MULTI_USER && typeof window.checkTranscribeButtonState === 'function') {
+            window.checkTranscribeButtonState();
+        } else if (typeof window.checkTranscribeButtonState === 'function') {
+             window.checkTranscribeButtonState();
+        } else {
+             console.error("checkTranscribeButtonState function not found.");
+        }
+
+        var contextPromptElem = document.getElementById('contextPrompt');
+        if (contextPromptElem && typeof window.validateContextPrompt === 'function') {
+            contextPromptElem.addEventListener('input', window.validateContextPrompt);
+            window.validateContextPrompt();
+        } else if (contextPromptElem) {
+             console.error("validateContextPrompt function not found.");
+        }
+
+        // Apply styles to dynamically added prompt label pills in history
+        if (typeof window.applyPillStyles === 'function') {
+            window.applyPillStyles('#transcriptionHistory .prompt-label-pill');
+        } else {
+            console.error("applyPillStyles function not found in history.js");
+        }
+
+        // Initialize "Read More" for workflow results in history
+        if (typeof window.addReadMoreToWorkflowHTML === 'function') {
+            document.querySelectorAll('#transcriptionHistory .workflow-result-text').forEach(el => {
+                // If the element already has content (server-rendered), apply read more
+                if (el.dataset.fullText && el.dataset.fullText.trim() !== '') {
+                    window.addReadMoreToWorkflowHTML(el);
+                }
+            });
+        } else {
+             console.error("addReadMoreToWorkflowHTML function not found.");
+        }
+
+        // Start polling for titles if applicable
+        if (typeof window.startTitlePolling === 'function') {
+            window.startTitlePolling();
+        } else {
+             console.error("startTitlePolling function not found in history.js");
+        }
+
+        // Start polling for pre-applied workflows
+        document.querySelectorAll('li[data-transcription-id]').forEach(item => {
+            const transcriptionId = item.dataset.transcriptionId;
+            const workflowPanel = item.querySelector('.workflow-panel');
+            const operationId = workflowPanel ? workflowPanel.dataset.operationId : null;
+            const llmStatusElement = item.querySelector('.workflow-panel > div > span'); // Check for spinner
+            const hasSpinner = llmStatusElement && llmStatusElement.classList.contains('animate-spin');
+
+            if (transcriptionId && workflowPanel && (operationId || item.dataset.pendingWorkflowPrompt) && hasSpinner) {
+                 // If operationId is present and status is pending/processing, or if it's a pending workflow
+                 // that was just submitted (and thus has a spinner from server render), start polling.
+                if (typeof window.Workflow !== 'undefined' && typeof window.Workflow.startWorkflowPollingForTranscription === 'function') {
+                    console.debug(`[IndexLoad] Initiating meta-poll for pre-applied/active workflow on TrID: ${transcriptionId}`);
+                    window.Workflow.startWorkflowPollingForTranscription(transcriptionId);
+                } else {
+                    console.error(`[IndexLoad] Workflow.startWorkflowPollingForTranscription not found for TrID: ${transcriptionId}`);
+                }
+            }
+        });
+
+    });
+
+    window.addEventListener('resize', function() {
+         if (typeof updatePlaceholders === 'function') {
+            updatePlaceholders();
+         }
+    });
+</script>
+{% endblock %}

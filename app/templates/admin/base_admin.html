@@ -1,0 +1,226 @@
+<!-- app/templates/admin/base_admin.html -->
+{# Base template for all admin section pages. Extends the main base.html #}
+{% extends "base.html" %}
+
+{% block title %}Admin - {{ self.subtitle() | striptags | trim }}{% endblock %}
+
+{% block head_extra %}
+    {{ super() }}
+    {# admin.css link removed as styles are now in tailwind_output.css #}
+    {# <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}"> #}
+    {% block admin_head_extra %}{% endblock %}
+{% endblock %}
+
+{% block mobile_trigger %}
+    <button type="button"
+            id="admin-sidenav-button"
+            aria-expanded="false"
+            aria-controls="admin-sidebar"
+            class="-ml-2 mr-2 p-2 rounded-md text-gray-100 hover:text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white lg:hidden flex items-center">
+        <span class="sr-only">Open admin menu</span>
+        <i class="material-icons">menu</i>
+    </button>
+{% endblock mobile_trigger %}
+
+{% block brand_logo_adjust_class %}lg:ml-64{% endblock %}
+
+{% block content %}
+{% if current_user.is_authenticated and current_user.role and current_user.role.access_admin_panel %}
+
+    {# Admin Layout Container #}
+    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]"> {# Adjusted min-height to account for header #}
+
+        {# Admin Sidebar Navigation #}
+        <aside id="admin-sidebar"
+               class="fixed inset-y-0 left-0 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-30
+                      lg:translate-x-0 lg:block lg:flex-shrink-0 lg:pt-16"> {# REMOVED lg:static, lg:inset-0. lg:pt-16 ensures content is below header for fixed sidebar #}
+            <div class="flex flex-col h-full">
+                {# Sidebar Header (visible on mobile, part of main nav on desktop) #}
+                <div class="flex items-center justify-between bg-primary-dark text-white p-4 text-xl font-semibold lg:hidden">
+                    <h2 id="admin-sidebar-title" class="text-xl font-semibold">Admin Panel</h2>
+                    <button type="button" id="close-admin-sidebar-button" class="p-1 rounded-md text-gray-200 hover:text-white hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-white lg:hidden flex items-center">
+                        <span class="sr-only">Close admin menu</span>
+                        <i class="material-icons">close</i>
+                    </button>
+                </div>
+                <nav class="flex-grow p-2 space-y-1 overflow-y-auto">
+                    <a href="{{ url_for('admin_panel.dashboard') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.dashboard' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">dashboard</i>Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_panel.usage_analytics') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.usage_analytics' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">analytics</i>Usage Analytics
+                    </a>
+                    <a href="{{ url_for('admin_panel.user_insights') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.user_insights' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">supervised_user_circle</i>User Insights
+                    </a>
+                    <a href="{{ url_for('admin_panel.performance_errors') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.performance_errors' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">error_outline</i>Performance
+                    </a>
+                    <a href="{{ url_for('admin_panel.costs') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.costs' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">monetization_on</i>Costs
+                    </a>
+ 
+                     <div class="border-t border-gray-200 my-2"></div>
+ 
+                    <a href="{{ url_for('admin_panel.manage_users') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint == 'admin_panel.manage_users' or request.endpoint == 'admin_panel.user_details' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">people</i>Users
+                    </a>
+                    <a href="{{ url_for('admin_panel.manage_roles') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint.startswith('admin_panel.manage_roles') or request.endpoint.startswith('admin_panel.create_role') or request.endpoint.startswith('admin_panel.edit_role') %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">assignment_ind</i>Roles
+                    </a>
+                    {% if current_user.role.manage_workflow_templates %}
+                    <a href="{{ url_for('admin_panel.manage_template_workflows') }}"
+                       class="flex items-center px-3 py-2 rounded-md text-sm font-medium
+                              {% if request.endpoint.startswith('admin_panel.manage_template_workflows') or request.endpoint.startswith('admin_panel.create_template_workflow') or request.endpoint.startswith('admin_panel.edit_template_workflow') %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                        <i class="material-icons mr-3">post_add</i>Workflows
+                    </a>
+                    {% endif %}
+
+                    <div class="mt-auto border-t border-gray-200 pt-2">
+                        <a href="{{ url_for('main.index') }}"
+                           class="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                            <i class="material-icons mr-3">arrow_back</i>Back to App
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+        <div id="admin-sidenav-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-20 lg:hidden transition-opacity duration-300 ease-in-out opacity-0"></div>
+
+        {# Main Admin Content Area #}
+        <main class="flex-grow py-4 px-0 sm:px-4 lg:ml-64 lg:pt-20">
+            <div class="container mx-auto">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-1">{% block subtitle %}Panel{% endblock %}</h1>
+                    <div class="border-b border-gray-200 mb-6"></div>
+                    {% block admin_content %}{% endblock %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+{% else %}
+    {# Fallback for non-admin users trying to access admin pages #}
+    <div class="flex flex-col items-center justify-center text-center mt-12 p-5">
+        <i class="material-icons text-7xl text-red-600">lock_outline</i>
+        <h4 class="text-2xl font-semibold text-red-600 mt-4">Access Denied</h4>
+        <p class="text-lg text-gray-700 mt-2">Sorry, you do not have permission to access the admin panel.</p>
+        <a href="{{ url_for('main.index') }}" class="mt-5 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+            <i class="material-icons -ml-1 mr-2">home</i>Go Home
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminSidenavButton = document.getElementById('admin-sidenav-button');
+            const adminSidebar = document.getElementById('admin-sidebar');
+            const adminSidenavOverlay = document.getElementById('admin-sidenav-overlay');
+            const closeAdminSidebarButton = document.getElementById('close-admin-sidebar-button');
+            let firstFocusableElementAdmin, lastFocusableElementAdmin;
+
+            function getFocusableElementsAdmin() {
+                if (!adminSidebar) return [];
+                const focusable = Array.from(
+                    adminSidebar.querySelectorAll(
+                        'a[href]:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), details:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )
+                ).filter(el => !el.hasAttribute('disabled') && !el.closest('.hidden')); // Ensure elements are visible
+                firstFocusableElementAdmin = focusable[0];
+                lastFocusableElementAdmin = focusable[focusable.length - 1];
+                return focusable;
+            }
+
+            function openAdminSidebar() {
+                if (!adminSidebar || !adminSidenavOverlay || !adminSidenavButton) return;
+                adminSidebar.classList.remove('-translate-x-full');
+                adminSidebar.setAttribute('aria-hidden', 'false');
+                adminSidenavButton.setAttribute('aria-expanded', 'true');
+                adminSidenavOverlay.classList.remove('hidden', 'opacity-0');
+                adminSidenavOverlay.classList.add('opacity-100');
+                document.body.style.overflow = 'hidden';
+                getFocusableElementsAdmin();
+                if (firstFocusableElementAdmin) {
+                    firstFocusableElementAdmin.focus();
+                } else {
+                    adminSidebar.focus();
+                }
+            }
+
+            function closeAdminSidebar() {
+                if (!adminSidebar || !adminSidenavOverlay || !adminSidenavButton) return;
+                adminSidebar.classList.add('-translate-x-full');
+                adminSidebar.setAttribute('aria-hidden', 'true');
+                adminSidenavButton.setAttribute('aria-expanded', 'false');
+                adminSidenavOverlay.classList.remove('opacity-100');
+                adminSidenavOverlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    adminSidenavOverlay.classList.add('hidden');
+                }, 300);
+                document.body.style.overflow = '';
+                adminSidenavButton.focus();
+            }
+
+            if (adminSidenavButton && adminSidebar && adminSidenavOverlay) {
+                adminSidenavButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const isHidden = adminSidebar.classList.contains('-translate-x-full');
+                    if (isHidden) {
+                        openAdminSidebar();
+                    } else {
+                        closeAdminSidebar();
+                    }
+                });
+
+                if (closeAdminSidebarButton) {
+                    closeAdminSidebarButton.addEventListener('click', closeAdminSidebar);
+                }
+                adminSidenavOverlay.addEventListener('click', closeAdminSidebar);
+
+                document.addEventListener('keydown', function(event) {
+                    const isMobileView = !adminSidenavOverlay.classList.contains('hidden');
+                    if (isMobileView && !adminSidebar.classList.contains('-translate-x-full')) {
+                        if (event.key === 'Escape') {
+                            closeAdminSidebar();
+                        }
+                        if (event.key === 'Tab') {
+                            if (!firstFocusableElementAdmin || !lastFocusableElementAdmin) {
+                                getFocusableElementsAdmin();
+                            }
+                            if (event.shiftKey) {
+                                if (document.activeElement === firstFocusableElementAdmin) {
+                                    lastFocusableElementAdmin.focus();
+                                    event.preventDefault();
+                                }
+                            } else {
+                                if (document.activeElement === lastFocusableElementAdmin) {
+                                    firstFocusableElementAdmin.focus();
+                                    event.preventDefault();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/localization.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin_formatters.js') }}"></script>
+{% endblock %}

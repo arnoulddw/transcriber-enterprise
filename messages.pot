@@ -1,0 +1,802 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-08-12 16:58+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app/__init__.py:341
+msgid "Service temporarily unavailable. Initialization in progress."
+msgstr ""
+
+#: app/__init__.py:352 app/__init__.py:485
+msgid "Authentication required."
+msgstr ""
+
+#: app/__init__.py:355
+msgid "Please log in to access this page."
+msgstr ""
+
+#: app/__init__.py:457
+msgid "Not Found"
+msgstr ""
+
+#: app/__init__.py:470 app/templates/errors/500.html:5
+msgid "Internal Server Error"
+msgstr ""
+
+#: app/__init__.py:477 app/templates/errors/403.html:5
+msgid "Forbidden"
+msgstr ""
+
+#: app/__init__.py:478
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: app/__init__.py:485
+msgid "Unauthorized"
+msgstr ""
+
+#: app/__init__.py:486
+msgid "Authentication required to access this page."
+msgstr ""
+
+#: app/__init__.py:495
+#, python-format
+msgid "Too many requests: %(description)s. Please try again later."
+msgstr ""
+
+#: app/__init__.py:509
+#, python-format
+msgid "File is too large. The maximum allowed file size is %(size)sMB."
+msgstr ""
+
+#: app/config.py:77
+msgid "Automatic Detection"
+msgstr ""
+
+#: app/config.py:78
+msgid "English"
+msgstr ""
+
+#: app/config.py:79
+msgid "Dutch"
+msgstr ""
+
+#: app/config.py:80
+msgid "French"
+msgstr ""
+
+#: app/config.py:81
+msgid "Spanish"
+msgstr ""
+
+#: app/api/auth.py:101
+msgid "Invalid username or password."
+msgstr ""
+
+#: app/api/auth.py:107
+msgid "An unexpected error occurred during login. Please try again."
+msgstr ""
+
+#: app/api/auth.py:120
+msgid "User registration is disabled in single-user mode."
+msgstr ""
+
+#: app/api/auth.py:151
+#, python-format
+msgid "Account created for %(username)s! You can now log in."
+msgstr ""
+
+#: app/api/auth.py:155
+msgid "Registration failed. Please try again."
+msgstr ""
+
+#: app/api/auth.py:164
+msgid "An unexpected error occurred during registration. Please try again."
+msgstr ""
+
+#: app/api/auth.py:180
+msgid "You have been logged out successfully."
+msgstr ""
+
+#: app/api/auth.py:216
+msgid ""
+"If an account with that email exists, a password reset link has been "
+"sent. Please check your inbox and spam folder if you don't see it within "
+"a few minutes."
+msgstr ""
+
+#: app/api/auth.py:221
+msgid "An error occurred while processing your request. Please try again."
+msgstr ""
+
+#: app/api/auth.py:241
+msgid "The password reset link is invalid or has expired."
+msgstr ""
+
+#: app/api/auth.py:254
+msgid "Your password has been reset successfully. You can now log in."
+msgstr ""
+
+#: app/api/auth.py:258
+msgid "Password reset failed. Please try again."
+msgstr ""
+
+#: app/api/auth.py:261
+msgid "An error occurred while resetting your password. Please try again."
+msgstr ""
+
+#: app/api/auth.py:280
+msgid "Already logged in."
+msgstr ""
+
+#: app/api/auth.py:285
+msgid "Google Sign-In is not configured on the server."
+msgstr ""
+
+#: app/api/auth.py:291
+msgid "Invalid request payload."
+msgstr ""
+
+#: app/api/auth.py:300
+msgid "Invalid Google token."
+msgstr ""
+
+#: app/api/auth.py:306
+msgid "Failed to process Google Sign-In."
+msgstr ""
+
+#: app/api/auth.py:335
+msgid "Login successful."
+msgstr ""
+
+#: app/api/auth.py:342
+msgid "An unexpected server error occurred."
+msgstr ""
+
+#: app/api/user_settings.py:90
+msgid "Failed to retrieve user readiness status."
+msgstr ""
+
+#: app/api/user_settings.py:110
+msgid "Failed to retrieve API key status."
+msgstr ""
+
+#: app/api/user_settings.py:130
+#, python-format
+msgid "API key for %(service)s saved successfully."
+msgstr ""
+
+#: app/api/user_settings.py:137
+msgid "An unexpected error occurred while saving the API key."
+msgstr ""
+
+#: app/api/user_settings.py:141 app/api/user_settings.py:236
+#: app/api/user_settings.py:274
+msgid "Validation failed"
+msgstr ""
+
+#: app/api/user_settings.py:156
+msgid "Invalid service specified in URL."
+msgstr ""
+
+#: app/api/user_settings.py:162
+#, python-format
+msgid "API key for %(service)s deleted successfully."
+msgstr ""
+
+#: app/api/user_settings.py:172
+msgid "An unexpected error occurred while deleting the API key."
+msgstr ""
+
+#: app/api/user_settings.py:199
+msgid "Failed to retrieve profile data."
+msgstr ""
+
+#: app/api/user_settings.py:219
+msgid "Profile updated successfully."
+msgstr ""
+
+#: app/api/user_settings.py:232
+msgid "An unexpected error occurred while updating the profile."
+msgstr ""
+
+#: app/api/user_settings.py:249
+msgid "Password change is not available for accounts signed in via Google/OAuth."
+msgstr ""
+
+#: app/api/user_settings.py:260
+msgid "Password changed successfully."
+msgstr ""
+
+#: app/api/user_settings.py:270
+msgid "An unexpected error occurred while changing the password."
+msgstr ""
+
+#: app/api/user_settings.py:305
+msgid "Failed to retrieve user prompts."
+msgstr ""
+
+#: app/api/user_settings.py:316 app/api/user_settings.py:348
+msgid "Missing title or prompt_text in request body."
+msgstr ""
+
+#: app/api/user_settings.py:327
+msgid "Prompt saved successfully."
+msgstr ""
+
+#: app/api/user_settings.py:331
+msgid "Failed to save prompt (service returned None)."
+msgstr ""
+
+#: app/api/user_settings.py:337
+msgid "An unexpected error occurred while saving the prompt."
+msgstr ""
+
+#: app/api/user_settings.py:358
+msgid "Prompt updated successfully."
+msgstr ""
+
+#: app/api/user_settings.py:360
+msgid "Failed to update prompt (check ownership or logs)."
+msgstr ""
+
+#: app/api/user_settings.py:369
+msgid "An unexpected error occurred while updating the prompt."
+msgstr ""
+
+#: app/api/user_settings.py:380
+msgid "Prompt deleted successfully."
+msgstr ""
+
+#: app/api/user_settings.py:382
+msgid "Failed to delete prompt (check ownership or logs)."
+msgstr ""
+
+#: app/api/user_settings.py:391
+msgid "An unexpected error occurred while deleting the prompt."
+msgstr ""
+
+#: app/templates/base.html:9 app/templates/base.html:38
+#: app/templates/index.html:5
+msgid "Transcriber Platform"
+msgstr ""
+
+#: app/templates/base.html:32
+msgid "Open main menu"
+msgstr ""
+
+#: app/templates/base.html:49
+msgid "Open user menu"
+msgstr ""
+
+#: app/templates/base.html:58 app/templates/base.html:135
+#: app/templates/base.html:306
+msgid "User Settings"
+msgstr ""
+
+#: app/templates/base.html:60 app/templates/base.html:139
+#: app/templates/base.html:216
+msgid "Manage API Keys"
+msgstr ""
+
+#: app/templates/base.html:63 app/templates/base.html:144
+#: app/templates/manage_prompts.html:5 app/templates/manage_prompts.html:19
+msgid "Manage your Workflows"
+msgstr ""
+
+#: app/templates/base.html:67 app/templates/base.html:150
+msgid "Admin Panel"
+msgstr ""
+
+#: app/templates/base.html:72 app/templates/base.html:155
+msgid "Logout"
+msgstr ""
+
+#: app/templates/base.html:78 app/templates/base.html:161
+msgid "Login"
+msgstr ""
+
+#: app/templates/base.html:81 app/templates/base.html:164
+msgid "Register"
+msgstr ""
+
+#: app/templates/base.html:103
+msgid "English picker"
+msgstr ""
+
+#: app/templates/base.html:103
+msgid "Español"
+msgstr ""
+
+#: app/templates/base.html:103
+msgid "Français"
+msgstr ""
+
+#: app/templates/base.html:103
+msgid "Nederlands"
+msgstr ""
+
+#: app/templates/base.html:124
+msgid "Menu"
+msgstr ""
+
+#: app/templates/base.html:127
+msgid "Close menu"
+msgstr ""
+
+#: app/templates/base.html:226
+msgid ""
+"Enter your personal API keys for the transcription and workflow services."
+" These keys are stored securely and used only for your transcription "
+"requests."
+msgstr ""
+
+#: app/templates/base.html:227
+msgid "You can get your keys here:"
+msgstr ""
+
+#: app/templates/base.html:236
+msgid "API Service"
+msgstr ""
+
+#: app/templates/base.html:238
+msgid "Choose service"
+msgstr ""
+
+#: app/templates/base.html:239 app/templates/base.html:257
+msgid "OpenAI (Whisper/GPT-4o)"
+msgstr ""
+
+#: app/templates/base.html:240 app/templates/base.html:266
+msgid "AssemblyAI"
+msgstr ""
+
+#: app/templates/base.html:241 app/templates/base.html:275
+msgid "Google (Gemini)"
+msgstr ""
+
+#: app/templates/base.html:245
+msgid "API Key"
+msgstr ""
+
+#: app/templates/base.html:249
+msgid "Save Key"
+msgstr ""
+
+#: app/templates/base.html:253
+msgid "Configured Keys"
+msgstr ""
+
+#: app/templates/base.html:259 app/templates/base.html:268
+#: app/templates/base.html:277
+msgid "Checking..."
+msgstr ""
+
+#: app/templates/base.html:287
+msgid "Close"
+msgstr ""
+
+#: app/templates/base.html:318
+msgid "Username"
+msgstr ""
+
+#: app/templates/base.html:324
+msgid "Email"
+msgstr ""
+
+#: app/templates/base.html:330
+msgid "First Name"
+msgstr ""
+
+#: app/templates/base.html:335
+msgid "Last Name"
+msgstr ""
+
+#: app/templates/base.html:342
+msgid "Interface Language"
+msgstr ""
+
+#: app/templates/base.html:351
+msgid "Preferences"
+msgstr ""
+
+#: app/templates/base.html:354
+msgid "Default Transcription Language"
+msgstr ""
+
+#: app/templates/base.html:360
+msgid "Default Transcription Model"
+msgstr ""
+
+#: app/templates/base.html:372
+msgid "Automatically Generate Titles for Transcriptions"
+msgstr ""
+
+#: app/templates/base.html:375
+msgid "This feature is not enabled for your account role."
+msgstr ""
+
+#: app/templates/base.html:382 app/templates/manage_prompts.html:127
+msgid "Save Changes"
+msgstr ""
+
+#: app/templates/base.html:389
+msgid "Change Password"
+msgstr ""
+
+#: app/templates/base.html:396
+msgid "Current Password"
+msgstr ""
+
+#: app/templates/base.html:407
+msgid "New Password"
+msgstr ""
+
+#: app/templates/base.html:418
+msgid "Confirm New Password"
+msgstr ""
+
+#: app/templates/base.html:431
+msgid "Update Password"
+msgstr ""
+
+#: app/templates/base.html:440 app/templates/base.html:492
+#: app/templates/manage_prompts.html:123
+msgid "Cancel"
+msgstr ""
+
+#: app/templates/base.html:458
+msgid "Run Workflow"
+msgstr ""
+
+#: app/templates/base.html:468
+msgid ""
+"Apply AI analysis to the selected transcript using the workflow prompt "
+"below."
+msgstr ""
+
+#: app/templates/base.html:470
+msgid "You can manage your workflows"
+msgstr ""
+
+#: app/templates/base.html:470
+msgid "here"
+msgstr ""
+
+#: app/templates/base.html:476
+msgid "Select a Workflow or Enter a Custom Prompt Below"
+msgstr ""
+
+#: app/templates/base.html:480
+msgid "Custom Workflow Prompt"
+msgstr ""
+
+#: app/templates/base.html:483
+msgid "Enter your custom workflow prompt here (max 120 words)..."
+msgstr ""
+
+#: app/templates/base.html:484 app/templates/index.html:108
+msgid "words"
+msgstr ""
+
+#: app/templates/base.html:496
+msgid "Submit Workflow"
+msgstr ""
+
+#: app/templates/base.html:506
+msgid "Transcriber Platform App"
+msgstr ""
+
+#: app/templates/base.html:537
+msgid " Read More"
+msgstr ""
+
+#: app/templates/base.html:538
+msgid " Read Less"
+msgstr ""
+
+#: app/templates/base.html:539 app/templates/manage_prompts.html:65
+msgid "Your Saved Workflows"
+msgstr ""
+
+#: app/templates/base.html:540
+msgid "System defined - "
+msgstr ""
+
+#: app/templates/base.html:541 app/templates/index.html:219
+msgid "Start Workflow"
+msgstr ""
+
+#: app/templates/base.html:542 app/templates/index.html:236
+msgid "Workflow Result"
+msgstr ""
+
+#: app/templates/base.html:543 app/templates/index.html:265
+msgid "Workflow Error"
+msgstr ""
+
+#: app/templates/forgot_password.html:5
+msgid "Forgot Your Password"
+msgstr ""
+
+#: app/templates/forgot_password.html:11
+msgid "Forgot Your Password?"
+msgstr ""
+
+#: app/templates/forgot_password.html:13
+msgid ""
+"Enter your registered email address below, and we'll send you a link to "
+"reset your password."
+msgstr ""
+
+#: app/templates/forgot_password.html:34
+msgid "Send Reset Link"
+msgstr ""
+
+#: app/templates/forgot_password.html:40
+msgid "Remember your password?"
+msgstr ""
+
+#: app/templates/forgot_password.html:42 app/templates/login.html:141
+msgid "Login here"
+msgstr ""
+
+#: app/templates/index.html:22
+msgid "Upload Audio File"
+msgstr ""
+
+#: app/templates/index.html:26
+msgid "Audio File"
+msgstr ""
+
+#: app/templates/index.html:31
+msgid "Choose File"
+msgstr ""
+
+#: app/templates/index.html:37 app/templates/index.html:38
+msgid "Select an audio file (mp3, wav, m4a...)"
+msgstr ""
+
+#: app/templates/index.html:38
+msgid "Select audio file…"
+msgstr ""
+
+#: app/templates/index.html:40
+msgid ""
+"Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA,"
+" MPEG."
+msgstr ""
+
+#: app/templates/index.html:45
+msgid "Transcription Model"
+msgstr ""
+
+#: app/templates/index.html:64
+msgid "Transcription Language"
+msgstr ""
+
+#: app/templates/index.html:80
+msgid "Context prompt"
+msgstr ""
+
+#: app/templates/index.html:87
+msgid "Apply Workflow"
+msgstr ""
+
+#: app/templates/index.html:100
+msgid "Context prompt (Max 120 words)"
+msgstr ""
+
+#: app/templates/index.html:104 app/templates/index.html:105
+msgid "(Optional) Provide context like names or jargon..."
+msgstr ""
+
+#: app/templates/index.html:106
+msgid "(Optional) Add context..."
+msgstr ""
+
+#: app/templates/index.html:123
+msgid "TRANSCRIBE"
+msgstr ""
+
+#: app/templates/index.html:136
+msgid "Waiting..."
+msgstr ""
+
+#: app/templates/index.html:141
+msgid "STOP"
+msgstr ""
+
+#: app/templates/index.html:151
+msgid "Transcription History"
+msgstr ""
+
+#: app/templates/index.html:155
+msgid "Clear All"
+msgstr ""
+
+#: app/templates/index.html:197
+msgid "(Failed)"
+msgstr ""
+
+#: app/templates/index.html:230
+msgid "Processing Workflow..."
+msgstr ""
+
+#: app/templates/index.html:239
+msgid "Ran:"
+msgstr ""
+
+#: app/templates/index.html:241 app/templates/index.html:270
+msgid "Workflow Label:"
+msgstr ""
+
+#: app/templates/index.html:243 app/templates/index.html:245
+#: app/templates/index.html:272 app/templates/index.html:274
+msgid "Prompt:"
+msgstr ""
+
+#: app/templates/index.html:268
+msgid "Attempted:"
+msgstr ""
+
+#: app/templates/index.html:290
+msgid "No completed transcriptions yet."
+msgstr ""
+
+#: app/templates/index.html:301
+msgid "Previous"
+msgstr ""
+
+#: app/templates/index.html:332
+msgid "Next"
+msgstr ""
+
+#: app/templates/index.html:337
+#, python-format
+msgid "Showing %(length)s of %(total)s items"
+msgstr ""
+
+#: app/templates/login.html:97
+msgid "Remember Me"
+msgstr ""
+
+#: app/templates/login.html:102
+msgid "Forgot Password?"
+msgstr ""
+
+#: app/templates/login.html:123
+msgid "Or continue with"
+msgstr ""
+
+#: app/templates/login.html:134
+msgid "Need an account?"
+msgstr ""
+
+#: app/templates/login.html:136
+msgid "Register here"
+msgstr ""
+
+#: app/templates/login.html:139
+msgid "Already have an account?"
+msgstr ""
+
+#: app/templates/manage_prompts.html:20
+msgid "Create, edit, or delete your reusable workflow prompts."
+msgstr ""
+
+#: app/templates/manage_prompts.html:28
+msgid "Add New Workflow"
+msgstr ""
+
+#: app/templates/manage_prompts.html:32 app/templates/manage_prompts.html:101
+msgid "Workflow Label"
+msgstr ""
+
+#: app/templates/manage_prompts.html:37 app/templates/manage_prompts.html:106
+msgid "Label Color"
+msgstr ""
+
+#: app/templates/manage_prompts.html:46 app/templates/manage_prompts.html:114
+msgid "Workflow Prompt"
+msgstr ""
+
+#: app/templates/manage_prompts.html:54
+msgid "Add Workflow"
+msgstr ""
+
+#: app/templates/manage_prompts.html:68 app/templates/manage_prompts.html:71
+msgid "Loading workflows..."
+msgstr ""
+
+#: app/templates/manage_prompts.html:69
+msgid "You have no saved workflows yet."
+msgstr ""
+
+#: app/templates/manage_prompts.html:70
+msgid "Error loading workflows:"
+msgstr ""
+
+#: app/templates/manage_prompts.html:88
+msgid "Edit Workflow"
+msgstr ""
+
+#: app/templates/reset_password.html:5 app/templates/reset_password.html:11
+msgid "Reset Your Password"
+msgstr ""
+
+#: app/templates/reset_password.html:12
+msgid "Please enter your new password below."
+msgstr ""
+
+#: app/templates/reset_password.html:48
+msgid "Reset Password"
+msgstr ""
+
+#: app/templates/admin/costs.html:87
+msgid "Save Pricing Configuration"
+msgstr ""
+
+#: app/templates/errors/403.html:10
+msgid "403 - Forbidden"
+msgstr ""
+
+#: app/templates/errors/403.html:11
+msgid ""
+"Sorry, you do not have permission to access this page or perform this "
+"action."
+msgstr ""
+
+#: app/templates/errors/403.html:12
+msgid "If you believe this is an error, please contact the administrator."
+msgstr ""
+
+#: app/templates/errors/403.html:15 app/templates/errors/404.html:15
+#: app/templates/errors/500.html:19
+msgid "Go Home"
+msgstr ""
+
+#: app/templates/errors/404.html:5
+msgid "Page Not Found"
+msgstr ""
+
+#: app/templates/errors/404.html:10
+msgid "404 - Page Not Found"
+msgstr ""
+
+#: app/templates/errors/404.html:11
+msgid "Sorry, the page you are looking for could not be found."
+msgstr ""
+
+#: app/templates/errors/404.html:12
+msgid "Please check the URL or go back to the homepage."
+msgstr ""
+
+#: app/templates/errors/500.html:10
+msgid "500 - Internal Server Error"
+msgstr ""
+
+#: app/templates/errors/500.html:11
+msgid "Sorry, something went wrong on our end."
+msgstr ""
+
+#: app/templates/errors/500.html:12
+msgid ""
+"We have been notified and are looking into the issue. Please try again "
+"later."
+msgstr ""
+
