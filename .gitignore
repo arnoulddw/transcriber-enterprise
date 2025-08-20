@@ -1,31 +1,75 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
+# Specifies intentionally untracked files for Git
+
+# Docker related
+.dockerignore
+
+# Virtual Environment folders
 venv/
-pip-wheel-metadata/
-.installed.cfg
+env/
+.venv/
+ENV/
+*.pyenv
+instance/
+
+# Python cache files and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 *.egg-info/
-pip-selfcheck.json
+.ipynb_checkpoints
 
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-
-# General
-.DS_Store
-*.log
+# Environment variables file
 .env
-.vscode/
-*.db
-*.sqlite3
 
-# Transcriber Platform
+# Build distribution and packaging
+build/
+dist/
+wheels/
+*.egg
+MANIFEST
+
+# OS and editor specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node.js dependencies
+node_modules/
+
+# Runtime generated files and directories
+database/
+!database/.gitkeep
+logs/
+!logs/.gitkeep
+uploads/
+!uploads/.gitkeep
 runtime/
-# Temporary files
-*.tmp
+!runtime/.gitkeep
+
+# Translation files
+app/translations/*/*/messages.mo
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Testing artifacts
+.pytest_cache/
+.tox/
+nosetests.xml
+# Ignore self
+.gitignore
