@@ -25,7 +25,7 @@ Transcriber Platform turns audio into accurate, organized text through a user-fr
 -   **Multiple Transcription APIs:** Choose from AssemblyAI, OpenAI Whisper, or OpenAI GPT-4o Transcribe.
 -   **Large File Handling:** Automatically splits files over 25MB into chunks for seamless processing.
 -   **AI-Powered Title Generation:** Automatically generates a concise title for each transcription.
--   **Custom AI Workflows:** Execute custom prompts (e.g., summarize, extract action items) on transcribed text using LLMs like Google Gemini or OpenAI models.
+-   **Custom AI Workflows:** Execute custom prompts (ex. summarize, extract action items) on transcribed text using LLMs like Google Gemini or OpenAI models.
 -   **Flexible Language Options:** Select the audio language manually or use automatic detection.
 -   **Context Prompting:** Improve accuracy for jargon or specific names by providing context hints to OpenAI models.
 
@@ -104,7 +104,7 @@ The application is configured using environment variables in a `.env` file. The 
 | **Core Application** | | |
 | `SECRET_KEY` | **CRITICAL:** A strong, random key for session security. **Must be set.** | (none) |
 | `DEPLOYMENT_MODE` | `single` (no login) or `multi` (user accounts). | `multi` |
-| `TZ` | Timezone for the application (e.g., `UTC`, `Europe/Paris`). | `UTC` |
+| `TZ` | Timezone for the application (ex. `UTC`, `Europe/Paris`). | `UTC` |
 | `APP_PORT` | Port on which the app is accessible on the host machine. | `5004` |
 | `LOG_LEVEL` | Application logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). | `INFO` |
 | **API Keys (Global Fallback)** | | |
@@ -115,7 +115,7 @@ The application is configured using environment variables in a `.env` file. The 
 | `DEFAULT_TRANSCRIPTION_PROVIDER` | Default transcription API on load (`assemblyai`, `whisper`, `gpt-4o-transcribe`). | `gpt-4o-transcribe` |
 | `DEFAULT_LLM_PROVIDER` | Default LLM for tasks like title generation (`gemini`, `openai`). | `gemini` |
 | `DEFAULT_LANGUAGE` | Default transcription language on load (`auto`, `en`, `es`, etc.). | `auto` |
-| `SUPPORTED_LANGUAGE_CODES` | Comma-separated language codes to show in the UI (e.g., `en,nl,fr,es`). | `en,nl,fr,es` |
+| `SUPPORTED_LANGUAGE_CODES` | Comma-separated language codes to show in the UI (ex. `en,nl,fr,es`). | `en,nl,fr,es` |
 | **Database (MySQL)** | | |
 | `MYSQL_HOST` | Hostname for the MySQL server. Use `mysql` for Docker Compose. | `localhost` |
 | `MYSQL_PORT` | Port for the MySQL server. | `3306` |
@@ -136,10 +136,10 @@ The application is configured using environment variables in a `.env` file. The 
 | `MAIL_USE_TLS` | Whether to use TLS for SMTP (`true`, `false`). | `true` |
 | `MAIL_USERNAME` | Username for SMTP authentication. | (none) |
 | `MAIL_PASSWORD` | Password or App Password for SMTP authentication. | (none) |
-| `MAIL_DEFAULT_SENDER` | Default sender email address (e.g., `noreply@example.com`). | `noreply@example.com` |
+| `MAIL_DEFAULT_SENDER` | Default sender email address (ex. `noreply@example.com`). | `noreply@example.com` |
 | **Advanced Configuration** | | |
 | `TRANSCRIPTION_WORKERS` | Number of parallel workers for chunked transcription. | `4` |
-| `WORKFLOW_RATE_LIMIT` | Rate limit for workflow API calls per user (e.g., `10 per hour`). | `10 per hour` |
+| `WORKFLOW_RATE_LIMIT` | Rate limit for workflow API calls per user (ex. `10 per hour`). | `10 per hour` |
 | `PHYSICAL_DELETION_DAYS` | Days after soft-deletion before a transcription is permanently removed. | `120` |
 
 </details>
@@ -206,7 +206,7 @@ The application is configured using environment variables in a `.env` file. The 
 6.  **Manage History:** Your completed transcriptions will appear in the history panel. From there you can:
     *   View, copy, or download the text.
     *   Delete old transcriptions.
-    *   Run an AI workflow (e.g., summarize) on the text.
+    *   Run an AI workflow (ex. summarize) on the text.
 
 ## 🛠️ For Developers
 
@@ -238,7 +238,7 @@ To add or update UI translations:
     ```bash
     pybabel update -i messages.pot -d app/translations
     ```
-3.  **Edit the `.po` files** (e.g., `app/translations/es/LC_MESSAGES/messages.po`) to add the new translations.
+3.  **Edit the `.po` files** (ex. `app/translations/es/LC_MESSAGES/messages.po`) to add the new translations.
 4.  **Compile the translations** into binary files the app can use:
     ```bash
     pybabel compile -d app/translations
@@ -246,10 +246,10 @@ To add or update UI translations:
 
 ## 🤔 Troubleshooting
 
--   **Port in use:** Change `APP_PORT` in `.env` and restart. If using Docker Compose, you can also change the host port in `docker-compose.yml` (e.g., `"5005:5004"`).
+-   **Port in use:** Change `APP_PORT` in `.env` and restart. If using Docker Compose, you can also change the host port in `docker-compose.yml` (ex. `"5005:5004"`).
 -   **MySQL Connection Issues (Docker):** Ensure the `mysql` service is running (`docker-compose ps`). Check logs with `docker-compose logs mysql`. Verify `MYSQL_HOST` is set to `mysql` in your `.env` file.
 -   **API Key Issues:** In `single` mode, double-check the global API keys in `.env`. In `multi` mode, ensure the logged-in user has added their keys correctly in the UI.
--   **Google Sign-In Errors:** Verify your `GOOGLE_CLIENT_ID` is correct and that your Google Cloud Project has the correct "Authorized JavaScript origins" (e.g., `http://localhost:5004`) and "Redirect URIs".
+-   **Google Sign-In Errors:** Verify your `GOOGLE_CLIENT_ID` is correct and that your Google Cloud Project has the correct "Authorized JavaScript origins" (ex. `http://localhost:5004`) and "Redirect URIs".
 
 ## 📜 License
 
