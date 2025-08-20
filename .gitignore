@@ -27,3 +27,5 @@ package-lock.json
 
 # Transcriber Platform
 runtime/
+# Temporary files
+*.tmp
