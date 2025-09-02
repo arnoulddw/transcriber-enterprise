@@ -151,6 +151,12 @@ def add_prompt(user_id: int, title: str, prompt_text: str, color: str = '#ffffff
 
     cursor = get_cursor()
     try:
+        # Check for duplicate title
+        cursor.execute("SELECT id FROM user_prompts WHERE user_id = %s AND title = %s", (user_id, title))
+        if cursor.fetchone():
+            logging.warning(f"{log_prefix} Prompt with title '{title}' already exists for this user.")
+            raise MySQLError(errno=1062, msg="Duplicate entry")
+
         cursor.execute(sql, (user_id, title, prompt_text, color_to_store, source_template_id, now_utc_iso, now_utc_iso))
         get_db().commit()
         prompt_id = cursor.lastrowid
@@ -158,8 +164,9 @@ def add_prompt(user_id: int, title: str, prompt_text: str, color: str = '#ffffff
         return get_prompt_by_id(prompt_id, user_id)
     except MySQLError as err:
         get_db().rollback()
-        logging.error(f"{log_prefix} Error adding prompt '{title}': {err}", exc_info=True)
-        return None
+        logging.error(f"{log_prefix} Database error adding prompt '{title}': {err}", exc_info=True)
+        # Re-raise the exception so the service layer can handle it.
+        raise
     finally:
         # The cursor is managed by the application context, so we don't close it here.
         pass
@@ -231,12 +238,13 @@ def update_prompt(prompt_id: int, user_id: int, title: str, prompt_text: str, co
             logging.info(f"{log_prefix} Updated prompt '{title}' (Color: {color_to_store}). Source link broken due to user edit.")
             return True
         else:
-            cursor.execute("SELECT COUNT(*) FROM user_prompts WHERE id = %s", (prompt_id,))
-            prompt_exists = cursor.fetchone()[0] > 0
+            cursor.execute("SELECT COUNT(*) as count FROM user_prompts WHERE id = %s", (prompt_id,))
+            result = cursor.fetchone()
+            prompt_exists = result['count'] > 0 if result else False
             if not prompt_exists:
-                 logging.warning(f"{log_prefix} Update failed: Prompt ID {prompt_id} not found.")
+                logging.warning(f"{log_prefix} Update failed: Prompt ID {prompt_id} not found.")
             else:
-                 logging.warning(f"{log_prefix} Update failed: Ownership mismatch or no changes made for prompt ID {prompt_id}.")
+                logging.warning(f"{log_prefix} Update failed: Ownership mismatch or no changes made for prompt ID {prompt_id}.")
             return False
     except MySQLError as err:
         get_db().rollback()

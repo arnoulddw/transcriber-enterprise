@@ -51,23 +51,6 @@ class RegistrationForm(FlaskForm):
     )
     submit = SubmitField('Register')
 
-    def validate_username(self, username_field):
-        if get_user_by_username:
-            user = get_user_by_username(username_field.data)
-            if user:
-                raise ValidationError('That username is already taken. Please choose a different one.')
-        else:
-            import logging
-            logging.error("[FORMS] Cannot validate username uniqueness because get_user_by_username failed to import.")
-
-    def validate_email(self, email_field):
-        if get_user_by_email:
-            user = get_user_by_email(email_field.data)
-            if user:
-                raise ValidationError('That email address is already registered. Please use a different one or login.')
-        else:
-            import logging
-            logging.error("[FORMS] Cannot validate email uniqueness because get_user_by_email failed to import.")
 
 
 class LoginForm(FlaskForm):

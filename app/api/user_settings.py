@@ -12,7 +12,7 @@ from app.services import user_service, auth_service, admin_management_service
 from app.services.user_service import (
     KeyNotFoundError, DatabaseUpdateError, UserNotFoundError, ApiKeyManagementError,
     ProfileUpdateError, UsernameTakenError, EmailTakenError,
-    PromptManagementError, PromptNotFoundError 
+    PromptManagementError, PromptNotFoundError, DuplicatePromptError, DataLengthError
 )
 from app.services.auth_service import InvalidCredentialsError, AuthServiceError
 from app.services.admin_management_service import AdminServiceError
@@ -329,7 +329,13 @@ def save_user_prompt_api():
             }), 201
         else:
             raise PromptManagementError(_("Failed to save prompt (service returned None)."))
-    except PromptManagementError as e: 
+    except DuplicatePromptError as e:
+        logging.warning(f"{log_prefix} Failed to save prompt: {e}")
+        return jsonify({'error': str(e)}), 409
+    except DataLengthError as e:
+        logging.warning(f"{log_prefix} Failed to save prompt due to invalid data length: {e}")
+        return jsonify({'error': str(e)}), 400
+    except PromptManagementError as e:
         logging.error(f"{log_prefix} Error saving prompt: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
     except Exception as e:

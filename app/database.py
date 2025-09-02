@@ -97,12 +97,14 @@ def close_db(e: Optional[Exception] = None) -> None:
 
     if cursor is not None:
         try:
-            # The cursor does not have an is_connected method,
-            # but we can safely attempt to close it.
+            # Consume any unread results to prevent "Unread result found" errors.
+            # This ensures the connection is clean before being returned to the pool.
+            while cursor.nextset():
+                pass
             cursor.close()
             logging.debug("[DB:Close] MySQL cursor closed.")
-        except Error as err:
-            logging.warning(f"[DB:Close] Error closing cursor (might be already closed): {err}")
+        except (Error, InterfaceError) as err:
+            logging.warning(f"[DB:Close] Error closing cursor (might be already closed or invalid): {err}")
         except Exception as ex:
             logging.error(f"[DB:Close] Unexpected error closing MySQL cursor: {ex}", exc_info=True)
 

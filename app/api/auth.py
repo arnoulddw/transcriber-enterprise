@@ -71,6 +71,7 @@ def login():
                 # Log the user in using Flask-Login
                 login_user(user, remember=remember)
                 logging.info(f"{log_prefix} Login successful.")
+                flash(_('Logged in successfully'), 'success')
                 # Prevent session fixation - Flask-Login's login_user handles marking session as fresh.
 
                 # --- NEW: Persist language from session to profile ---
@@ -158,10 +159,12 @@ def register():
              # Handle specific errors from the service (e.g., username/email taken)
              logging.warning(f"{log_prefix} Registration failed: {ase}")
              flash(str(ase), 'danger') # Show the specific error message
+             # No redirect here, re-render the page to show the error
         except Exception as e:
             # Catch unexpected errors during registration
             logging.error(f"{log_prefix} Unexpected error during registration: {e}", exc_info=True)
             flash(_('An unexpected error occurred during registration. Please try again.'), 'danger')
+            return redirect(url_for('auth.register'))
 
     # Render the registration page for GET requests or failed POST validation
     # Pass google_client_id from config via context processor

@@ -23,6 +23,17 @@
             <div class="mt-2 border-b border-gray-200"></div>
         </div>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'danger' %}
+                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                            <span class="font-medium">{{ _('Error:') }}</span> {{ _(message) }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         {% set form_action = url_for('auth.login', next=request.args.get('next')) if title == 'Login' else url_for('auth.register') %}
         <form method="POST" action="{{ form_action }}" id="{{ title.lower().replace(' ', '-') }}-form" class="space-y-6">
             {{ form.hidden_tag() }}

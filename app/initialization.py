@@ -59,10 +59,10 @@ def initialize_database_schema() -> None:
         # monthly_usage deprecated; using user_usage aggregations instead
         logging.debug(f"{log_prefix} Initializing 'transcriptions' table...")
         transcription_model.init_db_command()
-        logging.debug(f"{log_prefix} Initializing 'user_prompts' table...")
-        user_prompt_model.init_db_command()
         logging.debug(f"{log_prefix} Initializing 'template_prompts' table...")
         template_prompt_model.init_db_command()
+        logging.debug(f"{log_prefix} Initializing 'user_prompts' table...")
+        user_prompt_model.init_db_command()
         # --- ADDED: Initialize llm_operations table ---
         logging.debug(f"{log_prefix} Initializing 'llm_operations' table...")
         llm_operation_model.init_db_command()

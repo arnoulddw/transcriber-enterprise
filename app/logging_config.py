@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import os
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import json
 
 # ==============================================================================
 # Standardized Context Keys
@@ -48,7 +48,7 @@ def setup_logging():
         },
         'formatters': {
             'json': {
-                '()': jsonlogger.JsonFormatter,
+                '()': json.JsonFormatter,
                 'format': '%(asctime)s %(name)s %(levelname)s %(message)s %(context)s',
                 'datefmt': '%Y-%m-%dT%H:%M:%S%z'
             },

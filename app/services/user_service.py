@@ -67,6 +67,14 @@ class PromptNotFoundError(PromptManagementError):
     """Prompt not found."""
     pass
 
+class DuplicatePromptError(PromptManagementError):
+    """A prompt with the same title already exists for the user."""
+    pass
+
+class DataLengthError(PromptManagementError):
+    """Input data exceeds the maximum allowed length for a database field."""
+    pass
+
 
 # --- API Key Management ---
 
@@ -416,14 +424,19 @@ def save_user_prompt(user_id: int, title: str, prompt_text: str, color: str = '#
     try:
         new_prompt = user_prompt_model.add_prompt(user_id, title, prompt_text, color)
         if not new_prompt:
-            raise PromptManagementError("Failed to save prompt to database.")
+            # This case might be redundant if add_prompt always raises on failure, but it's safe to keep.
+            raise PromptManagementError("Failed to save prompt for an unknown reason.")
         return new_prompt
     except MySQLError as db_err:
-        logger.error(f"Database error saving prompt: {db_err}", exc_info=True)
-        raise PromptManagementError("Database error saving prompt.") from db_err
+        logger.error(f"Database error saving prompt: {db_err.msg} (Code: {db_err.errno})", exc_info=True)
+        if db_err.errno == 1062: # Duplicate entry
+            raise DuplicatePromptError(f"A prompt with the title '{title}' already exists.") from db_err
+        elif db_err.errno == 1406: # Data too long
+            raise DataLengthError("The provided title or prompt text is too long.") from db_err
+        raise PromptManagementError("A database error occurred while saving the prompt.") from db_err
     except Exception as e:
         logger.error(f"Unexpected error saving prompt: {e}", exc_info=True)
-        raise PromptManagementError("Unexpected error saving prompt.") from e
+        raise PromptManagementError("An unexpected error occurred while saving the prompt.") from e
 
 def get_user_prompts(user_id: int) -> List[UserPrompt]:
     """Retrieves all saved prompts for the user."""

@@ -211,10 +211,12 @@ def init_roles_table() -> None:
             '''
         )
         # --- END MODIFIED ---
+        _ensure_column(cursor, "roles", None, "max_transcriptions_monthly", "INT NOT NULL DEFAULT 0", after="limit_monthly_workflows", log_prefix=log_prefix)
+        _ensure_column(cursor, "roles", None, "max_transcriptions_total", "INT NOT NULL DEFAULT 0", after="max_transcriptions_monthly", log_prefix=log_prefix)
         _ensure_column(cursor, "roles", "max_seconds_monthly", "max_minutes_monthly",
-                       "INT NOT NULL DEFAULT 0", after="max_transcriptions_monthly", log_prefix=log_prefix)
-        _ensure_column(cursor, "roles", "max_seconds_total", "max_minutes_total",
                        "INT NOT NULL DEFAULT 0", after="max_transcriptions_total", log_prefix=log_prefix)
+        _ensure_column(cursor, "roles", "max_seconds_total", "max_minutes_total",
+                       "INT NOT NULL DEFAULT 0", after="max_minutes_monthly", log_prefix=log_prefix)
         new_workflow_columns = {
             'allow_workflows': "BOOLEAN NOT NULL DEFAULT FALSE AFTER allow_download_transcript",
             'manage_workflow_templates': "BOOLEAN NOT NULL DEFAULT FALSE AFTER allow_workflows",
@@ -290,20 +292,40 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
         pass
 
 def get_role_by_id(role_id: int) -> Optional[Role]:
+    """
+    Retrieve a role by ID using a fresh buffered cursor to avoid interference
+    from any previous unconsumed result sets on the request-scoped cursor.
+    """
     sql = 'SELECT * FROM roles WHERE id = %s'
-    cursor = None
-    role = None
+    role: Optional[Role] = None
+    local_cursor = None
     try:
-        cursor = get_cursor()
-        cursor.execute(sql, (role_id,))
-        row = cursor.fetchone()
+        conn = get_db()
+        # Use a fresh cursor (dictionary=True) to isolate from any prior queries
+        local_cursor = conn.cursor(dictionary=True)
+        local_cursor.execute(sql, (role_id,))
+        row = local_cursor.fetchone()
+        if not row:
+            try:
+                local_cursor.execute('SELECT COUNT(*) AS c FROM roles')
+                cnt_row = local_cursor.fetchone()
+                total = cnt_row.get('c') if cnt_row else 'unknown'
+                logging.warning(f"[DB:Role] get_role_by_id({role_id}) returned no row. roles count={total}.")
+            except Exception as diag_err:
+                logging.warning(f"[DB:Role] Diagnostic count failed for get_role_by_id({role_id}): {diag_err}")
         role = _map_row_to_role(row)
     except MySQLError as err:
         logging.error(f"[DB:Role] Error retrieving role by ID '{role_id}': {err}", exc_info=True)
-        role = None # Ensure role is None on error
+        role = None
     finally:
-        # The cursor is managed by the application context, so we don't close it here.
-        pass
+        try:
+            if local_cursor is not None:
+                # Consume any remaining results and close this local cursor
+                while local_cursor.nextset():
+                    pass
+                local_cursor.close()
+        except Exception:
+            pass
     return role
 
 def get_role_by_name(name: str) -> Optional[Role]:

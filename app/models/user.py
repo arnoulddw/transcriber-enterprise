@@ -330,7 +330,6 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
             default_language, default_model
         ))
         # --- END MODIFIED ---
-        get_db().commit()
         user_id = cursor.lastrowid
         # --- MODIFIED: Update log message ---
         logging.info(f"[DB:User] Added new user '{username}' (Email: {email}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")

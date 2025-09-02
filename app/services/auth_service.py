@@ -70,11 +70,11 @@ def create_user(username: str, password: str, email: str, role_name: str = 'beta
         existing_user_by_name = user_model.get_user_by_username(username)
         if existing_user_by_name:
             logging.warning(f"{log_prefix} Attempted to create user with duplicate username: {username}")
-            raise AuthServiceError(f"Username '{username}' is already taken.")
+            raise AuthServiceError("Username is already taken.")
         existing_user_by_email = user_model.get_user_by_email(email)
         if existing_user_by_email:
             logging.warning(f"{log_prefix} Attempted to create user with duplicate email: {email}")
-            raise AuthServiceError(f"Email address '{email}' is already registered.")
+            raise AuthServiceError("Email is already registered.")
 
         hashed_password = bcrypt.generate_password_hash(
             password, current_app.config['BCRYPT_LOG_ROUNDS']
@@ -84,6 +84,9 @@ def create_user(username: str, password: str, email: str, role_name: str = 'beta
         new_user = user_model.add_user(username, email, hashed_password, role_name, language)
 
         if new_user:
+            from app.database import get_db
+            db = get_db()
+            db.commit()
             logging.info(f"{log_prefix} User '{username}' created successfully with role '{role_name}'.")
             user_service.handle_new_user_template_sync(new_user.id)
             return new_user
