@@ -50,7 +50,7 @@ def test_register_duplicate_username(client, clean_db):
         }, follow_redirects=True)
     
         assert response.status_code == 200
-        assert b"Username is already taken." in response.data
+        assert b"Username 'existinguser' is already taken." in response.data
 
 
 def test_register_duplicate_email(client, clean_db):
@@ -70,7 +70,7 @@ def test_register_duplicate_email(client, clean_db):
         }, follow_redirects=True)
     
         assert response.status_code == 200
-        assert b"Email is already registered." in response.data
+        assert b"Email address 'exists@example.com' is already registered." in response.data
 
 
 def test_login_successfully(client, clean_db):
