@@ -12,11 +12,36 @@ To run the tests, you need to set up a dedicated test environment to avoid impac
 
 ## Running the Tests
 
-Execute the following command from the project root to run the entire test suite:
+There are two primary ways to run the full test suite: using Docker Compose for a containerized environment, or running locally with a manual setup.
+
+### 1. Using Docker Compose (Recommended)
+
+This method ensures a consistent, isolated environment with all necessary services.
+
+**Command:**
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm transcriber-platform python3 -m pytest
+```
+
+**Explanation:**
+-   `docker-compose -f docker-compose.yml -f docker-compose.test.yml`: Merges the main and test Docker Compose configurations.
+-   `run --rm transcriber-platform`: Starts a temporary container for the `transcriber-platform` service.
+-   `python3 -m pytest`: Executes the test suite inside the container.
+
+### 2. Running Locally
+
+This method uses a local Python environment and defaults to an in-memory SQLite database, so no external database setup is required.
+
+**Command:**
+
+Execute the following command from the project root:
 
 ```bash
 python3 -m pytest tests/
 ```
+
+This will discover and run all tests within the `tests/` directory. The test configuration in `tests/functional/config/test_config.py` handles the setup automatically.
 
 ## Test Fixtures
 
