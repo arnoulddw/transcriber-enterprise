@@ -264,12 +264,12 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
         'max_history_items', 'history_retention_days'
     ]
     # --- END MODIFIED ---
-    base_columns = ['name', 'description', 'created_at', 'updated_at']
+    base_columns = ['name', 'description']
     base_values = [name, description]
     new_columns, new_values = _prepare_role_fields(permissions, valid_permission_columns)
     sql_columns = base_columns + new_columns
     sql_values = base_values + new_values
-    placeholders = ['%s'] * len(sql_columns)
+    placeholders = ['%s'] * len(sql_values)
     sql = f"INSERT INTO roles ({', '.join(sql_columns)}, created_at, updated_at) VALUES ({', '.join(placeholders)}, NOW(), NOW())"
     cursor = get_cursor()
     try:
