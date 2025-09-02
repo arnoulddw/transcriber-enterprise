@@ -47,7 +47,7 @@ def create_initialization_marker() -> None:
     except Exception as e:
         logging.error(f"[INIT] Failed to create initialization marker file '{marker_path}': {e}", exc_info=True)
 
-def initialize_database_schema() -> None:
+def initialize_database_schema(create_roles: bool = True) -> None:
     """Initializes all database tables in the correct order."""
     log_prefix = "[INIT:Schema]"
     logging.info(f"{log_prefix} Starting database schema initialization...")
@@ -72,6 +72,11 @@ def initialize_database_schema() -> None:
         logging.debug(f"{log_prefix} Initializing 'user_usage' table...")
         role_model.init_user_usage_table()
         logging.info(f"{log_prefix} Database schema initialization complete.")
+
+        if create_roles:
+            create_default_roles()
+            create_initial_admin()
+
     except RuntimeError as e:
          logging.error(f"{log_prefix} Initialization failed due to dependency error: {e}", exc_info=True)
          raise
@@ -90,7 +95,7 @@ def create_default_roles() -> None:
             'description': 'Administrator role with all permissions',
             'permissions': {
                 'use_api_assemblyai': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True,
-                'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True,
+                'use_api_google_gemini': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True,
                 'allow_api_key_management': True, 'allow_download_transcript': True,
                 'allow_workflows': True, 'manage_workflow_templates': True,
                 'limit_daily_cost': 0, 'limit_weekly_cost': 0, 'limit_monthly_cost': 0,

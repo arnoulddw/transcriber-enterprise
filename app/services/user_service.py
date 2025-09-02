@@ -556,7 +556,7 @@ def sync_templates_for_user(user_id: int) -> None:
 
         # 1. Get all relevant admin templates (matching user lang or 'all')
         user_lang = user.language
-        admin_templates = template_prompt_model.get_templates(language=user_lang)
+        admin_templates = template_prompt_model.get_templates(language=user.language)
         admin_template_map = {t.id: t for t in admin_templates}
         logger.debug(f"Found {len(admin_templates)} applicable admin templates for language '{user_lang}'.")
 
@@ -592,12 +592,9 @@ def sync_templates_for_user(user_id: int) -> None:
                     source_template_id=template.id
                 )
 
-        # 4. Synchronize: Remove deleted
-        for source_id, user_prompt in user_synced_prompts_map.items():
-            if source_id not in admin_template_map:
-                # The source template was deleted or no longer matches user's language
-                logger.debug(f"Deleting user prompt ID {user_prompt.id} because source template ID {source_id} is gone.")
-                user_prompt_model.delete_prompt(user_prompt.id, user_id)
+        # 4. Synchronize: Remove deleted (Handled by ON DELETE CASCADE)
+        # When a template_prompt is deleted, the corresponding user_prompts
+        # are automatically removed by the database, so no action is needed here.
 
         logger.info("Template synchronization complete.")
 

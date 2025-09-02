@@ -54,7 +54,7 @@ def init_db_command() -> None:
             raise RuntimeError("Template Prompts table must exist before user_prompts table can be initialized.")
         cursor.fetchall()
 
-        # --- MODIFIED: Changed ON DELETE CASCADE to ON DELETE SET NULL ---
+        # --- MODIFIED: Use ON DELETE CASCADE for source_template_id ---
         cursor.execute(
             '''
             CREATE TABLE IF NOT EXISTS user_prompts (
@@ -67,7 +67,7 @@ def init_db_command() -> None:
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE SET NULL,
+                FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE CASCADE,
                 INDEX idx_user_prompt_user (user_id),
                 INDEX idx_user_prompt_source_template (source_template_id),
                 INDEX idx_user_prompt_user_created (user_id, created_at(20))
@@ -92,12 +92,12 @@ def init_db_command() -> None:
             logging.info(f"{log_prefix} Adding 'source_template_id' column to 'user_prompts' table.")
             cursor.execute("ALTER TABLE user_prompts ADD COLUMN source_template_id INT DEFAULT NULL AFTER color")
             
-            # --- MODIFIED: Reordered ADD INDEX and ADD CONSTRAINT, and changed to ON DELETE SET NULL ---
+            # --- MODIFIED: Reordered ADD INDEX and ADD CONSTRAINT, and use ON DELETE CASCADE ---
             logging.info(f"{log_prefix} Adding index for 'source_template_id' to 'user_prompts' table.")
             cursor.execute("ALTER TABLE user_prompts ADD INDEX idx_user_prompt_source_template (source_template_id)")
             
             logging.info(f"{log_prefix} Adding foreign key for 'source_template_id' to 'user_prompts' table.")
-            cursor.execute("ALTER TABLE user_prompts ADD CONSTRAINT fk_source_template FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE SET NULL")
+            cursor.execute("ALTER TABLE user_prompts ADD CONSTRAINT fk_source_template FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE CASCADE")
             # --- END MODIFIED ---
 
         get_db().commit()

@@ -133,6 +133,7 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     # SESSION_COOKIE_SECURE = DEPLOYMENT_MODE == 'multi' # Enable in production with HTTPS
+    PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS = int(os.environ.get('PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS', 3600))
 
     # --- Admin User Credentials ---
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')

@@ -62,10 +62,12 @@ def create_user(username: str, password: str, email: str, role_name: str = 'beta
         raise ValueError("Username, password, and email cannot be empty.")
 
     try:
+        logging.info(f"{log_prefix} Creating user with role: {role_name}")
         role = role_model.get_role_by_name(role_name)
         if not role:
             logging.error(f"{log_prefix} Cannot create user '{username}': Role '{role_name}' not found.")
             raise AuthServiceError(f"Cannot create user: Role '{role_name}' does not exist.")
+        logging.info(f"{log_prefix} Role found: {role.name} with id {role.id}")
 
         existing_user_by_name = user_model.get_user_by_username(username)
         if existing_user_by_name:
@@ -309,7 +311,7 @@ def verify_password_reset_token(token: str) -> Optional[int]:
     log_prefix = "[SERVICE:Auth:Token]"
     try:
         s = _get_serializer()
-        max_age_seconds = 3600
+        max_age_seconds = current_app.config['PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS']
         user_id = s.loads(token, max_age=max_age_seconds)
         logging.info(f"{log_prefix} Password reset token verified successfully for user ID {user_id}.")
         return user_id

@@ -73,16 +73,21 @@ class User(UserMixin):
     @property
     def role(self) -> Optional['Role']:
         if self._role is None and self.role_id is not None:
-            if get_role_by_id is None:
-                 logging.error(f"[User:{self.id}] Cannot load role: get_role_by_id function is unavailable.")
-                 return None
+            from app.models.role import _map_row_to_role
+            sql = 'SELECT * FROM roles WHERE id = %s'
+            cursor = None
             try:
-                self._role = get_role_by_id(self.role_id)
-                if self._role is None:
-                     logging.warning(f"[User:{self.id}] Role with ID {self.role_id} not found in database.")
-            except Exception as e:
-                logging.error(f"[User:{self.id}] Error fetching role (ID: {self.role_id}): {e}", exc_info=True)
+                cursor = get_cursor()
+                cursor.execute(sql, (self.role_id,))
+                row = cursor.fetchone()
+                self._role = _map_row_to_role(row)
+            except MySQLError as err:
+                logging.error(f"[User:{self.id}] Error fetching role (ID: {self.role_id}): {err}", exc_info=True)
                 self._role = None
+            finally:
+                if cursor:
+                    # The cursor is managed by the application context, so we don't close it here.
+                    pass
         elif self.role_id is None:
              logging.warning(f"[User:{self.id}] User has no role_id assigned.")
         return self._role
@@ -241,7 +246,7 @@ def _map_row_to_user(row: Dict[str, Any]) -> Optional[User]:
         if not all(field in row for field in required_fields):
              logging.error(f"[DB:User] Database row missing required fields for User object: {row}")
              return None
-        return User(
+        user = User(
             id=row['id'], username=row['username'], email=row['email'],
             password_hash=row.get('password_hash'), role_id=row.get('role_id'),
             created_at=row['created_at'], api_keys_encrypted=row.get('api_keys_encrypted'),
@@ -254,6 +259,9 @@ def _map_row_to_user(row: Dict[str, Any]) -> Optional[User]:
             enable_auto_title_generation=bool(row.get('enable_auto_title_generation', False)),
             language=row.get('language')
         )
+        # Do not pre-populate a partial Role object from a joined 'role_name' only.
+        # Allow lazy-loading via user.role property to fetch the complete Role with permissions.
+        return user
     return None
 
 def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
@@ -291,6 +299,7 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
 
 def add_user(username: str, email: str, password_hash: str, role_name: str = 'beta-tester', language: Optional[str] = None) -> Optional[User]:
     if get_role_by_name is None: return None
+    logging.info(f"[DB:User] Adding user with role_name: {role_name}")
     role = get_role_by_name(role_name)
     if not role:
         logging.error(f"[DB:User] Cannot add user '{username}': Role '{role_name}' not found.")
@@ -301,6 +310,7 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
             logging.critical(f"[DB:User] Default role 'beta-tester' also not found. Cannot create user '{username}'.")
             return None
     role_id = role.id
+    logging.info(f"[DB:User] Role ID to be inserted: {role_id}")
 
     # --- MODIFIED: Get default settings for new user ---
     default_model = _get_default_transcription_model_for_new_user(role)
@@ -325,7 +335,7 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
     try:
         # --- MODIFIED: Pass new default values to execute() ---
         cursor.execute(sql, (
-            username, email, password_hash, role_id,
+            username, email, password_hash, role.id,
             default_auto_title_enabled, language,
             default_language, default_model
         ))
@@ -334,7 +344,10 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
         # --- MODIFIED: Update log message ---
         logging.info(f"[DB:User] Added new user '{username}' (Email: {email}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")
         # --- END MODIFIED ---
-        return get_user_by_id(user_id)
+        user = get_user_by_id(user_id)
+        if user:
+            user._role = get_role_by_name(role_name)
+        return user
     except MySQLError as err:
         get_db().rollback()
         if err.errno == 1062:
@@ -429,7 +442,7 @@ def add_oauth_user(email: str, first_name: Optional[str], last_name: Optional[st
         pass
 
 def get_user_by_username(username: str) -> Optional[User]:
-    sql = 'SELECT * FROM users WHERE username = %s'
+    sql = 'SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.username = %s'
     cursor = None
     user = None
     try:
@@ -446,7 +459,7 @@ def get_user_by_username(username: str) -> Optional[User]:
     return user
 
 def get_user_by_email(email: str) -> Optional[User]:
-    sql = 'SELECT * FROM users WHERE email = %s'
+    sql = 'SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.email = %s'
     cursor = None
     user = None
     try:
@@ -463,14 +476,15 @@ def get_user_by_email(email: str) -> Optional[User]:
     return user
 
 def get_user_by_id(user_id: int) -> Optional[User]:
-    sql = 'SELECT * FROM users WHERE id = %s'
+    sql = 'SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.id = %s'
     cursor = None
     user = None
     try:
         cursor = get_cursor()
         cursor.execute(sql, (user_id,))
         row = cursor.fetchone()
-        user = _map_row_to_user(row)
+        if row:
+            user = _map_row_to_user(row)
     except MySQLError as err:
         logging.error(f"[DB:User] Error retrieving user by ID '{user_id}': {err}", exc_info=True)
         user = None # Ensure user is None on error
