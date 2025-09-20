@@ -23,8 +23,8 @@ class TestConfig:
     MYSQL_USER = 'test'
     MYSQL_PASSWORD = 'test'
     MYSQL_DB = 'test_db'
-    MYSQL_HOST = 'localhost'
-    MYSQL_PORT = 3308
+    MYSQL_HOST = 'mysql-test'
+    MYSQL_PORT = 3306
     MYSQL_CONFIG = {
         'host': MYSQL_HOST,
         'port': MYSQL_PORT,

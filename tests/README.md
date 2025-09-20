@@ -12,36 +12,35 @@ To run the tests, you need to set up a dedicated test environment to avoid impac
 
 ## Running the Tests
 
-There are two primary ways to run the full test suite: using Docker Compose for a containerized environment, or running locally with a manual setup.
+The recommended way to run the test suite is by using Docker Compose for a containerized environment.
 
-### 1. Using Docker Compose (Recommended)
+### Using Docker Compose (Recommended)
 
-This method ensures a consistent, isolated environment with all necessary services.
+This method ensures a consistent, isolated environment with all necessary services. The process involves three main steps:
 
-**Command:**
+**1. Start the Test Database**
 
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm transcriber-platform python3 -m pytest
-```
-
-**Explanation:**
--   `docker-compose -f docker-compose.yml -f docker-compose.test.yml`: Merges the main and test Docker Compose configurations.
--   `run --rm transcriber-platform`: Starts a temporary container for the `transcriber-platform` service.
--   `python3 -m pytest`: Executes the test suite inside the container.
-
-### 2. Running Locally
-
-This method uses a local Python environment and defaults to an in-memory SQLite database, so no external database setup is required.
-
-**Command:**
-
-Execute the following command from the project root:
+This command starts the dedicated MySQL container for testing.
 
 ```bash
-python3 -m pytest tests/
+docker compose -f docker-compose.test.yml up -d
 ```
 
-This will discover and run all tests within the `tests/` directory. The test configuration in `tests/functional/config/test_config.py` handles the setup automatically.
+**2. Run the Test Suite**
+
+This is the definitive command to execute the tests. It runs `pytest` inside a temporary application container, ensuring the Python path is set correctly so that your application modules are found.
+
+```bash
+docker compose run --rm -e PYTHONPATH=/app transcriber-platform /app/.local/bin/pytest
+```
+
+**3. Shut Down the Test Database**
+
+Once you are finished with testing, run this command to stop and remove the test database container.
+
+```bash
+docker compose -f docker-compose.test.yml down
+```
 
 ## Test Fixtures
 
@@ -60,6 +59,7 @@ The test suite uses a combination of static fixtures and dynamically generated d
 
 -   **Test Failures:** If a test fails, check the logs for detailed error messages.
 -   **Database Issues:** Ensure the test database is properly configured and running. The `clean_db` fixture should handle most database state issues.
+-   **`pytest: command not found`:** If you encounter this error, it likely means the Docker image is stale. Rebuild it with `docker compose build --no-cache transcriber-platform` to ensure all dependencies are installed correctly.
 
 ## Adding New Tests
 
