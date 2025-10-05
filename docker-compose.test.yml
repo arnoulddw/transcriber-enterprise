@@ -12,12 +12,19 @@ services:
       - "3308:3306"
     volumes:
       - mysql_test_data:/var/lib/mysql
+    networks:
+      - test_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysql", "-h", "localhost", "-u", "test", "-ptest", "-e", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+networks:
+  test_network:
+    name: transcriber-platform_default
+    external: true
 
 volumes:
   mysql_test_data:

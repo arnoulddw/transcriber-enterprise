@@ -35,10 +35,10 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Jobs" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.jobs_submitted.get('24h', 0)|raw_number }}" data-format="integer">{{ metrics.jobs_submitted.get('24h', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Jobs" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.jobs_submitted.get('7d', 0)|raw_number }}" data-format="integer">{{ metrics.jobs_submitted.get('7d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Jobs" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.jobs_submitted.get('30d', 0)|raw_number }}" data-format="integer">{{ metrics.jobs_submitted.get('30d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Jobs" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ metrics.jobs_submitted.get('all', 0)|raw_number }}" data-format="integer">{{ metrics.jobs_submitted.get('all', 'N/A') }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Jobs" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.jobs_submitted.get('24h', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Jobs" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.jobs_submitted.get('7d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Jobs" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.jobs_submitted.get('30d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Jobs" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.jobs_submitted.get('all', 0), locale=formatting_locale) }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -55,10 +55,10 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Minutes" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.minutes_processed.get('24h', 0.0)|raw_number }}" data-format="decimal">{{ metrics.minutes_processed.get('24h', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Minutes" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.minutes_processed.get('7d', 0.0)|raw_number }}" data-format="decimal">{{ metrics.minutes_processed.get('7d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Minutes" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.minutes_processed.get('30d', 0.0)|raw_number }}" data-format="decimal">{{ metrics.minutes_processed.get('30d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Minutes" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ metrics.minutes_processed.get('all', 0.0)|raw_number }}" data-format="decimal">{{ metrics.minutes_processed.get('all', 'N/A') }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.minutes_processed.get('24h', 0.0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.minutes_processed.get('7d', 0.0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.minutes_processed.get('30d', 0.0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.minutes_processed.get('all', 0.0), locale=formatting_locale) }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -91,7 +91,7 @@
                                 {% set total = metrics.jobs_submitted.get(period, 0) %}
                                 {% set percentage = (count * 100 / total) if total > 0 else 0 %}
                                 <td data-label="{{ period|replace('h', 'h Jobs')|replace('d', 'd Jobs')|replace('all', 'All Jobs') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data cell #}
-                                    <div class="format-number" data-value="{{ count|raw_number }}" data-format="integer">{{ count }}</div>
+                                    <div>{{ format_number(count, locale=formatting_locale) }}</div>
                                     <div class="text-xs text-gray-400">({{ percentage | round(method='ceil') | int }}%)</div>
                                 </td>
                             {% endfor %}
@@ -125,7 +125,7 @@
                                 {% set total = metrics.minutes_processed.get(period, 0.0) %}
                                 {% set percentage = (minutes * 100 / total) if total > 0 else 0 %}
                                 <td data-label="{{ period|replace('h', 'h Mins')|replace('d', 'd Mins')|replace('all', 'All Mins') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data cell #}
-                                    <div class="format-number" data-value="{{ minutes|raw_number }}" data-format="decimal">{{ "%.1f"|format(minutes) }}</div>
+                                    <div>{{ format_number(minutes, locale=formatting_locale) }}</div>
                                     <div class="text-xs text-gray-400">({{ percentage | round(method='ceil') | int }}%)</div>
                                 </td>
                             {% endfor %}
@@ -172,7 +172,7 @@
                                     {% set total_finished = metrics.download_usage.get(period, {}).get('total_finished', 0) %} {# Using total_finished as denominator for lang distribution based on finished jobs #}
                                     {% set percentage = (count * 100 / total_finished) if total_finished > 0 else 0 %}
                                     <td data-label="{{ period|replace('h', 'h Lang')|replace('d', 'd Lang')|replace('all', 'All Lang') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data cell #}
-                                        <div class="format-number" data-value="{{ count|raw_number }}" data-format="integer">{{ count }}</div>
+                                        <div>{{ format_number(count, locale=formatting_locale) }}</div>
                                         <div class="text-xs text-gray-400">({{ percentage | round(method='ceil') | int }}%)</div>
                                     </td>
                                 {% endfor %}
@@ -214,7 +214,7 @@
                                 {% set percentage = (usage.get('downloaded', 0) * 100 / usage.get('total_finished', 0)) if usage.get('total_finished', 0) > 0 else 0 %}
                                 <td data-label="{{ period|replace('h', 'h Download')|replace('d', 'd Download')|replace('all', 'All Download') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data cell #}
                                     <div>{{ percentage | round(method='ceil') | int }}%</div>
-                                    <div class="text-xs text-gray-400 format-number" data-value="{{ usage.get('downloaded', 0)|raw_number }}" data-format="integer">({{ usage.get('downloaded', 0) }})</div>
+                                    <div class="text-xs text-gray-400">({{ format_number(usage.get('downloaded', 0), locale=formatting_locale) }})</div>
                                 </td>
                             {% endfor %}
                         </tr>
@@ -227,7 +227,7 @@
                                 {% set percentage = (count * 100 / total_finished) if total_finished > 0 else 0 %}
                                 <td data-label="{{ period|replace('h', 'h Titles')|replace('d', 'd Titles')|replace('all', 'All Titles') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative"> {# Centered data cell #}
                                     <div>{{ percentage | round(method='ceil') | int }}%</div>
-                                    <div class="text-xs text-gray-400 format-number" data-value="{{ count|raw_number }}" data-format="integer">({{ count }})</div>
+                                    <div class="text-xs text-gray-400">({{ format_number(count, locale=formatting_locale) }})</div>
                                 </td>
                             {% endfor %}
                         </tr>
@@ -263,7 +263,7 @@
                                 {% set total = metrics.workflows_run.get(period, 0) %}
                                 {% set percentage = (count * 100 / total) if total > 0 else 0 %}
                                 <td data-label="{{ period|replace('h', 'h WF')|replace('d', 'd WF')|replace('all', 'All WF') }}" class="px-1.5 py-2 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data cell #}
-                                    <div class="format-number" data-value="{{ count|raw_number }}" data-format="integer">{{ count }}</div>
+                                    <div>{{ format_number(count, locale=formatting_locale) }}</div>
                                     <div class="text-xs text-gray-400">({{ percentage | round(method='ceil') | int }}%)</div>
                                 </td>
                             {% endfor %}
@@ -272,7 +272,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 font-semibold">
                             <td data-label="Total" class="px-1.5 py-2 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Total Workflows Run</td>
                              {% for period in periods %}
-                                <td data-label="{{ period|replace('h', 'h Total WF')|replace('d', 'd Total WF')|replace('all', 'All Total WF') }}" class="format-number px-1.5 py-2 text-sm text-gray-900 block sm:table-cell sm:text-center relative" data-value="{{ metrics.workflows_run.get(period, 0)|raw_number }}" data-format="integer">{{ metrics.workflows_run.get(period, 'N/A') }}</td>
+                                <td data-label="{{ period|replace('h', 'h Total WF')|replace('d', 'd Total WF')|replace('all', 'All Total WF') }}" class="px-1.5 py-2 text-sm text-gray-900 block sm:table-cell sm:text-center relative">{{ format_number(metrics.workflows_run.get(period, 0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
                     </tbody>

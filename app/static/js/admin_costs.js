@@ -71,4 +71,23 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification('An unexpected error occurred.', 'error', 5000, true);
         });
     });
+    
+    /**
+     * Parses a number from a string based on the browser's locale.
+     * It handles both comma and dot as decimal separators.
+     * @param {string} stringNumber - The number string to parse.
+     * @returns {number} The parsed number.
+     */
+    function parseLocaleNumber(stringNumber) {
+        // Use a regex to find the last comma or dot, which is likely the decimal separator.
+        const decimalSeparator = (1.1).toLocaleString().substring(1, 2);
+        const thousandSeparator = decimalSeparator === '.' ? ',' : '.';
+    
+        // Remove thousand separators
+        const cleanedString = stringNumber.replace(new RegExp(`\\${thousandSeparator}`, 'g'), '');
+        // Replace locale-specific decimal separator with a dot
+        const normalizedString = cleanedString.replace(decimalSeparator, '.');
+    
+        return parseFloat(normalizedString);
+    }
 });

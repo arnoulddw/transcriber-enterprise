@@ -72,6 +72,10 @@ class User(UserMixin):
 
     @property
     def role(self) -> Optional['Role']:
+        try:
+            logging.debug(f"[User:{self.id}] role property accessed. cached={self._role is not None}, role_id={self.role_id}")
+        except Exception:
+            pass
         if self._role is None and self.role_id is not None:
             from app.models.role import _map_row_to_role
             sql = 'SELECT * FROM roles WHERE id = %s'
@@ -81,6 +85,10 @@ class User(UserMixin):
                 cursor.execute(sql, (self.role_id,))
                 row = cursor.fetchone()
                 self._role = _map_row_to_role(row)
+                if self._role:
+                    logging.debug(f"[User:{self.id}] Loaded role snapshot from DB. role_id={self.role_id}, role_name={getattr(self._role, 'name', None)}")
+                else:
+                    logging.warning(f"[User:{self.id}] No role found for role_id={self.role_id}.")
             except MySQLError as err:
                 logging.error(f"[User:{self.id}] Error fetching role (ID: {self.role_id}): {err}", exc_info=True)
                 self._role = None
@@ -318,8 +326,13 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
     # --- END MODIFIED ---
 
     default_auto_title_enabled = False
-    if role and role.has_permission('allow_auto_title_generation'):
-        default_auto_title_enabled = True
+    if role:
+        has_perm = role.has_permission('allow_auto_title_generation')
+        logging.info(f"[DB:User] Role '{role.name}' allow_auto_title_generation permission: {getattr(role, 'allow_auto_title_generation', 'ATTR_MISSING')}, has_permission()={has_perm}")
+        if has_perm:
+            default_auto_title_enabled = True
+    else:
+        logging.warning(f"[DB:User] No role provided for default auto-title check")
 
     # --- MODIFIED: Add new columns to INSERT statement ---
     sql = '''
@@ -484,7 +497,21 @@ def get_user_by_id(user_id: int) -> Optional[User]:
         cursor.execute(sql, (user_id,))
         row = cursor.fetchone()
         if row:
+            logging.info(f"[DB:User] get_user_by_id({user_id}) - DB row: username={row.get('username')}, role_id={row.get('role_id')}, role_name={row.get('role_name')}")
             user = _map_row_to_user(row)
+            # Eagerly pin role snapshot to avoid drift during long-running operations/tests
+            if user and user.role_id is not None:
+                try:
+                    role_snapshot = get_role_by_id(user.role_id) if get_role_by_id else None
+                    user._role = role_snapshot
+                    if role_snapshot:
+                        logging.info(f"[DB:User] get_user_by_id({user_id}) pinned role snapshot: role_id={user.role_id}, role_name={role_snapshot.name}, use_api_openai_whisper={role_snapshot.use_api_openai_whisper}")
+                    else:
+                        logging.warning(f"[DB:User] get_user_by_id({user_id}) failed to load role snapshot for role_id={user.role_id}")
+                except Exception as pin_err:
+                    logging.error(f"[DB:User] Failed to pin role snapshot for user {user_id}: {pin_err}", exc_info=True)
+        else:
+            logging.warning(f"[DB:User] get_user_by_id({user_id}) - No row found in database")
     except MySQLError as err:
         logging.error(f"[DB:User] Error retrieving user by ID '{user_id}': {err}", exc_info=True)
         user = None # Ensure user is None on error
@@ -598,10 +625,49 @@ def update_user_password_hash(user_id: int, new_password_hash: str) -> bool:
 def update_user_role(user_id: int, new_role_id: int) -> bool:
     sql = 'UPDATE users SET role_id = %s WHERE id = %s'
     cursor = get_cursor()
+
+    # Diagnostics: capture previous role mapping for this user
+    prev_role_id = None
+    prev_role_name = None
+    try:
+        prev_user = get_user_by_id(user_id)
+        if prev_user:
+            prev_role_id = prev_user.role_id
+            try:
+                prev_role_name = getattr(prev_user.role, 'name', None)
+            except Exception:
+                prev_role_name = None
+    except Exception as diag_err:
+        logging.debug(f"[DB:User] update_user_role pre-fetch failed for user {user_id}: {diag_err}", exc_info=True)
+
+    logging.info(f"[DB:User] ROLE_UPDATE: Updating user {user_id} from role_id={prev_role_id}:{prev_role_name} to role_id={new_role_id}")
+
     try:
         cursor.execute(sql, (new_role_id, user_id))
         get_db().commit()
-        logging.info(f"[DB:User] Updated role ID to {new_role_id} for user ID {user_id}.")
+
+        # Resolve new role name for diagnostics
+        new_role_name = None
+        new_role_permissions = {}
+        try:
+            new_role = get_role_by_id(new_role_id) if new_role_id is not None else None
+            if new_role:
+                new_role_name = new_role.name
+                new_role_permissions = {
+                    'use_api_openai_whisper': new_role.use_api_openai_whisper,
+                    'allow_workflows': new_role.allow_workflows,
+                    'allow_auto_title_generation': new_role.allow_auto_title_generation
+                }
+        except Exception as name_err:
+            logging.debug(f"[DB:User] update_user_role post-fetch failed to resolve role name for role_id {new_role_id}: {name_err}", exc_info=True)
+
+        logging.info(f"[DB:User] ROLE_UPDATE: Updated user {user_id}: {prev_role_id}:{prev_role_name} -> {new_role_id}:{new_role_name}, permissions={new_role_permissions}")
+        
+        # Verify the update took effect
+        verify_user = get_user_by_id(user_id)
+        if verify_user:
+            logging.info(f"[DB:User] ROLE_UPDATE: Verification - user {user_id} now has role_id={verify_user.role_id}")
+        
         return True
     except MySQLError as err:
         logging.error(f"[DB:User] Error updating role ID for user ID {user_id}: {err}", exc_info=True)

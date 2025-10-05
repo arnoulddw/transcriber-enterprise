@@ -172,69 +172,6 @@ function openApiKeyModal(event) {
 window.openApiKeyModal = openApiKeyModal; // Expose globally
 
 
-/**
- * Formats a number according to the user's locale.
- * Handles null, undefined, and non-numeric values gracefully.
- * @param {number|string|null|undefined} num - The number to format.
- * @param {object} [options] - Options for toLocaleString(). E.g., { minimumFractionDigits: 2, maximumFractionDigits: 2 }.
- * @returns {string} The formatted number or 'N/A'.
- */
-/**
- * Parses a number that might be in a locale-specific format (e.g., using a comma).
- * @param {string} str - The string to parse.
- * @returns {number} The parsed number, or NaN if invalid.
- */
-function parseLocaleNumber(str) {
-    if (typeof str !== 'string') {
-        // If it's already a number, return it. Otherwise, it's invalid.
-        return typeof str === 'number' && isFinite(str) ? str : NaN;
-    }
-    // Find the last comma or period, which is the most likely decimal separator.
-    const lastComma = str.lastIndexOf(',');
-    const lastPeriod = str.lastIndexOf('.');
-
-    let sanitizedStr;
-
-    if (lastComma > lastPeriod) {
-        // If comma is the last separator, assume it's the decimal point.
-        // Remove all periods (thousands separators) and replace the comma with a period.
-        sanitizedStr = str.replace(/\./g, '').replace(',', '.');
-    } else {
-        // Otherwise, assume the period is the decimal point.
-        // Remove all commas (thousands separators).
-        sanitizedStr = str.replace(/,/g, '');
-    }
-
-    return parseFloat(sanitizedStr);
-}
-window.parseLocaleNumber = parseLocaleNumber;
-
-
-/**
- * Formats a number into a locale-aware string with a specified number of decimal places.
- * @param {number} num - The number to format.
- * @param {number} [digits=2] - The number of fraction digits.
- * @returns {string} The formatted number string.
- */
-function formatLocaleNumber(num, options = {}) {
-    const number = parseFloat(num);
-    if (isNaN(number)) {
-        return ''; // Return empty string for invalid or empty inputs
-    }
-
-    // Set default options if none are provided
-    const defaultOptions = {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    };
-
-    const finalOptions = { ...defaultOptions, ...options };
-
-    // Fallback to 'en-US' if userLocale is not available
-    const locale = window.userLocale || 'en-US';
-    return number.toLocaleString(locale, finalOptions);
-}
-window.formatLocaleNumber = formatLocaleNumber;
 
 /**
  * Simple minutes formatter for displaying usage limits.

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}{{ _('Transcriber Platform') }}{% endblock %}</title>
+    <title>{% block title %}{{ _('Compass Platform') }}{% endblock %}</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind_output.css') }}">
     {# main.css is mostly empty after Tailwind migration, can be removed in Phase 6 if it remains so. #}
@@ -35,7 +35,7 @@
                             {% endif %}
                         {% endblock mobile_trigger %}
                         <a href="{{ url_for('main.index') }}" class="text-xl font-semibold text-white {% block brand_logo_adjust_class %}{% endblock %}">
-                            {{ _('Transcriber Platform') }}
+                            {{ _('Compass Platform') }}
                         </a>
                     </div>
                     <div class="flex items-center">
@@ -503,7 +503,7 @@
     <footer class="bg-gray-200 text-gray-700 text-sm">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="text-center">
-                {{ _('Transcriber Platform App') }} - © {{ now.year }}
+                {{ _('Compass Platform App') }} - © {{ now.year }}
             </div>
         </div>
     </footer>
@@ -741,7 +741,6 @@
             }
         });
     </script>
-    </script>
 
     {% block scripts %}
         {# Common scripts loaded after DOMContentLoaded and global vars setup #}
@@ -754,8 +753,7 @@
         <script src="{{ url_for('static', filename='js/workflow_modal.js') }}"></script>
         <script src="{{ url_for('static', filename='js/workflow_polling.js') }}"></script>
         <script src="{{ url_for('static', filename='js/workflow_results.js') }}"></script>
-        {% block page_scripts %}{% endblock %}
-        {% block admin_scripts %}{% endblock %}
+        
         {% if is_multi_user %}
             {% if current_user.is_authenticated and current_user.role and current_user.role.allow_api_key_management %}
                 <script src="{{ url_for('static', filename='js/user_settings.js') }}"></script>
@@ -764,6 +762,12 @@
                 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
             {% endif %}
         {% endif %}
+        
+        {# Page-specific scripts should come after common scripts #}
+        {% block page_scripts %}{% endblock %}
+        
+        {# Admin-specific scripts, which might depend on common/page scripts #}
+        {% block admin_scripts %}{% endblock %}
     {% endblock %}
 </body>
 </html>

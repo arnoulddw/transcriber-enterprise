@@ -33,10 +33,10 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Signups" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.new_signups.get('24h', 0)|raw_number }}" data-format="integer">{{ metrics.new_signups.get('24h', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Signups" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.new_signups.get('7d', 0)|raw_number }}" data-format="integer">{{ metrics.new_signups.get('7d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Signups" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.new_signups.get('30d', 0)|raw_number }}" data-format="integer">{{ metrics.new_signups.get('30d', 'N/A') }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Signups" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ metrics.new_signups.get('all', 0)|raw_number }}" data-format="integer">{{ metrics.new_signups.get('all', 'N/A') }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('24h', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('7d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('30d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.new_signups.get('all', 0), locale=formatting_locale) }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -66,7 +66,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for user_limit in metrics.users_hitting_limits %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="User ID" class="format-number px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ user_limit.id|raw_number }}" data-format="integer">{{ user_limit.id }}</td>
+                            <td data-label="User ID" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ user_limit.id }}</td>
                             <td data-label="Username" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                                 <a href="{{ url_for('admin_panel.user_details', user_id=user_limit.id) }}" class="text-primary hover:text-primary-dark">{{ user_limit.username | e }}</a>
                             </td>
@@ -74,7 +74,7 @@
                             <td data-label="Limit(s) Hit" class="px-6 py-4 whitespace-normal text-sm text-red-600 block sm:table-cell text-right sm:text-left relative border-b sm:border-none text-xs">
                                <ul class="list-disc list-inside">
                                    {% for limit in user_limit.limits_hit %}
-                                       <li>{{ limit.name }}: {{ limit.value }} / {{ limit.limit }}</li>
+                                       <li>{{ limit.name }}: {{ format_number(limit.value, locale=formatting_locale) }} / {{ format_number(limit.limit, locale=formatting_locale) if limit.limit > 0 else '∞' }}</li>
                                    {% endfor %}
                                </ul>
                            </td>

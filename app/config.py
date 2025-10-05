@@ -117,7 +117,11 @@ class Config:
     # --- Logging ---
     LOG_DIR = os.path.join(BASE_DIR, 'logs')
     LOG_FILE = os.path.join(LOG_DIR, 'app.log')
-    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO').upper()
+    # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
+    # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
+    # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
+    # --- FORCED FOR DEBUGGING ---
+    LOG_LEVEL = 'DEBUG'
     if LOG_LEVEL not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
         raise ValueError(f"Invalid LOG_LEVEL: '{LOG_LEVEL}'. Must be one of DEBUG, INFO, WARNING, ERROR, CRITICAL.")
 

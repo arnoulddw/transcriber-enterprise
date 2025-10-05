@@ -112,10 +112,38 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             _update_progress(app, job_id, "Processing started. Validating permissions...", user_id=user_id)
 
             user = user_model.get_user_by_id(user_id)
+            logger.info(f"PERMISSION_CHECK: Loaded user for transcription - user_id={user_id}, username={getattr(user, 'username', None)}, role_id={getattr(user, 'role_id', None)}, has_cached_role={getattr(user, '_role', None) is not None if user else 'n/a'}")
             if not user:
                 raise PermissionError("User not found. Cannot start transcription.")
-            if not user.role:
+            # Conditionally handle/pin role snapshot to avoid cross-test/async drift while preserving test patches
+            try:
+                cached = getattr(user, '_role', None)
+                role_snapshot = cached
+                if cached is not None:
+                    logger.debug("Preserving pre-cached role snapshot on user; skipping DB reload.")
+                else:
+                    # In testing mode, we still need to load the role if it's not cached
+                    # The user object from get_user_by_id should have the role pinned already
+                    # If not, we need to load it to avoid permission check failures
+                    logger.debug("No cached role found; loading role from user.role property.")
+                    role_snapshot = user.role if user else None
+                    if role_snapshot:
+                        user._role = role_snapshot
+                        logger.debug(f"Pinned role snapshot. role_id={getattr(user, 'role_id', None)}, role_name={getattr(role_snapshot, 'name', None)}")
+                    else:
+                        logger.warning(f"Failed to load role for user {user_id} with role_id={getattr(user, 'role_id', None)}")
+            except Exception as pin_err:
+                logger.error(f"Failed during role snapshot handling for user {user_id}: {pin_err}", exc_info=True)
+                role_snapshot = getattr(user, '_role', None)
+            # Resolve role object for permission checks
+            role_obj = role_snapshot
+            if not role_obj:
                 raise PermissionError("User role not found. Cannot determine permissions.")
+            # Ensure user._role aligns with role_obj for subsequent property access
+            try:
+                user._role = role_obj
+            except Exception:
+                pass
 
             if _check_for_cancellation(app, job_id):
                 was_cancelled = True; cancel_event.set(); raise InterruptedError("Job cancelled by user before permission checks.")
@@ -126,7 +154,26 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                 'gpt-4o-transcribe': 'use_api_openai_gpt_4o_transcribe'
             }
             api_permission = permission_map.get(api_choice)
-            if not api_permission or not check_permission(user, api_permission):
+
+            # Diagnostic logging for permission context
+            # Reuse resolved role_obj above; add deeper diagnostics about sources
+            try:
+                live_role = None if current_app.testing else user.role
+                source = 'cached' if role_snapshot is not None else ('testing-skip' if current_app.testing else 'db')
+                logger.info(
+                    f"PERMISSION_CHECK: uid={user.id}, username={user.username}, is_auth={getattr(user, 'is_authenticated', False)}, "
+                    f"role_id={getattr(user, 'role_id', None)}, role_name={getattr(role_obj, 'name', None)}, "
+                    f"perm='{api_permission}', role_attr_val={getattr(role_obj, api_permission, None)}, "
+                    f"source={source}, live_role_name={getattr(live_role, 'name', None) if live_role else None}, "
+                    f"testing_mode={current_app.testing}"
+                )
+            except Exception as diag_err:
+                logger.error(f"PERMISSION_CHECK: Failed to log diagnostic info: {diag_err}", exc_info=True)
+
+            allowed_perm = bool(api_permission) and check_permission(user, api_permission)
+            logger.info(f"PERMISSION_CHECK: check_permission(user={user.id}, '{api_permission}') -> {allowed_perm}")
+            if not allowed_perm:
+                logger.error(f"PERMISSION_CHECK: DENIED - user_id={user.id}, username={user.username}, role_name={getattr(role_obj, 'name', None)}, permission={api_permission}")
                 raise PermissionError(f"Permission denied to use the '{api_display_name}' API.")
 
             file_size_mb = 0.0
@@ -197,20 +244,29 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             mode = current_app.config['DEPLOYMENT_MODE']
             try:
                 if mode == 'multi':
-                    if user.has_permission('allow_api_key_management'):
-                        key_service_name = 'openai' if api_choice in ['whisper', 'gpt-4o-transcribe'] else api_choice
-                        api_key = get_decrypted_api_key(user_id, key_service_name)
-                        if not api_key:
-                            raise MissingApiKeyError(f"ERROR: {api_display_name} API key not configured by user.")
+                    key_service_name = 'openai' if api_choice in ['whisper', 'gpt-4o-transcribe'] else api_choice
+                    api_key = get_decrypted_api_key(user_id, key_service_name)
+
+                    if api_key:
                         logger.debug(f"Using user-specific API key for '{api_display_name}'.")
                     else:
-                        key_env_var = None
-                        if api_choice == 'assemblyai': key_env_var = 'ASSEMBLYAI_API_KEY'
-                        elif api_choice in ['whisper', 'gpt-4o-transcribe']: key_env_var = 'OPENAI_API_KEY'
-                        if key_env_var: api_key = current_app.config.get(key_env_var)
-                        if not api_key:
-                            raise MissingApiKeyError(f"ERROR: Global {api_display_name} API key ({key_env_var}) is not configured for role.")
-                        logger.debug(f"Using global API key for '{api_display_name}' (user key management disabled).")
+                        # No user-specific key found, decide fallback strategy
+                        if user.has_permission('allow_api_key_management'):
+                            # User is allowed to set a key, but hasn't. This is an error.
+                            raise MissingApiKeyError(f"ERROR: {api_display_name} API key not configured by user.")
+                        else:
+                            # User is not allowed to set a key, so fall back to global config.
+                            logger.debug(f"User key not found and role does not allow key management. Falling back to global API key for '{api_display_name}'.")
+                            key_env_var = None
+                            if api_choice == 'assemblyai': key_env_var = 'ASSEMBLYAI_API_KEY'
+                            elif api_choice in ['whisper', 'gpt-4o-transcribe']: key_env_var = 'OPENAI_API_KEY'
+                            
+                            if key_env_var:
+                                api_key = current_app.config.get(key_env_var)
+                            
+                            if not api_key:
+                                raise MissingApiKeyError(f"ERROR: Global {api_display_name} API key ({key_env_var}) is not configured for role.")
+                            logger.debug(f"Using global API key for '{api_display_name}' (user key management disabled).")
                 elif mode == 'single':
                     key_env_var = None
                     if api_choice == 'assemblyai': key_env_var = 'ASSEMBLYAI_API_KEY'

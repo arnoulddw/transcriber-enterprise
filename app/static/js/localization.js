@@ -52,7 +52,48 @@ function formatDateTime(isoString) {
         return isoString; // Fallback to original string on error
     }
 }
+/**
+ * Formats a number into a locale-aware string.
+ * @param {number|string} num - The number to format.
+ * @param {object} [options] - Options for Intl.NumberFormat.
+ * @returns {string} The formatted number string.
+ */
+function formatLocaleNumber(num, options = {}) {
+    const number = parseFloat(num);
+    if (isNaN(number)) {
+        return ''; // Return empty string for invalid inputs
+    }
+    const locale = getUserLocale();
+    return new Intl.NumberFormat(locale, options).format(number);
+}
+
+/**
+ * Parses a locale-specific number string into a float.
+ * It handles both comma and dot decimal separators.
+ * @param {string} str - The string to parse.
+ * @returns {number} The parsed number, or NaN if invalid.
+ */
+function parseLocaleNumber(str) {
+    if (typeof str !== 'string' || str.trim() === '') {
+        return NaN;
+    }
+    // Get the locale-specific decimal separator
+    const locale = getUserLocale();
+    const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
+    const decimalSeparator = parts.find(part => part.type === 'decimal').value;
+    const thousandSeparator = parts.find(part => part.type === 'group').value;
+
+    // Remove thousand separators
+    const sanitizedStr = str.replace(new RegExp(`\\${thousandSeparator}`, 'g'), '');
+    
+    // Replace locale decimal separator with a dot
+    const normalizedStr = sanitizedStr.replace(decimalSeparator, '.');
+
+    return parseFloat(normalizedStr);
+}
 
 // Expose functions to the global window object to be accessible from other scripts.
 window.formatDate = formatDate;
 window.formatDateTime = formatDateTime;
+window.formatLocaleNumber = formatLocaleNumber;
+window.parseLocaleNumber = parseLocaleNumber;

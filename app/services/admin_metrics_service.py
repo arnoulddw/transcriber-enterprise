@@ -359,9 +359,9 @@ def get_cost_analytics() -> Dict[str, Any]:
                 # Costs by component
                 component_costs = transcription_utils.get_cost_analytics_by_component(start, end)
                 metrics['by_component'][key] = {
-                    'transcriptions': round(component_costs.get('transcriptions', 0.0), 2),
-                    'title_generations': round(component_costs.get('title_generations', 0.0), 2),
-                    'workflows': round(component_costs.get('workflows', 0.0), 2)
+                    'transcriptions': component_costs.get('transcriptions', 0.0),
+                    'title_generations': component_costs.get('title_generations', 0.0),
+                    'workflows': component_costs.get('workflows', 0.0)
                 }
 
                 # Costs by role
@@ -369,9 +369,9 @@ def get_cost_analytics() -> Dict[str, Any]:
                 metrics['by_role'][key] = {}
                 for role, data in role_costs.items():
                     metrics['by_role'][key][role] = {
-                        'total_cost': round(data.get('total_cost', 0.0), 2),
+                        'total_cost': data.get('total_cost', 0.0),
                         'user_count': data.get('user_count', 0),
-                        'cost_per_user': round(data.get('total_cost', 0.0) / data.get('user_count', 1), 2)
+                        'cost_per_user': _safe_division(data.get('total_cost', 0.0), data.get('user_count', 1))
                     }
 
         logging.debug(f"{log_prefix} Retrieved cost analytics.")
@@ -410,7 +410,7 @@ def get_user_usage_metrics(user_id: int) -> Dict[str, Any]:
                 # Costs
                 cost_data = transcription_utils.get_cost_analytics_by_component(start, end, user_id=user_id)
                 total_cost = cost_data.get('transcriptions', 0.0) + cost_data.get('title_generations', 0.0) + cost_data.get('workflows', 0.0)
-                metrics['costs'][key] = round(total_cost, 2)
+                metrics['costs'][key] = total_cost
 
                 # Transcriptions
                 metrics['transcriptions'][key] = transcription_utils.count_jobs_in_range(
@@ -431,7 +431,7 @@ def get_user_usage_metrics(user_id: int) -> Dict[str, Any]:
                 audio_minutes = transcription_utils.sum_minutes_in_range(
                     start, end, user_id=user_id, status__in=['finished', 'cancelled']
                 )
-                metrics['audio_processed'][key] = round(audio_minutes, 2)
+                metrics['audio_processed'][key] = audio_minutes
 
                 # Errors
                 metrics['errors'][key] = transcription_utils.count_jobs_in_range(

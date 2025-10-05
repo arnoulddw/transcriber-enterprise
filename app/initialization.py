@@ -4,6 +4,7 @@
 import logging
 import os
 from flask import current_app, Flask
+from typing import Mapping, Any
 
 # Import necessary models and services
 from app.models import role as role_model
@@ -20,9 +21,9 @@ from app.services.auth_service import AuthServiceError # Import specific excepti
 
 # Removed MARKER_FILENAME definition here, now defined in Config
 
-def get_marker_path() -> str:
+def get_marker_path(config: Mapping[str, Any]) -> str:
     """Gets the absolute path for the initialization marker file from config."""
-    marker_path = current_app.config['INIT_MARKER_FILE']
+    marker_path = config['INIT_MARKER_FILE']
     marker_base_dir = os.path.dirname(marker_path)
     try:
         os.makedirs(marker_base_dir, exist_ok=True)
@@ -30,16 +31,32 @@ def get_marker_path() -> str:
         logging.error(f"[INIT] Failed to ensure marker directory exists '{marker_base_dir}': {e}")
     return marker_path
 
-def check_initialization_marker() -> bool:
+def check_initialization_marker(config: Mapping[str, Any] = None) -> bool:
     """Checks if the initialization marker file exists."""
-    marker_path = get_marker_path()
-    exists = os.path.exists(marker_path)
-    logging.debug(f"[INIT] Checking for initialization marker '{marker_path}': {'Found' if exists else 'Not Found'}")
-    return exists
+    logging.warning("[Roo-DEBUG] Entering check_initialization_marker")
+    if config is None:
+        logging.warning("[Roo-DEBUG] config is None, falling back to current_app.config")
+        config = current_app.config
+    
+    logging.warning(f"[Roo-DEBUG] Config object id: {id(config)}")
+    logging.warning(f"[Roo-DEBUG] Config object type: {type(config)}")
+    
+    try:
+        marker_path = get_marker_path(config)
+        logging.warning(f"[Roo-DEBUG] Successfully got marker_path: {marker_path}")
+        exists = os.path.exists(marker_path)
+        logging.warning(f"[INIT] Checking for initialization marker '{marker_path}': {'Found' if exists else 'Not Found'}")
+        return exists
+    except Exception as e:
+        logging.error(f"[Roo-DEBUG] Exception in check_initialization_marker: {e}", exc_info=True)
+        # Log available keys to see what config we actually have
+        if isinstance(config, dict) or hasattr(config, 'keys'):
+            logging.error(f"[Roo-DEBUG] Available config keys: {list(config.keys())}")
+        raise
 
-def create_initialization_marker() -> None:
+def create_initialization_marker(config: Mapping[str, Any]) -> None:
     """Creates the initialization marker file."""
-    marker_path = get_marker_path()
+    marker_path = get_marker_path(config)
     try:
         with open(marker_path, 'w') as f:
             f.write(f"Initialized at {logging.Formatter().formatTime(logging.LogRecord(None,None,None,None,None,None,None))}\n") # Write timestamp

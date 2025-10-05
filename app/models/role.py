@@ -253,6 +253,7 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
     """
     if permissions is None:
         permissions = {}
+    logging.info(f"[DB:Role] create_role called with permissions: {permissions}")
     # --- MODIFIED: Add use_api_google_gemini to valid columns ---
     valid_permission_columns = [
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
@@ -269,6 +270,7 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
     base_columns = ['name', 'description']
     base_values = [name, description]
     new_columns, new_values = _prepare_role_fields(permissions, valid_permission_columns)
+    logging.info(f"[DB:Role] Prepared columns: {new_columns}, values: {new_values}")
     sql_columns = base_columns + new_columns
     sql_values = base_values + new_values
     if not sql_columns:

@@ -38,13 +38,8 @@
                         {% for period in periods_data %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
-                            <td data-label="Rate" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('overall_transcription_error_rate', {}).get(period, 0)|raw_number }}" data-format="percent">
-                                {% set rate = metrics.get('overall_transcription_error_rate', {}).get(period, 'N/A') %}
-                                {% if rate != 'N/A' and rate is not none %}
-                                    {{ rate | round(method='ceil') | int }}%
-                                {% else %}
-                                    N/A
-                                {% endif %}
+                            <td data-label="Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_percent(metrics.get('overall_transcription_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>
                         </tr>
                         {% endfor %}
@@ -72,13 +67,8 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="API" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
                             {% for period in periods_data_api %}
-                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="format-number px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 0)|raw_number }}" data-format="percent">
-                                    {% set rate = metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 'N/A') %}
-                                    {% if rate != 'N/A' and rate is not none %}
-                                        {{ rate | round(method='ceil') | int }}%
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                    {{ format_percent(metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 0), locale=formatting_locale) }}
                                 </td>
                             {% endfor %}
                         </tr>
@@ -144,7 +134,7 @@
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                                             <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ error.count|raw_number }}" data-format="integer">{{ error.count }}</td>
+                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -180,13 +170,8 @@
                         {% for period in periods_data_wf_overall %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
-                            <td data-label="Rate" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('overall_workflow_error_rate', {}).get(period, 0)|raw_number }}" data-format="percent">
-                                {% set rate = metrics.get('overall_workflow_error_rate', {}).get(period, 'N/A') %}
-                                {% if rate != 'N/A' and rate is not none %}
-                                    {{ rate | round(method='ceil') | int }}%
-                                {% else %}
-                                    N/A
-                                {% endif %}
+                            <td data-label="Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_percent(metrics.get('overall_workflow_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>
                         </tr>
                         {% endfor %}
@@ -215,13 +200,8 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Model" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
                             {% for period in periods_data_wf_model %}
-                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="format-number px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 0)|raw_number }}" data-format="percent">
-                                    {% set rate = metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 'N/A') %}
-                                    {% if rate != 'N/A' and rate is not none %}
-                                        {{ rate | round(method='ceil') | int }}%
-                                    {% else %}
-                                        N/A
-                                    {% endif %}
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                    {{ format_percent(metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 0), locale=formatting_locale) }}
                                 </td>
                             {% endfor %}
                         </tr>
@@ -287,7 +267,7 @@
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                                             <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ error.count|raw_number }}" data-format="integer">{{ error.count }}</td>
+                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

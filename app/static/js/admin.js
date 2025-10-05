@@ -450,3 +450,95 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTabs('workflowErrorTabGroup');
 
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const adminSidenavButton = document.getElementById('admin-sidenav-button');
+    const adminSidebar = document.getElementById('admin-sidebar');
+    const adminSidenavOverlay = document.getElementById('admin-sidenav-overlay');
+    const closeAdminSidebarButton = document.getElementById('close-admin-sidebar-button');
+    let firstFocusableElementAdmin, lastFocusableElementAdmin;
+
+    function getFocusableElementsAdmin() {
+        if (!adminSidebar) return [];
+        const focusable = Array.from(
+            adminSidebar.querySelectorAll(
+                'a[href]:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), details:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+        ).filter(el => !el.hasAttribute('disabled') && !el.closest('.hidden')); // Ensure elements are visible
+        firstFocusableElementAdmin = focusable[0];
+        lastFocusableElementAdmin = focusable[focusable.length - 1];
+        return focusable;
+    }
+
+    function openAdminSidebar() {
+        if (!adminSidebar || !adminSidenavOverlay || !adminSidenavButton) return;
+        adminSidebar.classList.remove('-translate-x-full');
+        adminSidebar.setAttribute('aria-hidden', 'false');
+        adminSidenavButton.setAttribute('aria-expanded', 'true');
+        adminSidenavOverlay.classList.remove('hidden', 'opacity-0');
+        adminSidenavOverlay.classList.add('opacity-100');
+        document.body.style.overflow = 'hidden';
+        getFocusableElementsAdmin();
+        if (firstFocusableElementAdmin) {
+            firstFocusableElementAdmin.focus();
+        } else {
+            adminSidebar.focus();
+        }
+    }
+
+    function closeAdminSidebar() {
+        if (!adminSidebar || !adminSidenavOverlay || !adminSidenavButton) return;
+        adminSidebar.classList.add('-translate-x-full');
+        adminSidebar.setAttribute('aria-hidden', 'true');
+        adminSidenavButton.setAttribute('aria-expanded', 'false');
+        adminSidenavOverlay.classList.remove('opacity-100');
+        adminSidenavOverlay.classList.add('opacity-0');
+        setTimeout(() => {
+            adminSidenavOverlay.classList.add('hidden');
+        }, 300);
+        document.body.style.overflow = '';
+        adminSidenavButton.focus();
+    }
+
+    if (adminSidenavButton && adminSidebar && adminSidenavOverlay) {
+        adminSidenavButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            const isHidden = adminSidebar.classList.contains('-translate-x-full');
+            if (isHidden) {
+                openAdminSidebar();
+            } else {
+                closeAdminSidebar();
+            }
+        });
+
+        if (closeAdminSidebarButton) {
+            closeAdminSidebarButton.addEventListener('click', closeAdminSidebar);
+        }
+        adminSidenavOverlay.addEventListener('click', closeAdminSidebar);
+
+        document.addEventListener('keydown', function(event) {
+            const isMobileView = !adminSidenavOverlay.classList.contains('hidden');
+            if (isMobileView && !adminSidebar.classList.contains('-translate-x-full')) {
+                if (event.key === 'Escape') {
+                    closeAdminSidebar();
+                }
+                if (event.key === 'Tab') {
+                    if (!firstFocusableElementAdmin || !lastFocusableElementAdmin) {
+                        getFocusableElementsAdmin();
+                    }
+                    if (event.shiftKey) {
+                        if (document.activeElement === firstFocusableElementAdmin) {
+                            lastFocusableElementAdmin.focus();
+                            event.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastFocusableElementAdmin) {
+                            firstFocusableElementAdmin.focus();
+                            event.preventDefault();
+                        }
+                    }
+                }
+            }
+        });
+    }
+});

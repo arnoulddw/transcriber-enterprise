@@ -1,30 +1,40 @@
 # tests/functional/config/test_config.py
 
 import os
+import os
 
 class TestConfig:
     """
     Test configuration settings.
     """
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL", "sqlite:///:memory:")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Fixes from errors
-    DEPLOYMENT_MODE = 'multi'
-    LOG_DIR = '/tmp'
-    LOG_FILE = '/tmp/test_app.log'
-    RATELIMIT_STORAGE_URI = "memory://"
+    # Load API keys directly from environment for tests
+    ASSEMBLYAI_API_KEY = os.environ.get('ASSEMBLYAI_API_KEY')
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+    ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+
+    # Disable CSRF protection for tests
+    WTF_CSRF_ENABLED = False
+    
+    # Use a less intensive hashing algorithm for tests
+    BCRYPT_LOG_ROUNDS = 4
+    
+    # Disable rate limiting for tests
     RATELIMIT_ENABLED = False
-    RATELIMIT_DEFAULT = "200 per day;50 per hour"
-    SECRET_KEY = 'a-super-secret-key-for-testing'
+    RATELIMIT_DEFAULT = "1000 per minute"
     
-    # Database settings
+    # Use a dedicated test database
     MYSQL_USER = 'test'
     MYSQL_PASSWORD = 'test'
     MYSQL_DB = 'test_db'
-    MYSQL_HOST = 'mysql-test'
-    MYSQL_PORT = 3306
+    # When running in Docker, connect to the mysql-test service
+    # When running locally, connect to the published port
+    MYSQL_HOST = os.environ.get('MYSQL_TEST_HOST', 'mysql-test')
+    MYSQL_PORT = int(os.environ.get('MYSQL_TEST_PORT', '3306'))
+    
+    # Override the database config dictionary
     MYSQL_CONFIG = {
         'host': MYSQL_HOST,
         'port': MYSQL_PORT,
@@ -35,29 +45,43 @@ class TestConfig:
         'pool_size': 5
     }
     
-    # Other settings to prevent errors
-    WTF_CSRF_ENABLED = False
-    BCRYPT_LOG_ROUNDS = 4
-    
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    RUNTIME_DIR = os.path.join(BASE_DIR, 'runtime')
-    TASK_LOCK_FILE = os.path.join(RUNTIME_DIR, 'transcriber_task_test.lock')
-    INIT_MARKER_FILE = os.path.join(RUNTIME_DIR, '.initialized_test')
+    # --- Add other necessary overrides from base config to avoid errors ---
+    SECRET_KEY = 'a-super-secret-key-for-testing'
+    DEPLOYMENT_MODE = 'multi'
+    LOG_DIR = '/tmp'
+    LOG_FILE = '/tmp/test_app.log'
+    RATELIMIT_STORAGE_URI = "memory://"
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    RUNTIME_DIR = os.path.join(BASE_DIR, 'runtime_test')
     TEMP_UPLOADS_DIR = os.path.join(RUNTIME_DIR, 'test_uploads')
+    os.makedirs(RUNTIME_DIR, exist_ok=True)
+    os.makedirs(TEMP_UPLOADS_DIR, exist_ok=True)
+
+    # --- FIX: Explicitly define lock and marker files for tests ---
+    TASK_LOCK_FILE = os.path.join(RUNTIME_DIR, 'transcriber_task.lock')
+    INIT_MARKER_FILE = os.path.join(RUNTIME_DIR, '.initialized')
+    
+    # Simplified provider/language config for tests
+    TRANSCRIPTION_PROVIDERS = ["assemblyai", "whisper", "gpt-4o-transcribe"]
+    LLM_PROVIDERS = ["GEMINI", "OPENAI"]
+    DEFAULT_TRANSCRIPTION_PROVIDER = 'whisper'
+    LLM_PROVIDER = 'GEMINI'
+    API_PROVIDER_NAME_MAP = {
+        "assemblyai": "AssemblyAI",
+        "whisper": "OpenAI Whisper",
+        "gpt-4o-transcribe": "OpenAI GPT-4o Transcribe",
+        "GEMINI": "Google Gemini",
+        "OPENAI": "OpenAI",
+    }
     SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'nl']
     SUPPORTED_LANGUAGE_NAMES = {
         'auto': 'Automatic Detection',
         'en': 'English',
-        'nl': 'Dutch',
-        'fr': 'French',
         'es': 'Spanish',
+        'fr': 'French',
+        'nl': 'Dutch',
     }
-    API_PROVIDER_NAME_MAP = {}
-    TRANSCRIPTION_PROVIDERS = ["whisper"]
-    # Add any other necessary config variables here
+    DEFAULT_LANGUAGE = 'en'
     MAIL_DEFAULT_SENDER = 'test@example.com'
     GOOGLE_CLIENT_ID = None
     SERVER_NAME = 'localhost'
-    DEFAULT_LANGUAGE = 'en'
-    DEFAULT_TRANSCRIPTION_PROVIDER = 'whisper'
-    DEFAULT_TRANSCRIPTION_PROVIDER = 'whisper'

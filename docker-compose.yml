@@ -30,6 +30,7 @@ services:
       - "${APP_PORT:-5004}:5004" # Expose app on APP_PORT (default 5004)
     volumes:
       - ./app:/app/app
+      - ./tests:/app/tests
       - ./logs:/app/logs
       - ./uploads:/app/uploads
       - ./runtime:/app/runtime

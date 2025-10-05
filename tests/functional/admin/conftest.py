@@ -1,32 +1,28 @@
 import pytest
 from flask import Flask
-from app.models.role import Role
-from app.services.auth_service import create_user
+from app.models.role import get_role_by_name, create_role
+from app.services.auth_service import create_user, get_user_by_username
+
 
 @pytest.fixture(scope='function')
-def app(app: Flask):
-    with app.app_context():
-        # Import and run migrations after the app is created
-        from migrations.runner import run_migrations
-        run_migrations()
-    yield app
-
-@pytest.fixture(scope='function')
-def admin_client(app: Flask):
+def admin_client(app: Flask, clean_db):
+    """A test client logged in as an admin user."""
     with app.test_client() as client:
         with app.app_context():
-            # Create a role with admin permissions
-            Role.create(name='admin', description='Administrator', permissions={'access_admin_panel': True})
-            
-            # Create an admin user
-            create_user(
-                username='admin',
-                password='admin_password',
-                email='admin@example.com',
-                role_name='admin'
-            )
+            # Create dedicated test admin role to avoid mutating real 'admin'
+            if not get_role_by_name('admin_test_role'):
+                create_role(name='admin_test_role', description='Administrator (test)', permissions={'access_admin_panel': True})
+
+            # Create a test admin user if it doesn't exist
+            if not get_user_by_username('adminuser'):
+                create_user(
+                    username='adminuser',
+                    password='admin_password',
+                    email='adminuser@example.com',
+                    role_name='admin_test_role'
+                )
             
             # Log in the admin user
-            client.post('/login', json={'username': 'admin', 'password': 'admin_password'})
+            client.post('/login', json={'username': 'adminuser', 'password': 'admin_password'})
             
             yield client

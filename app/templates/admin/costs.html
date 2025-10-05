@@ -111,10 +111,10 @@
                     {% for component in ['transcriptions', 'title_generations', 'workflows'] %}
                     <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                         <td data-label="Component" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ component.replace('_', ' ')|title }}</td>
-                        <td data-label="Last 24 hours" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_component['24h'][component]|raw_number }}" data-format="cost">{{ metrics.by_component['24h'][component] }}</td>
-                        <td data-label="Last 7 days" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_component['7d'][component]|raw_number }}" data-format="cost">{{ metrics.by_component['7d'][component] }}</td>
-                        <td data-label="Last 30 days" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_component['30d'][component]|raw_number }}" data-format="cost">{{ metrics.by_component['30d'][component] }}</td>
-                        <td data-label="All time" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ metrics.by_component['all'][component]|raw_number }}" data-format="cost">{{ metrics.by_component['all'][component] }}</td>
+                        <td data-label="Last 24 hours" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_component['24h'][component], 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="Last 7 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_component['7d'][component], 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="Last 30 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_component['30d'][component], 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="All time" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_currency(metrics.by_component['all'][component], 'USD', locale=formatting_locale) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -139,11 +139,11 @@
                     {% for role, data in metrics.by_role['all'].items()|sort %}
                     <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                         <td data-label="Role" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ role }}</td>
-                        <td data-label="Last 24 hours" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_role['24h'].get(role, {}).get('total_cost', 0.00)|raw_number }}" data-format="cost">{{ metrics.by_role['24h'].get(role, {}).get('total_cost', 0.00) }}</td>
-                        <td data-label="Last 7 days" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_role['7d'].get(role, {}).get('total_cost', 0.00)|raw_number }}" data-format="cost">{{ metrics.by_role['7d'].get(role, {}).get('total_cost', 0.00) }}</td>
-                        <td data-label="Last 30 days" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.by_role['30d'].get(role, {}).get('total_cost', 0.00)|raw_number }}" data-format="cost">{{ metrics.by_role['30d'].get(role, {}).get('total_cost', 0.00) }}</td>
-                        <td data-label="All time" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ data.total_cost|raw_number }}" data-format="cost">{{ data.total_cost }}</td>
-                        <td data-label="Cost per User (All Time)" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ data.cost_per_user|raw_number }}" data-format="cost">{{ data.cost_per_user }}</td>
+                        <td data-label="Last 24 hours" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_role['24h'].get(role, {}).get('total_cost', 0.00), 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="Last 7 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_role['7d'].get(role, {}).get('total_cost', 0.00), 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="Last 30 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_role['30d'].get(role, {}).get('total_cost', 0.00), 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="All time" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(data.total_cost, 'USD', locale=formatting_locale) }}</td>
+                        <td data-label="Cost per User (All Time)" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_currency(data.cost_per_user, 'USD', locale=formatting_locale) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -52,7 +52,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Costs</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.costs.get(period, 0.0)|raw_number }}" data-format="cost">{{ metrics.costs.get(period, 0.0) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.costs.get(period, 0.0), 'USD', locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
 
@@ -60,7 +60,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Transcriptions (#)</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.transcriptions.get(period, 0)|raw_number }}" data-format="integer">{{ metrics.transcriptions.get(period, 0) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.transcriptions.get(period, 0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
 
@@ -68,7 +68,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Title Generations (#)</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.title_generations.get(period, 0)|raw_number }}" data-format="integer">{{ metrics.title_generations.get(period, 0) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.title_generations.get(period, 0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
 
@@ -76,7 +76,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Workflows (#)</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.workflows.get(period, 0)|raw_number }}" data-format="integer">{{ metrics.workflows.get(period, 0) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.workflows.get(period, 0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
 
@@ -84,7 +84,7 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Audio Processed (min)</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-value="{{ metrics.audio_processed.get(period, 0.0)|raw_number }}" data-format="decimal">{{ "%.2f"|format(metrics.audio_processed.get(period, 0.0)) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.audio_processed.get(period, 0.0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
 
@@ -92,7 +92,7 @@
                         <tr class="block sm:table-row">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">Errors (#)</td>
                             {% for period in periods %}
-                                <td data-label="Last 24h" class="format-number px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative" data-value="{{ metrics.errors.get(period, 0)|raw_number }}" data-format="integer">{{ metrics.errors.get(period, 0) }}</td>
+                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.errors.get(period, 0), locale=formatting_locale) }}</td>
                             {% endfor %}
                         </tr>
                     </tbody>
@@ -124,39 +124,39 @@
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Costs ($)</td>
                             <td data-label="Daily" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ "%.2f"|format(usage_stats.daily.cost) }} / {{ "%.2f"|format(user_details.role.limit_daily_cost) if user_details.role.limit_daily_cost > 0 else '∞' }}
+                                {{ format_currency(usage_stats.daily.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_daily_cost, 'USD', locale=formatting_locale) if user_details.role.limit_daily_cost > 0 else '∞' }}
                             </td>
                             <td data-label="Weekly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ "%.2f"|format(usage_stats.weekly.cost) }} / {{ "%.2f"|format(user_details.role.limit_weekly_cost) if user_details.role.limit_weekly_cost > 0 else '∞' }}
+                                {{ format_currency(usage_stats.weekly.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_weekly_cost, 'USD', locale=formatting_locale) if user_details.role.limit_weekly_cost > 0 else '∞' }}
                             </td>
                             <td data-label="Monthly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ "%.2f"|format(usage_stats.monthly.cost) }} / {{ "%.2f"|format(user_details.role.limit_monthly_cost) if user_details.role.limit_monthly_cost > 0 else '∞' }}
+                                {{ format_currency(usage_stats.monthly.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_monthly_cost, 'USD', locale=formatting_locale) if user_details.role.limit_monthly_cost > 0 else '∞' }}
                             </td>
                         </tr>
                         {# Minutes Processed Row #}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Minutes Processed</td>
                             <td data-label="Daily" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.daily.minutes }} / {{ user_details.role.limit_daily_minutes if user_details.role.limit_daily_minutes > 0 else '∞' }}
+                                {{ format_number(usage_stats.daily.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_daily_minutes, locale=formatting_locale) if user_details.role.limit_daily_minutes > 0 else '∞' }}
                             </td>
                             <td data-label="Weekly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.weekly.minutes }} / {{ user_details.role.limit_weekly_minutes if user_details.role.limit_weekly_minutes > 0 else '∞' }}
+                                {{ format_number(usage_stats.weekly.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_weekly_minutes, locale=formatting_locale) if user_details.role.limit_weekly_minutes > 0 else '∞' }}
                             </td>
                             <td data-label="Monthly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.monthly.minutes }} / {{ user_details.role.limit_monthly_minutes if user_details.role.limit_monthly_minutes > 0 else '∞' }}
+                                {{ format_number(usage_stats.monthly.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_monthly_minutes, locale=formatting_locale) if user_details.role.limit_monthly_minutes > 0 else '∞' }}
                             </td>
                         </tr>
                         {# Workflows Row #}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="Metric" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Workflows</td>
                             <td data-label="Daily" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.daily.workflows }} / {{ user_details.role.limit_daily_workflows if user_details.role.limit_daily_workflows > 0 else '∞' }}
+                                {{ format_number(usage_stats.daily.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_daily_workflows, locale=formatting_locale) if user_details.role.limit_daily_workflows > 0 else '∞' }}
                             </td>
                             <td data-label="Weekly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.weekly.workflows }} / {{ user_details.role.limit_weekly_workflows if user_details.role.limit_weekly_workflows > 0 else '∞' }}
+                                {{ format_number(usage_stats.weekly.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_weekly_workflows, locale=formatting_locale) if user_details.role.limit_weekly_workflows > 0 else '∞' }}
                             </td>
                             <td data-label="Monthly" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ usage_stats.monthly.workflows }} / {{ user_details.role.limit_monthly_workflows if user_details.role.limit_monthly_workflows > 0 else '∞' }}
+                                {{ format_number(usage_stats.monthly.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_monthly_workflows, locale=formatting_locale) if user_details.role.limit_monthly_workflows > 0 else '∞' }}
                             </td>
                         </tr>
                     </tbody>
@@ -199,7 +199,7 @@
                             </td>
                             <td data-label="API Used" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.api_used | e }}</td>
                             <td data-label="Language" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ job.detected_language | e if job.detected_language else 'N/A' }}</td> {# Centered data #}
-                            <td data-label="Duration (min)" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none" data-minutes="{{ job.audio_length_minutes }}">{{ "%.2f"|format(job.audio_length_minutes) if job.audio_length_minutes is not none else 'N/A' }}</td> {# Centered data #}
+                            <td data-label="Duration (min)" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(job.audio_length_minutes, locale=formatting_locale) if job.audio_length_minutes is not none else 'N/A' }}</td> {# Centered data #}
                             <td data-label="Status" class="px-4 py-3 whitespace-nowrap text-sm block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data #}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                            {{ 'bg-green-100 text-green-800' if job.status == 'finished' else

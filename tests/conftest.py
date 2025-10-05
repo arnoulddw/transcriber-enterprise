@@ -1,32 +1,29 @@
 # tests/conftest.py
 
 import pytest
+import os
+import sys
+from dotenv import load_dotenv
 
-@pytest.fixture(scope='session')
-def app():
-    """Create and configure a new app instance for each test session."""
-    from app import create_app
-    from app.database import db_pool
-    from tests.functional.config.test_config import TestConfig
+# Ensure project root (one level up from tests/) is on sys.path so 'app' package imports work
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-    app = create_app(config_class=TestConfig)
-    app.config['PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS'] = 3600
+def pytest_configure(config):
+    """
+    Load environment variables from .env file before any tests are run.
+    This ensures that the configuration is available when modules are imported.
+    """
+    dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+    if os.path.exists(dotenv_path):
+        # Use override=True to ensure .env settings take precedence
+        load_dotenv(dotenv_path=dotenv_path, override=True)
+        print(f"Loaded .env file from: {dotenv_path}")
+    else:
+        print(f"Warning: .env file not found at {dotenv_path}")
 
-    with app.app_context():
-        from app.initialization import initialize_database_schema
-        initialize_database_schema(create_roles=False)
 
-    yield app
-
-    with app.app_context():
-        from app.database import get_db
-        cursor = get_db().cursor()
-        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-        cursor.execute("DROP TABLE IF EXISTS user_prompts, template_prompts, llm_operations, transcriptions, user_usage, users, roles;")
-        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-        get_db().commit()
-        from app.database import close_db
-        close_db()
 
 @pytest.fixture(scope='function')
 def clean_db(app):
