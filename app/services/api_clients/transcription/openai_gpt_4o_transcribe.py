@@ -44,8 +44,12 @@ class OpenAIGPT4OTranscribeClient(BaseTranscriptionClient):
     def _initialize_client(self, api_key: str) -> None:
         """Initializes the OpenAI API client."""
         try:
-            self.client = OpenAI(api_key=api_key)
-            self.logger.debug(f"Client initialized successfully (using model param '{self.API_MODEL_PARAM}').")
+            timeout_seconds = float(self.config.get('OPENAI_HTTP_TIMEOUT', 120))
+            self.client = OpenAI(api_key=api_key, timeout=timeout_seconds)
+            self.logger.debug(
+                f"Client initialized successfully (using model param '{self.API_MODEL_PARAM}', "
+                f"timeout {timeout_seconds}s)."
+            )
         except OpenAIError as e:
             raise ValueError(f"OpenAI client initialization failed: {e}") from e
 
@@ -113,7 +117,11 @@ class OpenAIGPT4OTranscribeClient(BaseTranscriptionClient):
                 raise TranscriptionProcessingError(msg, provider=self._get_api_name()) from e
             else:
                 raise TranscriptionProcessingError(f"OpenAI API Error: {error_body_str}", provider=self._get_api_name()) from e
-        except (APIConnectionError, APIError, OpenAIError) as e:
+        except APIConnectionError as e:
+            # Bubble up connection errors so the base client can retry them.
+            self.logger.warning(f"API connection error: {e}")
+            raise
+        except (APIError, OpenAIError) as e:
             self.logger.error(f"API call failed: {e}")
             raise TranscriptionProcessingError(f"OpenAI API Error: {e}", provider=self._get_api_name()) from e
         except Exception as e:

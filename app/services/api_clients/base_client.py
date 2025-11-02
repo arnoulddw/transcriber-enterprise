@@ -15,6 +15,8 @@ from app.config import Config # To access language codes if needed
 # Define type hint for the progress callback function
 ProgressCallback = Optional[Callable[[str, bool], None]] # Args: message, is_error
 
+UNKNOWN_LANGUAGE_CODE = 'unknown'
+
 class BaseTranscriptionClient(ABC):
     """
     Abstract Base Class for transcription API clients.
@@ -223,9 +225,10 @@ class BaseTranscriptionClient(ABC):
                 transcription_text, final_detected_language = self._process_response(raw_response, response_format)
 
                 # If auto-detect was used but language wasn't returned by _process_response, log it
-                if requested_language == 'auto' and not final_detected_language:
-                    logging.warning(f"{log_prefix} Language auto-detection requested, but final language not determined by _process_response.")
-                    final_detected_language = 'auto' # Keep it as 'auto' to indicate detection was attempted
+                if requested_language == 'auto':
+                    if not final_detected_language:
+                        logging.warning(f"{log_prefix} Language auto-detection requested, but final language not determined by _process_response.")
+                        final_detected_language = UNKNOWN_LANGUAGE_CODE
 
                 # If specific language was requested, ensure it's set as final
                 elif requested_language != 'auto':
@@ -447,7 +450,11 @@ class BaseTranscriptionClient(ABC):
 
             # Determine final language used/detected
             if requested_language == 'auto':
-                final_language_used = first_successful_lang or 'auto'
+                if first_successful_lang:
+                    final_language_used = first_successful_lang
+                else:
+                    logging.warning(f"{log_prefix} Language auto-detection requested, but no chunk provided a detected language.")
+                    final_language_used = UNKNOWN_LANGUAGE_CODE
                 log_lang_msg = f"{mode_log} chunked transcription aggregated. Final language (detected/fallback): {final_language_used}"
                 ui_lang_msg = f"Aggregated chunk transcriptions. Final language (detected/fallback): {final_language_used}"
             else:

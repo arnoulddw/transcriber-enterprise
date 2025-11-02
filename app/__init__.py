@@ -16,7 +16,7 @@ from flask import Flask, render_template, g, request, jsonify, redirect, url_for
 from flask_login import current_user
 # --- NEW: Import get_locale and gettext ---
 from flask_babel import get_locale, gettext as _
-from babel.numbers import format_currency as babel_format_currency, format_decimal, format_percent
+from babel.numbers import format_currency as babel_format_currency, format_decimal, format_percent as babel_format_percent
 
 # Import extensions, config, blueprints, and other components
 from app.config import Config
@@ -191,8 +191,29 @@ def create_app(config_class=Config) -> Flask:
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(config_class)
     setup_logging(app.config)
-    logging.info(f"[SYSTEM] Flask app created. Deployment Mode: {app.config['DEPLOYMENT_MODE']}")
-    logging.info(f"[SYSTEM] Configured Timezone (TZ): {app.config.get('TZ', 'Not Set - Defaulting to UTC')}")
+
+    def _should_emit_startup_banner() -> bool:
+        runtime_dir = app.config.get('RUNTIME_DIR')
+        parent_pid = os.getppid()
+        flag_filename = f".startup_logged_{parent_pid}"
+        if not runtime_dir:
+            return True
+        flag_path = os.path.join(runtime_dir, flag_filename)
+        try:
+            os.makedirs(runtime_dir, exist_ok=True)
+            with open(flag_path, 'x', encoding='utf-8') as flag_file:
+                flag_file.write(str(os.getpid()))
+            return True
+        except FileExistsError:
+            logging.debug("[SYSTEM] Startup banner already emitted for parent process %s; suppressing duplicate log.", parent_pid)
+            return False
+        except OSError as err:
+            logging.warning("[SYSTEM] Could not manage startup banner flag at %s (%s); emitting log anyway.", flag_path, err)
+            return True
+
+    if _should_emit_startup_banner():
+        logging.info(f"[SYSTEM] Flask app created. Deployment Mode: {app.config['DEPLOYMENT_MODE']}")
+        logging.info(f"[SYSTEM] Configured Timezone (TZ): {app.config.get('TZ', 'Not Set - Defaulting to UTC')}")
 
     # --- MODIFIED: Define locale selector function before initializing Babel ---
     def get_locale_selector():
@@ -240,7 +261,20 @@ def create_app(config_class=Config) -> Flask:
 
     app.jinja_env.globals['format_currency'] = custom_format_currency
     app.jinja_env.globals['format_number'] = format_decimal
-    app.jinja_env.globals['format_percent'] = format_percent
+    
+    def custom_format_percent(value: Any, locale: Optional[str] = None) -> str:
+        """Format percent values that may be provided either as 0-1 ratios or 0-100 percents."""
+        try:
+            numeric_value = float(value)
+        except (TypeError, ValueError):
+            numeric_value = 0.0
+
+        normalized_value = numeric_value / 100.0 if abs(numeric_value) > 1 else numeric_value
+        if locale:
+            return babel_format_percent(normalized_value, locale=locale)
+        return babel_format_percent(normalized_value)
+
+    app.jinja_env.globals['format_percent'] = custom_format_percent
     logging.debug("[SYSTEM] Registered Jinja filters (datetime_tz, contrast_color, raw_number) and globals (custom_format_currency, format_number, format_percent).")
 
     # Configure Flask-Login User Loader

@@ -35,6 +35,8 @@ class Config:
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') # Used for Whisper, GPT-4o Transcribe, and potentially OpenAI LLMs
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') # Used for Gemini LLM
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY') # Placeholder for future LLM
+    OPENAI_HTTP_TIMEOUT = 120
+    OPENAI_HTTP_TIMEOUT_DIARIZE = 240
 
     # --- Provider Configuration (NEW) ---
     TRANSCRIPTION_PROVIDERS = os.environ.get('TRANSCRIPTION_PROVIDERS', "assemblyai,whisper,gpt-4o-transcribe,gpt-4o-transcribe-diarize").split(',')
@@ -184,7 +186,12 @@ class Config:
         'gpt-4o-transcribe-diarize': {
             'duration_s': 2400, # 40 minutes, but chunking is required over 30s
             'size_mb': 25,
-            'rate_limit_rpm': 500
+            'rate_limit_rpm': 500,
+            'openai_client_max_retries': 0,
+            'single_file_max_retries': 3,
+            'chunk_max_retries': 3,
+            'single_file_retry_delays': [12, 30, 75],
+            'chunk_retry_delays': [12, 30, 75]
         },
         'whisper': {
             'duration_s': None,
@@ -202,6 +209,7 @@ class Config:
     TRANSCRIPTION_WORKERS = int(os.environ.get('TRANSCRIPTION_WORKERS', 4))
     if TRANSCRIPTION_WORKERS <= 0:
         raise ValueError("TRANSCRIPTION_WORKERS must be a positive integer.")
+    TRANSCRIPTION_SINGLE_FILE_MAX_RETRIES = 0
 
 
 # --- Validation for new defaults (Moved outside the class) ---

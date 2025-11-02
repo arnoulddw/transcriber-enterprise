@@ -42,10 +42,13 @@ def _call_gemini_for_title(app: Flask, user_id: int, prompt: str, operation_id: 
     Requires app context to be pushed by the caller if run in a separate thread.
     """
     try:
-        provider_name = 'gemini' # Keep it simple for now
+        provider_config = app.config.get('TITLE_GENERATION_LLM_PROVIDER', app.config.get('LLM_PROVIDER', 'GEMINI'))
+        provider_name = provider_config.lower()
+        model_name = app.config.get('TITLE_GENERATION_LLM_MODEL')
         # --- MODIFIED: Pass user_id to llm_service, remove api_key and config ---
         result = llm_service.generate_text_via_llm(
             provider_name=provider_name,
+            model=model_name,
             user_id=user_id, # Pass user_id
             prompt=prompt,
             max_tokens=20, # Limit output tokens for a title
@@ -168,9 +171,10 @@ Transcription Content:
 
 Generated Title:"""
 
+            provider_config = current_app.config.get('TITLE_GENERATION_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
             operation_id = llm_operation_model.create_llm_operation(
                 user_id=user_id,
-                provider='GEMINI',
+                provider=provider_config,
                 operation_type='title_generation',
                 input_text=prompt,
                 transcription_id=transcription_id,

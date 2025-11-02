@@ -169,7 +169,7 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
                 metrics['language_distribution'][key] = lang_dist
 
                 # Feature Usage: Context Prompt (denominator based on 'finished' or 'cancelled' compatible jobs)
-                compatible_apis_for_context = ['whisper', 'gpt-4o-transcribe']
+                compatible_apis_for_context = ['whisper', 'gpt-4o-transcribe', 'gpt-4o-transcribe-diarize']
                 total_compatible_relevant_jobs = transcription_utils.count_jobs_in_range(
                     start, end, status__in=relevant_statuses_for_volume, api_used__in=compatible_apis_for_context
                 )

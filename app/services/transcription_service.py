@@ -48,14 +48,16 @@ API_DISPLAY_NAMES = {
     'assemblyai': 'AssemblyAI'
 }
 
-def _update_progress(app: Flask, job_id: str, message: str, is_error: bool = False, **context) -> None:
+def _update_progress(app: Flask, job_id: str, message: str, is_error: bool = False,
+                     log_message: bool = True, **context) -> None:
     """
-    Formats, logs, and saves a progress message for a job.
+    Formats, optionally logs, and saves a progress message for a job.
     Requires an active Flask application context to update the database.
     """
     logger = get_logger(__name__, **context)
-    log_level = "error" if is_error else "info"
-    getattr(logger, log_level)(message)
+    if log_message:
+        log_level = "error" if is_error else "info"
+        getattr(logger, log_level)(message)
 
     try:
         with app.app_context():
@@ -208,7 +210,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                 context_prompt = ""
                 _update_progress(app, job_id, "Warning: Context prompt ignored due to lack of permission.", is_error=False, user_id=user_id)
 
-            price = get_pricing_service_price(api_choice, 'transcription')
+            price = get_pricing_service_price(item_type='transcription', item_key=api_choice)
             cost_to_add = 0.0
             if price is not None:
                 cost_to_add = price * (audio_length_minutes if audio_length_minutes >= 1 else audio_length_seconds / 60)
@@ -293,7 +295,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                     cancel_event.set()
                     raise InterruptedError("Job cancelled by user (detected via DB status).")
                 if is_err: last_error_message_from_callback = msg
-                _update_progress(app, job_id, msg, is_error=is_err, user_id=user_id)
+                _update_progress(app, job_id, msg, is_error=is_err, user_id=user_id, log_message=False)
 
             transcribe_args = {
                 "audio_file_path": temp_filename, "language_code": language_code,

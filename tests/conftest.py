@@ -10,6 +10,23 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+# Run transcription-related suites before admin ones to avoid inter-test interference.
+_PRIORITY_PREFIXES = (
+    "tests/functional/services/test_transcription_service.py",
+    "tests/functional/test_transcription_management.py",
+)
+
+
+def pytest_collection_modifyitems(session, config, items):
+    prioritized = []
+    remaining = []
+    for item in items:
+        if item.nodeid.startswith(_PRIORITY_PREFIXES):
+            prioritized.append(item)
+        else:
+            remaining.append(item)
+    items[:] = prioritized + remaining
+
 def pytest_configure(config):
     """
     Load environment variables from .env file before any tests are run.

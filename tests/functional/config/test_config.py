@@ -62,7 +62,7 @@ class TestConfig:
     INIT_MARKER_FILE = os.path.join(RUNTIME_DIR, '.initialized')
     
     # Simplified provider/language config for tests
-    TRANSCRIPTION_PROVIDERS = ["assemblyai", "whisper", "gpt-4o-transcribe"]
+    TRANSCRIPTION_PROVIDERS = ["assemblyai", "whisper", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
     LLM_PROVIDERS = ["GEMINI", "OPENAI"]
     DEFAULT_TRANSCRIPTION_PROVIDER = 'whisper'
     LLM_PROVIDER = 'GEMINI'
@@ -70,6 +70,7 @@ class TestConfig:
         "assemblyai": "AssemblyAI",
         "whisper": "OpenAI Whisper",
         "gpt-4o-transcribe": "OpenAI GPT-4o Transcribe",
+        "gpt-4o-transcribe-diarize": "OpenAI GPT-4o Diarize",
         "GEMINI": "Google Gemini",
         "OPENAI": "OpenAI",
     }

@@ -2,10 +2,17 @@
 # Client for interacting with the OpenAI GPT-4o transcription model.
 
 from app.logging_config import get_logger
-from typing import Tuple, Optional, Dict, Any, Type
+from typing import Tuple, Optional, Dict, Any, Type, List
 
 # Import OpenAI library and specific errors
 from openai import OpenAI, OpenAIError, APIError, APIConnectionError, RateLimitError, AuthenticationError, BadRequestError
+
+try:
+    from openai.resources.audio import transcriptions as _openai_audio_transcriptions
+    from openai.types.audio.transcription_verbose import TranscriptionVerbose as _OpenAITranscriptionVerbose
+except ImportError:  # Fallback for older SDK versions that may not expose these helpers.
+    _openai_audio_transcriptions = None
+    _OpenAITranscriptionVerbose = None
 
 # Import Base Class and project config/exceptions
 from .base_transcription_client import BaseTranscriptionClient
@@ -19,6 +26,19 @@ from app.services.api_clients.exceptions import (
     TranscriptionQuotaExceededError
 )
 
+# Extend the OpenAI SDK response format handling so diarized_json responses do not trigger warnings.
+if _openai_audio_transcriptions and _OpenAITranscriptionVerbose:
+    _existing_get_response_format_type = getattr(_openai_audio_transcriptions, "_get_response_format_type", None)
+    if callable(_existing_get_response_format_type) and not getattr(_existing_get_response_format_type, "_diarized_json_supported", False):
+        def _get_response_format_type_with_diarized(response_format: str):
+            if response_format == "diarized_json":
+                return _OpenAITranscriptionVerbose
+            return _existing_get_response_format_type(response_format)
+
+        _get_response_format_type_with_diarized._diarized_json_supported = True
+        _openai_audio_transcriptions._get_response_format_type = _get_response_format_type_with_diarized
+
+
 class OpenAIGPT4ODiarizeTranscribeClient(BaseTranscriptionClient):
     """
     Handles transcription requests using the OpenAI gpt-4o-transcribe-diarize model.
@@ -28,15 +48,29 @@ class OpenAIGPT4ODiarizeTranscribeClient(BaseTranscriptionClient):
 
     def __init__(self, api_key: str, config: Dict[str, Any]) -> None:
         """Initializes the client and sets API-specific limits from config."""
+        api_limits = config.get('API_LIMITS', {}).get('gpt-4o-transcribe-diarize', {}) or {}
+        self.openai_client_max_retries: Optional[int] = api_limits.get('openai_client_max_retries')
+        self.single_file_max_retries_override: Optional[int] = api_limits.get('single_file_max_retries')
+        self.chunk_max_retries_override: Optional[int] = api_limits.get('chunk_max_retries')
+        self.single_file_retry_delays: List[float] = [float(d) for d in api_limits.get('single_file_retry_delays', [])]
+        self.chunk_retry_delays: List[float] = [float(d) for d in api_limits.get('chunk_retry_delays', [])]
+
         super().__init__(api_key, config)
-        api_limits = self.config.get('API_LIMITS', {}).get('gpt-4o-transcribe-diarize', {})
+
+        api_limits = self.config.get('API_LIMITS', {}).get('gpt-4o-transcribe-diarize', {}) or {}
         # This model requires chunking for files > 30s, which is handled by the base client's splitting logic.
         # We set the threshold here, which the base client will use.
         self.SPLIT_THRESHOLD_SECONDS = api_limits.get('duration_s', 240) # Default to 4 minutes if not set
         size_mb = api_limits.get('size_mb')
         if size_mb is not None:
             self.SPLIT_THRESHOLD_BYTES = size_mb * 1024 * 1024
-        self.logger.debug(f"Limits set - Duration: {self.SPLIT_THRESHOLD_SECONDS}s, Size: {size_mb}MB")
+        self.logger.debug(
+            "Limits set - Duration: %ss, Size: %sMB, Single file retries: %s, Chunk retries: %s",
+            self.SPLIT_THRESHOLD_SECONDS,
+            size_mb,
+            self.single_file_max_retries_override,
+            self.chunk_max_retries_override
+        )
 
     # --- Implementation of Abstract Methods ---
 
@@ -46,8 +80,16 @@ class OpenAIGPT4ODiarizeTranscribeClient(BaseTranscriptionClient):
     def _initialize_client(self, api_key: str) -> None:
         """Initializes the OpenAI API client."""
         try:
-            self.client = OpenAI(api_key=api_key)
-            self.logger.debug(f"Client initialized successfully (using model param '{self.API_MODEL_PARAM}').")
+            timeout_seconds = float(self.config.get('OPENAI_HTTP_TIMEOUT_DIARIZE',
+                                                   self.config.get('OPENAI_HTTP_TIMEOUT', 120)))
+            client_kwargs: Dict[str, Any] = {'api_key': api_key, 'timeout': timeout_seconds}
+            if self.openai_client_max_retries is not None:
+                client_kwargs['max_retries'] = int(self.openai_client_max_retries)
+            self.client = OpenAI(**client_kwargs)
+            self.logger.debug(
+                f"Client initialized successfully (using model param '{self.API_MODEL_PARAM}', "
+                f"timeout {timeout_seconds}s, max_retries {client_kwargs.get('max_retries', 'default')})."
+            )
         except OpenAIError as e:
             raise ValueError(f"OpenAI client initialization failed: {e}") from e
 
@@ -115,7 +157,11 @@ class OpenAIGPT4ODiarizeTranscribeClient(BaseTranscriptionClient):
                 raise TranscriptionProcessingError(msg, provider=self._get_api_name()) from e
             else:
                 raise TranscriptionProcessingError(f"OpenAI API Error: {error_body_str}", provider=self._get_api_name()) from e
-        except (APIConnectionError, APIError, OpenAIError) as e:
+        except APIConnectionError as e:
+            # Bubble up connection errors so the base client can retry them.
+            self.logger.warning(f"API connection error: {e}")
+            raise
+        except (APIError, OpenAIError) as e:
             self.logger.error(f"API call failed: {e}")
             raise TranscriptionProcessingError(f"OpenAI API Error: {e}", provider=self._get_api_name()) from e
         except Exception as e:

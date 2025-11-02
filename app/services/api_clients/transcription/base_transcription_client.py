@@ -21,6 +21,8 @@ from app.services.api_clients.exceptions import (
     TranscriptionRateLimitError
 )
 
+UNKNOWN_LANGUAGE_CODE = 'unknown'
+
 # Define type hint for the progress callback function
 ProgressCallback = Optional[Callable[[str, bool], None]] # Args: message, is_error
 
@@ -67,6 +69,54 @@ class BaseTranscriptionClient(ABC):
         self.cancel_event: Optional[threading.Event] = None # Store cancel event per transcribe call
         # Get MAX_CONCURRENT_CHUNKS from app config
         self.max_concurrent_chunks = self.config.get('TRANSCRIPTION_WORKERS', 4)
+
+    # --- Retry Helpers ---
+
+    def _get_single_file_max_retries(self) -> int:
+        """
+        Determine how many times a single-file request should be retried when a retryable error occurs.
+        Subclasses can set `single_file_max_retries_override` to customise this behaviour.
+        """
+        override = getattr(self, 'single_file_max_retries_override', None)
+        if override is not None:
+            try:
+                return max(0, int(override))
+            except (TypeError, ValueError):
+                self.logger.warning("Invalid single_file_max_retries_override value: %s", override)
+        return int(self.config.get('TRANSCRIPTION_SINGLE_FILE_MAX_RETRIES', 0))
+
+    def _get_chunk_max_retries(self) -> int:
+        """
+        Determine how many retries to allow per chunk when chunking is required.
+        Subclasses can set `chunk_max_retries_override` to customise this behaviour.
+        """
+        override = getattr(self, 'chunk_max_retries_override', None)
+        if override is not None:
+            try:
+                return max(0, int(override))
+            except (TypeError, ValueError):
+                self.logger.warning("Invalid chunk_max_retries_override value: %s", override)
+        # Default fallback (3 retries -> 4 total attempts)
+        return 3
+
+    def _get_retry_delay_seconds(self, attempt: int, is_chunk: bool) -> float:
+        """
+        Returns the delay (in seconds) before the next retry attempt.
+        Uses subclass-provided schedules when available, otherwise falls back to exponential backoff.
+        """
+        delay_schedule = getattr(
+            self,
+            'chunk_retry_delays' if is_chunk else 'single_file_retry_delays',
+            None
+        )
+        if isinstance(delay_schedule, (list, tuple)) and attempt < len(delay_schedule):
+            try:
+                delay_value = float(delay_schedule[attempt])
+                if delay_value >= 0:
+                    return delay_value
+            except (TypeError, ValueError):
+                self.logger.warning("Invalid retry delay value encountered: %s", delay_schedule[attempt])
+        return float(2 ** attempt)
 
 
     # --- Abstract Methods (Must be implemented by subclasses) ---
@@ -284,20 +334,52 @@ class BaseTranscriptionClient(ABC):
                 log_params = {k: v for k, v in api_params.items() if k != 'file'}
                 self.logger.info(f"Calling API for single file with parameters: {log_params}")
 
-                with open(abs_path, "rb") as audio_file:
-                    self._report_progress(f"Transcribing with {api_name}...")
-                    start_time = time.time()
-                    self._report_progress("Checking cancellation before API call...") # Implicit check
-                    raw_response = self._call_api(audio_file, api_params) # Can raise TranscriptionApiError subclasses
-                    duration = time.time() - start_time
-                    self.logger.debug(f"API call successful. Duration: {duration:.2f}s")
+                retryable_errors = tuple(self._get_retryable_errors() or ())
+                single_file_max_retries = self._get_single_file_max_retries()
+                raw_response: Optional[Any] = None
+
+                self._report_progress(f"Transcribing with {api_name}...")
+                if "Diarize" in api_name:
+                    self._report_progress("Diarized transcription can take longer than standard transcription. Waiting for provider response...", False)
+
+                for attempt in range(single_file_max_retries + 1):
+                    try:
+                        self.logger.debug(f"{log_prefix} Single file attempt {attempt+1}: preparing API call.")
+                        self._report_progress("Checking cancellation before API call...") # Implicit check
+                        start_time = time.time()
+                        with open(abs_path, "rb") as audio_file:
+                            raw_response = self._call_api(audio_file, api_params) # Can raise retryable errors
+                        duration = time.time() - start_time
+                        self.logger.debug(f"{log_prefix} Single file attempt {attempt+1}: API call successful. Duration: {duration:.2f}s")
+                        break
+                    except Exception as exc:
+                        if retryable_errors and isinstance(exc, retryable_errors):
+                            if attempt < single_file_max_retries:
+                                wait_time = self._get_retry_delay_seconds(attempt, is_chunk=False)
+                                retry_message = f"Retryable error on attempt {attempt+1}. Retrying in {wait_time}s... ({type(exc).__name__})"
+                                self._report_progress(retry_message, False)
+                                self.logger.warning(f"{log_prefix} {retry_message}: {exc}")
+                                time.sleep(wait_time)
+                                continue
+
+                            error_message = f"Single file transcription failed after {single_file_max_retries} retries: {exc}"
+                            self.logger.error(f"{log_prefix} {error_message}")
+                            raise TranscriptionProcessingError(error_message, provider=api_name) from exc
+                        raise
+
+                if raw_response is None:
+                    # Should not happen, but guard to keep type checkers happy.
+                    error_message = "Single file transcription did not produce a response."
+                    self.logger.error(f"{log_prefix} {error_message}")
+                    raise TranscriptionProcessingError(error_message, provider=api_name)
 
                 transcription_text, final_detected_language = self._process_response(raw_response, response_format) # Can raise TranscriptionProcessingError
 
-                if requested_language == 'auto' and not final_detected_language:
-                    self.logger.warning("Language auto-detection requested, but final language not determined.")
-                    final_detected_language = 'auto'
-                elif requested_language != 'auto':
+                if requested_language == 'auto':
+                    if not final_detected_language:
+                        self.logger.warning("Language auto-detection requested, but final language not determined.")
+                        final_detected_language = UNKNOWN_LANGUAGE_CODE
+                else:
                     final_detected_language = requested_language
 
             log_lang_msg = f"Transcription finished. Final language: {final_detected_language}"
@@ -365,6 +447,7 @@ class BaseTranscriptionClient(ABC):
 
             total_chunks = len(chunk_files)
             self._report_progress("PHASE_MARKER:TRANSCRIPTION_START", False)
+            chunk_max_retries = self._get_chunk_max_retries()
 
             if not context_prompt:
                 # --- PARALLEL Processing ---
@@ -385,7 +468,7 @@ class BaseTranscriptionClient(ABC):
                             self._transcribe_single_chunk_with_retry,
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
                             language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
-                            context_prompt="", log_prefix=chunk_log_prefix
+                            context_prompt="", log_prefix=chunk_log_prefix, max_retries=chunk_max_retries
                         )
                         futures.append((chunk_num, future))
 
@@ -421,7 +504,7 @@ class BaseTranscriptionClient(ABC):
                         chunk_result = self._transcribe_single_chunk_with_retry(
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
                             language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
-                            context_prompt=context_prompt, log_prefix=chunk_log_prefix
+                            context_prompt=context_prompt, log_prefix=chunk_log_prefix, max_retries=chunk_max_retries
                         )
                         results[chunk_num] = chunk_result
                         logging.info(f"{chunk_log_prefix} completed successfully.")
@@ -466,7 +549,11 @@ class BaseTranscriptionClient(ABC):
             logging.debug(f"{log_prefix} Successfully aggregated transcriptions from {successful_chunks} completed chunks.")
 
             if requested_language == 'auto':
-                final_language_used = first_successful_lang or 'auto'
+                if first_successful_lang:
+                    final_language_used = first_successful_lang
+                else:
+                    logging.warning(f"{log_prefix} Language auto-detection requested, but no chunk provided a detected language.")
+                    final_language_used = UNKNOWN_LANGUAGE_CODE
                 log_lang_msg = f"{mode_log} chunked transcription aggregated. Final language (detected/fallback): {final_language_used}"
                 ui_lang_msg = f"Aggregated chunk transcriptions. Final language (detected/fallback): {final_language_used}"
             else:
@@ -556,7 +643,7 @@ class BaseTranscriptionClient(ABC):
             except tuple(self._get_retryable_errors()) as retry_err:
                 last_error = retry_err
                 if attempt < max_retries:
-                    wait_time = 2 ** attempt
+                    wait_time = self._get_retry_delay_seconds(attempt, is_chunk=True)
                     error_detail = f"Retryable error on chunk {idx}, attempt {attempt+1}. Retrying in {wait_time}s... ({type(retry_err).__name__})"
                     self._report_progress(error_detail, False)
                     logging.warning(f"{effective_log_prefix} {error_detail}: {retry_err}")

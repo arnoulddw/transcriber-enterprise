@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+from collections.abc import Mapping
 from pythonjsonlogger import json
 
 # ==============================================================================
@@ -106,9 +107,20 @@ class ContextualLogger(logging.LoggerAdapter):
     field that our filter and formatter expect.
     """
     def process(self, msg, kwargs):
-        # If 'extra' is provided, ensure it's a dictionary and move it to 'context'
-        if 'extra' in kwargs:
-            kwargs['extra'] = {'context': kwargs['extra']}
+        context = {}
+
+        if isinstance(self.extra, Mapping):
+            context.update(self.extra)
+        elif self.extra:
+            context['adapter_context'] = self.extra
+
+        call_extra = kwargs.pop('extra', None)
+        if isinstance(call_extra, Mapping):
+            context.update(call_extra)
+        elif call_extra:
+            context['call_extra'] = call_extra
+
+        kwargs['extra'] = {'context': context}
         return msg, kwargs
 
 def get_logger(name, **context):

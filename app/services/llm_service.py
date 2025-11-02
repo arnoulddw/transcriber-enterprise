@@ -132,19 +132,34 @@ def generate_text_via_llm(
                 cost_logger.warning(f"No operation_type provided; skipping cost calculation to avoid pricing error.")
             else:
                 try:
-                    # Pass the specific model being used to the pricing service
-                    price = get_pricing_service_price(item_type=operation_type, item_key=provider_name)
+                    # Determine the pricing key (prefer the specific model being used)
+                    pricing_item_key = kwargs.get('model')
+                    if not pricing_item_key:
+                        pricing_item_key = getattr(llm_client, 'model_name', None)
+                    if not pricing_item_key:
+                        if operation_type == 'title_generation':
+                            pricing_item_key = current_app.config.get('TITLE_GENERATION_LLM_MODEL')
+                        elif operation_type == 'workflow':
+                            pricing_item_key = current_app.config.get('WORKFLOW_LLM_MODEL')
+                    if not pricing_item_key:
+                        pricing_item_key = provider_name
+
+                    price = get_pricing_service_price(item_type=operation_type, item_key=pricing_item_key)
                     if price is not None:
                         # Cost is per execution for LLM operations
                         llm_operation_model.update_llm_operation_cost(kwargs['operation_id'], price)
-                        cost_logger.debug(f"Successfully calculated and saved cost: {price} (type={operation_type}, model={provider_name})")
+                        cost_logger.debug(
+                            f"Successfully calculated and saved cost: {price} (type={operation_type}, pricing_key={pricing_item_key}, provider={provider_name})"
+                        )
                     else:
-                        cost_logger.warning(f"No price found for provider '{provider_name}' and item_type '{operation_type}'. Cost not calculated.")
+                        cost_logger.warning(
+                            f"No price found for pricing key '{pricing_item_key}' (provider '{provider_name}') and item_type '{operation_type}'. Cost not calculated."
+                        )
                 except PricingServiceError as e:
                     cost_logger.error(f"Could not calculate or save cost for LLM operation: {e}", exc_info=True)
 
         return generated_text
- 
+
     except (LlmConfigurationError, LlmApiError, ValueError) as e:
         logger.error(f"Error during text generation: {e}", exc_info=isinstance(e, LlmApiError))
         raise e

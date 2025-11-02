@@ -21,7 +21,10 @@ def init_pool(app: Flask) -> None:
 
     try:
         mysql_config = app.config['MYSQL_CONFIG']
-        logging.debug(f"[DB:Pool] Initializing MySQL connection pool with config: {mysql_config}")
+        safe_config = dict(mysql_config)
+        if safe_config.get('password'):
+            safe_config['password'] = '***redacted***'
+        logging.debug(f"[DB:Pool] Initializing MySQL connection pool with config: {safe_config}")
         db_pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name=mysql_config['pool_name'],
             pool_size=mysql_config['pool_size'],

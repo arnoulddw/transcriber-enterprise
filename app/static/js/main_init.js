@@ -3,17 +3,36 @@
 
 const mainInitLogPrefix = "[MainInitJS]";
 const LARGE_FILE_THRESHOLD_MB = 25; 
+const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe', 'gpt-4o-transcribe-diarize'];
 
 // --- Readiness Cache ---
 let readinessCache = null;
 let readinessCacheTimestamp = 0;
-const READINESS_CACHE_DURATION_MS = 30000; 
+const READINESS_CACHE_DURATION_MS = 30000;
 let isFetchingReadiness = false;
 let pendingReadinessPromise = null;
+let hasLoggedReadinessCacheHit = false;
+let hasLoggedReadinessFetchInProgress = false;
+let READINESS_DIAGNOSTICS_ENABLED = false;
+
+try {
+    const storedReadinessDiagnosticsFlag = window.localStorage
+        ? window.localStorage.getItem('enable_readiness_diagnostics')
+        : null;
+    READINESS_DIAGNOSTICS_ENABLED = Boolean(
+        window.APP_DEBUG_MODE &&
+        (window.ENABLE_READINESS_DIAGNOSTICS === true || storedReadinessDiagnosticsFlag === 'true')
+    );
+} catch (readinessDiagnosticsError) {
+    READINESS_DIAGNOSTICS_ENABLED = false;
+}
+window.READINESS_DIAGNOSTICS_ENABLED = READINESS_DIAGNOSTICS_ENABLED;
 
 function invalidateReadinessCache() {
     readinessCache = null;
     readinessCacheTimestamp = 0;
+    hasLoggedReadinessCacheHit = false;
+    hasLoggedReadinessFetchInProgress = false;
     window.logger.debug(mainInitLogPrefix, "Readiness cache invalidated.");
 }
 window.invalidateReadinessCache = invalidateReadinessCache; 
@@ -72,17 +91,25 @@ async function fetchReadinessData() {
 
     const now = Date.now();
     if (readinessCache && (now - readinessCacheTimestamp < READINESS_CACHE_DURATION_MS)) {
-        window.logger.debug(mainInitLogPrefix, "Returning cached readiness data.");
+        if (!hasLoggedReadinessCacheHit) {
+            window.logger.debug(mainInitLogPrefix, "Returning cached readiness data.");
+            hasLoggedReadinessCacheHit = true;
+        }
         return Promise.resolve(readinessCache);
     }
 
     if (isFetchingReadiness && pendingReadinessPromise) {
-        window.logger.debug(mainInitLogPrefix, "Readiness data fetch already in progress. Returning existing promise.");
+        if (!hasLoggedReadinessFetchInProgress) {
+            window.logger.debug(mainInitLogPrefix, "Readiness data fetch already in progress. Returning existing promise.");
+            hasLoggedReadinessFetchInProgress = true;
+        }
         return pendingReadinessPromise;
     }
 
     window.logger.debug(mainInitLogPrefix, `Fetching fresh readiness data (Cache expired or not set)...`);
     isFetchingReadiness = true;
+    hasLoggedReadinessCacheHit = false;
+    hasLoggedReadinessFetchInProgress = false;
 
     pendingReadinessPromise = fetch('/api/user/readiness', {
         method: 'GET',
@@ -107,15 +134,20 @@ async function fetchReadinessData() {
         window.API_KEY_STATUS = data.api_keys || {};
         window.USER_PERMISSIONS = data.permissions || {};
         window.logger.debug(mainInitLogPrefix, "Fresh readiness data fetched and cached:", data);
-        console.log("DIAGNOSTIC_LOG: Received readiness data from backend:", JSON.stringify(data, null, 2));
+        if (READINESS_DIAGNOSTICS_ENABLED) {
+            console.debug("DIAGNOSTIC_LOG: Received readiness data from backend:", JSON.stringify(data, null, 2));
+        }
         isFetchingReadiness = false;
         pendingReadinessPromise = null;
+        hasLoggedReadinessFetchInProgress = false;
+        hasLoggedReadinessCacheHit = false;
         return data;
     })
     .catch(error => {
         console.error(mainInitLogPrefix, 'Error fetching readiness data:', error.message);
         isFetchingReadiness = false;
         pendingReadinessPromise = null;
+        hasLoggedReadinessFetchInProgress = false;
         throw error;
     });
 
@@ -180,8 +212,8 @@ async function checkTranscribeButtonState() {
     if (toggleContextPromptBtn) {
         const currentPermissions = readinessData.permissions || {};
         const hasContextPermission = currentPermissions.allow_context_prompt === true;
-        const isGpt4oSelected = selectedApiValue === 'gpt-4o-transcribe';
-        const canShowContextPromptButton = hasContextPermission && isGpt4oSelected;
+        const supportsContextPrompt = CONTEXT_PROMPT_SUPPORTED_APIS.includes(selectedApiValue);
+        const canShowContextPromptButton = hasContextPermission && supportsContextPrompt;
 
         if (canShowContextPromptButton) {
             toggleContextPromptBtn.classList.remove('hidden');
