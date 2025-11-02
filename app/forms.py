@@ -236,6 +236,7 @@ class AdminRoleForm(FlaskForm):
     use_api_assemblyai = BooleanField('Use AssemblyAI API')
     use_api_openai_whisper = BooleanField('Use OpenAI Whisper API')
     use_api_openai_gpt_4o_transcribe = BooleanField('Use OpenAI GPT-4o Transcribe API')
+    use_api_openai_gpt_4o_transcribe_diarize = BooleanField('Use OpenAI GPT-4o Diarize API')
     # --- MODIFIED: Add use_api_google_gemini field ---
     use_api_google_gemini = BooleanField('Use Google Gemini API')
     # --- END MODIFIED ---

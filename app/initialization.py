@@ -2,6 +2,7 @@
 # Contains functions for one-time application initialization (DB schema, roles, admin).
 
 import logging
+logger = logging.getLogger(__name__)
 import os
 from flask import current_app, Flask
 from typing import Mapping, Any
@@ -28,30 +29,24 @@ def get_marker_path(config: Mapping[str, Any]) -> str:
     try:
         os.makedirs(marker_base_dir, exist_ok=True)
     except OSError as e:
-        logging.error(f"[INIT] Failed to ensure marker directory exists '{marker_base_dir}': {e}")
+        logger.error(f"[INIT] Failed to ensure marker directory exists '{marker_base_dir}': {e}")
     return marker_path
 
 def check_initialization_marker(config: Mapping[str, Any] = None) -> bool:
     """Checks if the initialization marker file exists."""
-    logging.warning("[Roo-DEBUG] Entering check_initialization_marker")
     if config is None:
-        logging.warning("[Roo-DEBUG] config is None, falling back to current_app.config")
         config = current_app.config
-    
-    logging.warning(f"[Roo-DEBUG] Config object id: {id(config)}")
-    logging.warning(f"[Roo-DEBUG] Config object type: {type(config)}")
     
     try:
         marker_path = get_marker_path(config)
-        logging.warning(f"[Roo-DEBUG] Successfully got marker_path: {marker_path}")
         exists = os.path.exists(marker_path)
-        logging.warning(f"[INIT] Checking for initialization marker '{marker_path}': {'Found' if exists else 'Not Found'}")
+        logger.info(f"[INIT] Checking for initialization marker '{marker_path}': {'Found' if exists else 'Not Found'}")
         return exists
     except Exception as e:
-        logging.error(f"[Roo-DEBUG] Exception in check_initialization_marker: {e}", exc_info=True)
+        logger.error(f"Exception in check_initialization_marker: {e}", exc_info=True)
         # Log available keys to see what config we actually have
         if isinstance(config, dict) or hasattr(config, 'keys'):
-            logging.error(f"[Roo-DEBUG] Available config keys: {list(config.keys())}")
+            logger.error(f"Available config keys: {list(config.keys())}")
         raise
 
 def create_initialization_marker(config: Mapping[str, Any]) -> None:
@@ -60,58 +55,58 @@ def create_initialization_marker(config: Mapping[str, Any]) -> None:
     try:
         with open(marker_path, 'w') as f:
             f.write(f"Initialized at {logging.Formatter().formatTime(logging.LogRecord(None,None,None,None,None,None,None))}\n") # Write timestamp
-        logging.info(f"[INIT] Created initialization marker file: {marker_path}")
+        logger.info(f"[INIT] Created initialization marker file: {marker_path}")
     except Exception as e:
-        logging.error(f"[INIT] Failed to create initialization marker file '{marker_path}': {e}", exc_info=True)
+        logger.error(f"[INIT] Failed to create initialization marker file '{marker_path}': {e}", exc_info=True)
 
 def initialize_database_schema(create_roles: bool = True) -> None:
     """Initializes all database tables in the correct order."""
     log_prefix = "[INIT:Schema]"
-    logging.info(f"{log_prefix} Starting database schema initialization...")
+    logger.info(f"{log_prefix} Starting database schema initialization...")
     try:
-        logging.debug(f"{log_prefix} Initializing 'roles' table...")
+        logger.debug(f"{log_prefix} Initializing 'roles' table...")
         role_model.init_roles_table()
-        logging.debug(f"{log_prefix} Initializing 'users' table...")
+        logger.debug(f"{log_prefix} Initializing 'users' table...")
         user_model.init_db_command()
         # monthly_usage deprecated; using user_usage aggregations instead
-        logging.debug(f"{log_prefix} Initializing 'transcriptions' table...")
+        logger.debug(f"{log_prefix} Initializing 'transcriptions' table...")
         transcription_model.init_db_command()
-        logging.debug(f"{log_prefix} Initializing 'template_prompts' table...")
+        logger.debug(f"{log_prefix} Initializing 'template_prompts' table...")
         template_prompt_model.init_db_command()
-        logging.debug(f"{log_prefix} Initializing 'user_prompts' table...")
+        logger.debug(f"{log_prefix} Initializing 'user_prompts' table...")
         user_prompt_model.init_db_command()
         # --- ADDED: Initialize llm_operations table ---
-        logging.debug(f"{log_prefix} Initializing 'llm_operations' table...")
+        logger.debug(f"{log_prefix} Initializing 'llm_operations' table...")
         llm_operation_model.init_db_command()
         # --- END ADDED ---
-        logging.debug(f"{log_prefix} Initializing 'pricing' table...")
+        logger.debug(f"{log_prefix} Initializing 'pricing' table...")
         pricing_model.init_db_command()
-        logging.debug(f"{log_prefix} Initializing 'user_usage' table...")
+        logger.debug(f"{log_prefix} Initializing 'user_usage' table...")
         role_model.init_user_usage_table()
-        logging.info(f"{log_prefix} Database schema initialization complete.")
+        logger.info(f"{log_prefix} Database schema initialization complete.")
 
         if create_roles:
             create_default_roles()
             create_initial_admin()
 
     except RuntimeError as e:
-         logging.error(f"{log_prefix} Initialization failed due to dependency error: {e}", exc_info=True)
+         logger.error(f"{log_prefix} Initialization failed due to dependency error: {e}", exc_info=True)
          raise
     except Exception as e:
-        logging.error(f"{log_prefix} Initialization failed: {e}", exc_info=True)
+        logger.error(f"{log_prefix} Initialization failed: {e}", exc_info=True)
         raise
 
 def create_default_roles() -> None:
     """Creates the default 'admin' and 'beta-tester' roles if they don't exist."""
     log_prefix = "[INIT:Roles]"
-    logging.debug(f"{log_prefix} Checking/Creating initial roles...")
+    logger.debug(f"{log_prefix} Checking/Creating initial roles...")
     roles_created_count = 0
     roles_existed_count = 0
     default_roles = {
         'admin': {
             'description': 'Administrator role with all permissions',
             'permissions': {
-                'use_api_assemblyai': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True,
+                'use_api_assemblyai': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True,
                 'use_api_google_gemini': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True,
                 'allow_api_key_management': True, 'allow_download_transcript': True,
                 'allow_workflows': True, 'manage_workflow_templates': True,
@@ -140,21 +135,32 @@ def create_default_roles() -> None:
         for name, config in default_roles.items():
             existing_role = role_model.get_role_by_name(name)
             if not existing_role:
-                logging.debug(f"{log_prefix} Creating '{name}' role...")
+                logger.debug(f"{log_prefix} Creating '{name}' role...")
                 # Pass permissions dict directly, model handles mapping old/new limit names
                 created_role = role_model.create_role(name, config['description'], config['permissions'])
                 if created_role:
-                    logging.debug(f"[INIT] Role '{name}' created.")
+                    logger.debug(f"[INIT] Role '{name}' created.")
                     roles_created_count += 1
                 else:
-                    logging.error(f"{log_prefix} Failed to create role '{name}'.")
+                    logger.error(f"{log_prefix} Failed to create role '{name}'.")
             else:
-                logging.debug(f"{log_prefix} Role '{name}' already exists.")
+                logger.debug(f"{log_prefix} Role '{name}' already exists.")
                 roles_existed_count += 1
+        
+        # --- DIAGNOSTIC SELF-CHECK ---
+        if 'admin' in default_roles:
+            admin_role = role_model.get_role_by_name('admin')
+            if admin_role:
+                diarize_perm = admin_role.has_permission('use_api_openai_gpt_4o_transcribe_diarize')
+                logger.debug(f"Self-check after role creation. Admin role 'use_api_openai_gpt_4o_transcribe_diarize' = {diarize_perm}")
+            else:
+                logger.error("Self-check failed. Could not fetch 'admin' role after creation/check.")
+        # --- END DIAGNOSTIC ---
+
         summary = f"Role creation check complete. Created: {roles_created_count}, Existed: {roles_existed_count}."
-        logging.info(f"{log_prefix} {summary}")
+        logger.info(f"{log_prefix} {summary}")
     except Exception as e:
-        logging.error(f"{log_prefix} Failed during role creation/check: {e}", exc_info=True)
+        logger.error(f"{log_prefix} Failed during role creation/check: {e}", exc_info=True)
         raise
 
 def create_initial_admin() -> None:
@@ -164,38 +170,38 @@ def create_initial_admin() -> None:
     admin_password = current_app.config.get('ADMIN_PASSWORD')
     admin_email = current_app.config.get('ADMIN_EMAIL', f"{admin_username}@example.com")
     if current_app.config['DEPLOYMENT_MODE'] != 'multi':
-         logging.info(f"{log_prefix} Skipping admin creation: Not in 'multi' deployment mode.")
+         logger.info(f"{log_prefix} Skipping admin creation: Not in 'multi' deployment mode.")
          return
     if not admin_username or not admin_password:
-        logging.error(f"{log_prefix} ADMIN_USERNAME or ADMIN_PASSWORD not set. Cannot create admin.")
+        logger.error(f"{log_prefix} ADMIN_USERNAME or ADMIN_PASSWORD not set. Cannot create admin.")
         return
-    logging.debug(f"{log_prefix} Checking/Creating initial admin user '{admin_username}'...")
+    logger.debug(f"{log_prefix} Checking/Creating initial admin user '{admin_username}'...")
     try:
         existing_admin = auth_service.get_user_by_username(admin_username)
         if not existing_admin:
-            logging.debug(f"{log_prefix} Admin user '{admin_username}' not found. Creating...")
+            logger.debug(f"{log_prefix} Admin user '{admin_username}' not found. Creating...")
             admin_role = role_model.get_role_by_name('admin')
             if not admin_role:
-                 logging.error(f"{log_prefix} Cannot create admin user: 'admin' role not found. Run role creation first.")
+                 logger.error(f"{log_prefix} Cannot create admin user: 'admin' role not found. Run role creation first.")
                  raise RuntimeError("Admin role 'admin' not found during initial admin creation.")
             created_user = auth_service.create_user(admin_username, password=admin_password, email=admin_email, role_name='admin')
             if created_user:
-                logging.info(f"{log_prefix} Admin user '{admin_username}' created successfully.")
+                logger.info(f"{log_prefix} Admin user '{admin_username}' created successfully.")
             else:
-                logging.error(f"{log_prefix} Failed to create admin user '{admin_username}' (auth_service returned None).")
+                logger.error(f"{log_prefix} Failed to create admin user '{admin_username}' (auth_service returned None).")
                 raise RuntimeError(f"Failed to create admin user '{admin_username}'.")
         else:
-            logging.debug(f"{log_prefix} Admin user '{admin_username}' already exists.")
+            logger.debug(f"{log_prefix} Admin user '{admin_username}' already exists.")
             admin_role = role_model.get_role_by_name('admin')
             if admin_role and existing_admin.role_id != admin_role.id:
-                 logging.warning(f"{log_prefix} Existing admin user '{admin_username}' has incorrect role ID ({existing_admin.role_id}). Consider updating manually.")
+                 logger.warning(f"{log_prefix} Existing admin user '{admin_username}' has incorrect role ID ({existing_admin.role_id}). Consider updating manually.")
             if not existing_admin.email:
-                 logging.warning(f"{log_prefix} Existing admin user '{admin_username}' is missing an email address. Consider updating manually.")
+                 logger.warning(f"{log_prefix} Existing admin user '{admin_username}' is missing an email address. Consider updating manually.")
     except AuthServiceError as ase:
-         logging.error(f"{log_prefix} Failed to create admin user: {ase}")
+         logger.error(f"{log_prefix} Failed to create admin user: {ase}")
          raise RuntimeError(f"Failed to create admin user: {ase}") from ase
     except Exception as e:
-        logging.error(f"{log_prefix} Unexpected error creating admin user: {e}", exc_info=True)
+        logger.error(f"{log_prefix} Unexpected error creating admin user: {e}", exc_info=True)
         raise RuntimeError(f"Unexpected error creating admin user: {e}") from e
 
 def run_initialization_sequence(app: Flask) -> None:
@@ -204,13 +210,13 @@ def run_initialization_sequence(app: Flask) -> None:
     Requires app context. Should only be run by one process.
     """
     log_prefix = "[INIT:Sequence]"
-    logging.info(f"{log_prefix} Starting one-time initialization sequence...")
+    logger.info(f"{log_prefix} Starting one-time initialization sequence...")
     try:
         with app.app_context():
             initialize_database_schema()
             create_default_roles()
             create_initial_admin()
-        logging.info(f"{log_prefix} One-time initialization sequence completed successfully.")
+        logger.info(f"{log_prefix} One-time initialization sequence completed successfully.")
     except Exception as e:
-        logging.critical(f"{log_prefix} One-time initialization sequence FAILED: {e}", exc_info=True)
+        logger.critical(f"{log_prefix} One-time initialization sequence FAILED: {e}", exc_info=True)
         raise

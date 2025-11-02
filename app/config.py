@@ -37,7 +37,7 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY') # Placeholder for future LLM
 
     # --- Provider Configuration (NEW) ---
-    TRANSCRIPTION_PROVIDERS = os.environ.get('TRANSCRIPTION_PROVIDERS', "assemblyai,whisper,gpt-4o-transcribe").split(',')
+    TRANSCRIPTION_PROVIDERS = os.environ.get('TRANSCRIPTION_PROVIDERS', "assemblyai,whisper,gpt-4o-transcribe,gpt-4o-transcribe-diarize").split(',')
     LLM_PROVIDERS = ["GEMINI", "OPENAI"]
     # Default providers
     DEFAULT_TRANSCRIPTION_PROVIDER = os.environ.get('DEFAULT_TRANSCRIPTION_PROVIDER', 'gpt-4o-transcribe')
@@ -60,6 +60,7 @@ class Config:
         "assemblyai": "AssemblyAI",
         "whisper": "OpenAI Whisper",
         "gpt-4o-transcribe": "OpenAI GPT-4o Transcribe",
+        "gpt-4o-transcribe-diarize": "OpenAI GPT-4o Diarize",
         # LLM Providers
         "GEMINI": "Google Gemini",
         "OPENAI": "OpenAI",
@@ -118,10 +119,11 @@ class Config:
     LOG_DIR = os.path.join(BASE_DIR, 'logs')
     LOG_FILE = os.path.join(LOG_DIR, 'app.log')
     # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
-    # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
-    # Default to DEBUG if FLASK_ENV is 'development', else default to INFO
-    # --- FORCED FOR DEBUGGING ---
-    LOG_LEVEL = 'DEBUG'
+    flask_env = os.environ.get('FLASK_ENV', 'production').lower()
+    if flask_env == 'development':
+        LOG_LEVEL = 'DEBUG'
+    else:
+        LOG_LEVEL = 'INFO'
     if LOG_LEVEL not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
         raise ValueError(f"Invalid LOG_LEVEL: '{LOG_LEVEL}'. Must be one of DEBUG, INFO, WARNING, ERROR, CRITICAL.")
 
@@ -178,6 +180,11 @@ class Config:
             'duration_s': 1500,
             'size_mb': 25,
             'rate_limit_rpm': 500  # requests per minute
+        },
+        'gpt-4o-transcribe-diarize': {
+            'duration_s': 2400, # 40 minutes, but chunking is required over 30s
+            'size_mb': 25,
+            'rate_limit_rpm': 500
         },
         'whisper': {
             'duration_s': None,

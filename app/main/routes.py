@@ -29,6 +29,7 @@ def index():
     log_prefix = "[ROUTE:Main:Index]"
     user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
     logging.debug(f"{log_prefix} Accessing route '/'. ({user_info})")
+    logging.debug(f"Loaded TRANSCRIPTION_PROVIDERS: {current_app.config['TRANSCRIPTION_PROVIDERS']}")
 
     # --- Determine Effective Defaults ---
     effective_default_language = current_app.config['DEFAULT_LANGUAGE']

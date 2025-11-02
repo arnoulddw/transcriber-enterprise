@@ -273,15 +273,13 @@ class BaseTranscriptionClient(ABC):
                     raise ValueError(f"Audio file path is not allowed: {abs_path}")
 
                 # --- Single File Transcription Attempt ---
-                response_format = "verbose_json" if requested_language == 'auto' else "text" # Default logic
-
                 api_params = self._prepare_api_params(
                     language_code=requested_language,
                     context_prompt=context_prompt,
-                    response_format=response_format,
+                    response_format="verbose_json" if requested_language == 'auto' else "text",
                     is_chunk=False
                 )
-                response_format = api_params.get("response_format", response_format)
+                response_format = api_params.get("response_format")
 
                 log_params = {k: v for k, v in api_params.items() if k != 'file'}
                 self.logger.info(f"Calling API for single file with parameters: {log_params}")
@@ -381,13 +379,12 @@ class BaseTranscriptionClient(ABC):
                         chunk_num = idx + 1
                         chunk_log_prefix = f"{log_prefix}:Chunk{chunk_num}"
                         current_chunk_lang_param = requested_language
-                        response_format = "verbose_json" if requested_language == 'auto' else "text"
                         logging.info(f"{chunk_log_prefix} Submitting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
 
                         future = executor.submit(
                             self._transcribe_single_chunk_with_retry,
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
-                            language_code=current_chunk_lang_param, response_format=response_format,
+                            language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
                             context_prompt="", log_prefix=chunk_log_prefix
                         )
                         futures.append((chunk_num, future))
@@ -418,13 +415,12 @@ class BaseTranscriptionClient(ABC):
                     chunk_num = idx + 1
                     chunk_log_prefix = f"{log_prefix}:Chunk{chunk_num}"
                     current_chunk_lang_param = requested_language
-                    response_format = "verbose_json" if requested_language == 'auto' else "text"
                     logging.info(f"{chunk_log_prefix} Starting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
 
                     try:
                         chunk_result = self._transcribe_single_chunk_with_retry(
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
-                            language_code=current_chunk_lang_param, response_format=response_format,
+                            language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
                             context_prompt=context_prompt, log_prefix=chunk_log_prefix
                         )
                         results[chunk_num] = chunk_result

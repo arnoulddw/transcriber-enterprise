@@ -122,3 +122,29 @@ class TestTranscriptionManagement:
         # Assert that the request was successful and the correct number of items are displayed
         assert response.status_code == 200
         assert response.data.count(b"test_") == 2
+
+    @patch("app.api.transcriptions.transcription_service.process_transcription")
+    def test_successful_diarization_upload(self, mock_process_transcription, logged_in_client):
+        """
+        Test case for a successful file upload with diarization.
+        """
+        mock_process_transcription.return_value = None
+
+        data = {
+            "api_choice": "gpt-4o-transcribe-diarize",
+            "language_code": "en",
+            "audio_file": (io.BytesIO(b"test audio data"), SUCCESS_TEST_FILENAME),
+        }
+
+        response = logged_in_client.post(
+            url_for("transcriptions.transcribe_audio"),
+            data=data,
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 202
+        response_data = response.get_json()
+        assert response_data["message"] == "Transcription job started successfully."
+        assert "job_id" in response_data
+
+        mock_process_transcription.assert_called_once()

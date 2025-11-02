@@ -27,16 +27,18 @@ class AppContextFilter(logging.Filter):
             record.context = {}
         return True
 
-def setup_logging():
+def setup_logging(config):
     """
-    Configures the application's logging.
+    Configures the application's logging based on the provided config.
     This setup uses a JSON formatter to produce structured logs, which is
     ideal for log management systems. It configures a console handler
     and a rotating file handler.
     """
-    log_dir = 'logs'
+    log_dir = config.get('LOG_DIR', 'logs')
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
+
+    log_level = config.get('LOG_LEVEL', 'INFO')
 
     logging.config.dictConfig({
         'version': 1,
@@ -54,17 +56,20 @@ def setup_logging():
             },
             'standard': {
                 'format': '%(asctime)s - %(levelname)s - [%(name)s:%(lineno)d] - %(message)s'
+            },
+            'simple': {
+                'format': '%(asctime)s - %(levelname)s - %(message)s'
             }
         },
         'handlers': {
             'console': {
-                'level': 'INFO',
+                'level': log_level,
                 'class': 'logging.StreamHandler',
-                'formatter': 'standard',
+                'formatter': 'simple',
                 'filters': ['app_context']
             },
             'file': {
-                'level': 'INFO',
+                'level': log_level,
                 'class': 'logging.handlers.RotatingFileHandler',
                 'filename': os.path.join(log_dir, 'app.log'),
                 'maxBytes': 1024 * 1024 * 5,  # 5 MB
@@ -76,12 +81,20 @@ def setup_logging():
         'loggers': {
             '': {  # root logger
                 'handlers': ['console', 'file'],
-                'level': 'INFO',
+                'level': log_level,
             },
             'app': {
-                'handlers': ['console', 'file'],
-                'level': 'INFO',
-                'propagate': False
+                'level': log_level,
+                'propagate': True
+            },
+            'werkzeug': {
+                'level': 'WARNING',
+            },
+            'app.models.user': {
+                'level': 'WARNING',
+            },
+            'app.initialization': {
+                'level': 'WARNING',
             }
         }
     })

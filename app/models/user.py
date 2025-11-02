@@ -2,6 +2,7 @@
 # Defines the User model, its relationship with Roles, and core database interaction functions for MySQL.
 
 import logging
+logger = logging.getLogger(__name__)
 import os
 from flask import current_app
 from flask_login import UserMixin
@@ -18,7 +19,7 @@ from app.database import get_db, get_cursor
 try:
     from app.models.role import Role, get_role_by_id, get_role_by_name
 except ImportError as e:
-    logging.critical(f"[DB:Models:User] Failed to import Role model dependencies: {e}. This may cause runtime errors.")
+    logger.critical(f"[DB:Models:User] Failed to import Role model dependencies: {e}. This may cause runtime errors.")
     Role = None # type: ignore
     get_role_by_id = None # type: ignore
     get_role_by_name = None # type: ignore
@@ -73,7 +74,7 @@ class User(UserMixin):
     @property
     def role(self) -> Optional['Role']:
         try:
-            logging.debug(f"[User:{self.id}] role property accessed. cached={self._role is not None}, role_id={self.role_id}")
+            logger.debug(f"[User:{self.id}] role property accessed. cached={self._role is not None}, role_id={self.role_id}")
         except Exception:
             pass
         if self._role is None and self.role_id is not None:
@@ -86,18 +87,18 @@ class User(UserMixin):
                 row = cursor.fetchone()
                 self._role = _map_row_to_role(row)
                 if self._role:
-                    logging.debug(f"[User:{self.id}] Loaded role snapshot from DB. role_id={self.role_id}, role_name={getattr(self._role, 'name', None)}")
+                    logger.debug(f"[User:{self.id}] Loaded role snapshot from DB. role_id={self.role_id}, role_name={getattr(self._role, 'name', None)}")
                 else:
-                    logging.warning(f"[User:{self.id}] No role found for role_id={self.role_id}.")
+                    logger.warning(f"[User:{self.id}] No role found for role_id={self.role_id}.")
             except MySQLError as err:
-                logging.error(f"[User:{self.id}] Error fetching role (ID: {self.role_id}): {err}", exc_info=True)
+                logger.error(f"[User:{self.id}] Error fetching role (ID: {self.role_id}): {err}", exc_info=True)
                 self._role = None
             finally:
                 if cursor:
                     # The cursor is managed by the application context, so we don't close it here.
                     pass
         elif self.role_id is None:
-             logging.warning(f"[User:{self.id}] User has no role_id assigned.")
+             logger.warning(f"[User:{self.id}] User has no role_id assigned.")
         return self._role
 
     def has_permission(self, permission_name: str) -> bool:
@@ -123,11 +124,11 @@ class User(UserMixin):
 def init_db_command() -> None:
     cursor = get_cursor()
     log_prefix = "[DB:Schema:MySQL]"
-    logging.info(f"{log_prefix} Checking/Initializing 'users' table schema...")
+    logger.info(f"{log_prefix} Checking/Initializing 'users' table schema...")
     try:
         cursor.execute("SHOW TABLES LIKE 'roles'")
         if not cursor.fetchone():
-            logging.error(f"{log_prefix} Cannot initialize 'users' table: 'roles' table does not exist yet.")
+            logger.error(f"{log_prefix} Cannot initialize 'users' table: 'roles' table does not exist yet.")
             raise RuntimeError("Roles table must exist before users table can be initialized.")
         cursor.fetchall() # Consume results if any
 
@@ -157,7 +158,7 @@ def init_db_command() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
         )
-        logging.debug(f"{log_prefix} CREATE TABLE IF NOT EXISTS users executed.")
+        logger.debug(f"{log_prefix} CREATE TABLE IF NOT EXISTS users executed.")
 
         # --- Idempotent ALTER TABLE ---
 
@@ -165,42 +166,42 @@ def init_db_command() -> None:
         last_name_exists = cursor.fetchone()
         cursor.fetchall()
         if not last_name_exists:
-            logging.info(f"{log_prefix} Adding 'last_name' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'last_name' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN last_name VARCHAR(100) AFTER first_name")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'oauth_provider'")
         oauth_provider_exists = cursor.fetchone()
         cursor.fetchall()
         if not oauth_provider_exists:
-            logging.info(f"{log_prefix} Adding 'oauth_provider' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'oauth_provider' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN oauth_provider VARCHAR(50) AFTER last_name")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'oauth_provider_id'")
         oauth_provider_id_exists = cursor.fetchone()
         cursor.fetchall()
         if not oauth_provider_id_exists:
-            logging.info(f"{log_prefix} Adding 'oauth_provider_id' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'oauth_provider_id' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN oauth_provider_id VARCHAR(255) AFTER oauth_provider")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'default_content_language'")
         default_lang_exists = cursor.fetchone()
         cursor.fetchall()
         if not default_lang_exists:
-            logging.info(f"{log_prefix} Adding 'default_content_language' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'default_content_language' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN default_content_language VARCHAR(10) AFTER oauth_provider_id")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'default_transcription_model'")
         default_model_exists = cursor.fetchone()
         cursor.fetchall()
         if not default_model_exists:
-            logging.info(f"{log_prefix} Adding 'default_transcription_model' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'default_transcription_model' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN default_transcription_model VARCHAR(50) AFTER default_content_language")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'enable_auto_title_generation'")
         auto_title_exists = cursor.fetchone()
         cursor.fetchall()
         if not auto_title_exists:
-            logging.info(f"{log_prefix} Adding 'enable_auto_title_generation' column (BOOLEAN) to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'enable_auto_title_generation' column (BOOLEAN) to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN enable_auto_title_generation BOOLEAN NOT NULL DEFAULT FALSE AFTER default_transcription_model")
 
         # --- NEW: Add 'language' column for UI preference ---
@@ -208,7 +209,7 @@ def init_db_command() -> None:
         language_col_exists = cursor.fetchone()
         cursor.fetchall()
         if not language_col_exists:
-            logging.info(f"{log_prefix} Adding 'language' column to 'users' table.")
+            logger.info(f"{log_prefix} Adding 'language' column to 'users' table.")
             cursor.execute("ALTER TABLE users ADD COLUMN language VARCHAR(10) DEFAULT NULL AFTER default_transcription_model")
         # --- END NEW ---
 
@@ -216,7 +217,7 @@ def init_db_command() -> None:
         uk_oauth_exists = cursor.fetchone()
         cursor.fetchall()
         if not uk_oauth_exists:
-            logging.info(f"{log_prefix} Adding unique constraint 'uk_oauth' to 'users' table.")
+            logger.info(f"{log_prefix} Adding unique constraint 'uk_oauth' to 'users' table.")
             cursor.execute("SHOW INDEX FROM users WHERE Key_name = 'idx_oauth'")
             idx_oauth_exists = cursor.fetchone()
             cursor.fetchall()
@@ -228,18 +229,18 @@ def init_db_command() -> None:
         idx_created_at_exists = cursor.fetchone()
         cursor.fetchall()
         if not idx_created_at_exists:
-            logging.info(f"{log_prefix} Adding index 'idx_user_created_at' to 'users' table.")
+            logger.info(f"{log_prefix} Adding index 'idx_user_created_at' to 'users' table.")
             cursor.execute("ALTER TABLE users ADD INDEX idx_user_created_at (created_at)")
         # --- End ALTER TABLE ---
 
         get_db().commit()
-        logging.info(f"{log_prefix} 'users' table schema verified/initialized successfully.")
+        logger.info(f"{log_prefix} 'users' table schema verified/initialized successfully.")
     except MySQLError as err:
-        logging.error(f"{log_prefix} MySQL error during 'users' table initialization: {err}", exc_info=True)
+        logger.error(f"{log_prefix} MySQL error during 'users' table initialization: {err}", exc_info=True)
         get_db().rollback()
         raise
     except RuntimeError as e:
-        logging.error(f"{log_prefix} Initialization dependency error: {e}")
+        logger.error(f"{log_prefix} Initialization dependency error: {e}")
         get_db().rollback()
         raise
     finally:
@@ -252,7 +253,7 @@ def _map_row_to_user(row: Dict[str, Any]) -> Optional[User]:
     if row:
         required_fields = ['id', 'username', 'email', 'created_at']
         if not all(field in row for field in required_fields):
-             logging.error(f"[DB:User] Database row missing required fields for User object: {row}")
+             logger.error(f"[DB:User] Database row missing required fields for User object: {row}")
              return None
         user = User(
             id=row['id'], username=row['username'], email=row['email'],
@@ -284,6 +285,7 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
         'use_api_assemblyai': 'assemblyai',
         'use_api_openai_whisper': 'whisper',
         'use_api_openai_gpt_4o_transcribe': 'gpt-4o-transcribe',
+        'use_api_openai_gpt_4o_transcribe_diarize': 'gpt-4o-transcribe-diarize',
     }
     
     permitted_providers = sorted([
@@ -291,34 +293,34 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
     ])
 
     if not permitted_providers:
-        logging.warning(f"[DB:User] New user with role '{role.name}' has no transcription providers permitted.")
+        logger.warning(f"[DB:User] New user with role '{role.name}' has no transcription providers permitted.")
         return None
 
     system_default_provider = current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER')
 
     if system_default_provider in permitted_providers:
-        logging.debug(f"[DB:User] Setting default model for new user to system default: '{system_default_provider}'")
+        logger.debug(f"[DB:User] Setting default model for new user to system default: '{system_default_provider}'")
         return system_default_provider
     else:
         # Fallback: sort permitted providers alphabetically and return the first one
         fallback_provider = permitted_providers[0]
-        logging.debug(f"[DB:User] System default '{system_default_provider}' not permitted for role '{role.name}'. Falling back to first available: '{fallback_provider}'")
+        logger.debug(f"[DB:User] System default '{system_default_provider}' not permitted for role '{role.name}'. Falling back to first available: '{fallback_provider}'")
         return fallback_provider
 
 def add_user(username: str, email: str, password_hash: str, role_name: str = 'beta-tester', language: Optional[str] = None) -> Optional[User]:
     if get_role_by_name is None: return None
-    logging.info(f"[DB:User] Adding user with role_name: {role_name}")
+    logger.info(f"[DB:User] Adding user with role_name: {role_name}")
     role = get_role_by_name(role_name)
     if not role:
-        logging.error(f"[DB:User] Cannot add user '{username}': Role '{role_name}' not found.")
+        logger.error(f"[DB:User] Cannot add user '{username}': Role '{role_name}' not found.")
         if role_name != 'beta-tester':
-            logging.warning(f"[DB:User] Falling back to default role 'beta-tester' for user '{username}'.")
+            logger.warning(f"[DB:User] Falling back to default role 'beta-tester' for user '{username}'.")
             role = get_role_by_name('beta-tester')
         if not role:
-            logging.critical(f"[DB:User] Default role 'beta-tester' also not found. Cannot create user '{username}'.")
+            logger.critical(f"[DB:User] Default role 'beta-tester' also not found. Cannot create user '{username}'.")
             return None
     role_id = role.id
-    logging.info(f"[DB:User] Role ID to be inserted: {role_id}")
+    logger.info(f"[DB:User] Role ID to be inserted: {role_id}")
 
     # --- MODIFIED: Get default settings for new user ---
     default_model = _get_default_transcription_model_for_new_user(role)
@@ -328,11 +330,11 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
     default_auto_title_enabled = False
     if role:
         has_perm = role.has_permission('allow_auto_title_generation')
-        logging.info(f"[DB:User] Role '{role.name}' allow_auto_title_generation permission: {getattr(role, 'allow_auto_title_generation', 'ATTR_MISSING')}, has_permission()={has_perm}")
+        logger.info(f"[DB:User] Role '{role.name}' allow_auto_title_generation permission: {getattr(role, 'allow_auto_title_generation', 'ATTR_MISSING')}, has_permission()={has_perm}")
         if has_perm:
             default_auto_title_enabled = True
     else:
-        logging.warning(f"[DB:User] No role provided for default auto-title check")
+        logger.warning(f"[DB:User] No role provided for default auto-title check")
 
     # --- MODIFIED: Add new columns to INSERT statement ---
     sql = '''
@@ -355,7 +357,7 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
         # --- END MODIFIED ---
         user_id = cursor.lastrowid
         # --- MODIFIED: Update log message ---
-        logging.info(f"[DB:User] Added new user '{username}' (Email: {email}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")
+        logger.info(f"[DB:User] Added new user '{username}' (Email: {email}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")
         # --- END MODIFIED ---
         user = get_user_by_id(user_id)
         if user:
@@ -365,13 +367,13 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
         get_db().rollback()
         if err.errno == 1062:
             if 'users.username' in err.msg or 'idx_username' in err.msg:
-                 logging.warning(f"[DB:User] Attempted to add user with duplicate username: {username}")
+                 logger.warning(f"[DB:User] Attempted to add user with duplicate username: {username}")
             elif 'users.email' in err.msg or 'idx_email' in err.msg:
-                 logging.warning(f"[DB:User] Attempted to add user with duplicate email: {email}")
+                 logger.warning(f"[DB:User] Attempted to add user with duplicate email: {email}")
             else:
-                 logging.warning(f"[DB:User] Duplicate entry error adding user '{username}'/'{email}': {err}")
+                 logger.warning(f"[DB:User] Duplicate entry error adding user '{username}'/'{email}': {err}")
         else:
-            logging.error(f"[DB:User] Error adding user '{username}': {err}", exc_info=True)
+            logger.error(f"[DB:User] Error adding user '{username}': {err}", exc_info=True)
         return None
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -383,12 +385,12 @@ def add_oauth_user(email: str, first_name: Optional[str], last_name: Optional[st
     if get_role_by_name is None: return None
     role = get_role_by_name(role_name)
     if not role:
-        logging.error(f"[DB:User] Cannot add OAuth user '{email}': Role '{role_name}' not found.")
+        logger.error(f"[DB:User] Cannot add OAuth user '{email}': Role '{role_name}' not found.")
         if role_name != 'beta-tester':
-            logging.warning(f"[DB:User] Falling back to default role 'beta-tester' for OAuth user '{email}'.")
+            logger.warning(f"[DB:User] Falling back to default role 'beta-tester' for OAuth user '{email}'.")
             role = get_role_by_name('beta-tester')
         if not role:
-            logging.critical(f"[DB:User] Default role 'beta-tester' also not found. Cannot create OAuth user '{email}'.")
+            logger.critical(f"[DB:User] Default role 'beta-tester' also not found. Cannot create OAuth user '{email}'.")
             return None
     role_id = role.id
 
@@ -408,7 +410,7 @@ def add_oauth_user(email: str, first_name: Optional[str], last_name: Optional[st
         username = f"{username_base}{suffix}"
         suffix += 1
         if suffix > 100:
-             logging.error(f"[DB:User] Could not generate unique username for OAuth user '{email}' after {suffix-1} attempts.")
+             logger.error(f"[DB:User] Could not generate unique username for OAuth user '{email}' after {suffix-1} attempts.")
              return None
 
     # --- MODIFIED: Add new columns to INSERT statement ---
@@ -435,20 +437,20 @@ def add_oauth_user(email: str, first_name: Optional[str], last_name: Optional[st
         get_db().commit()
         user_id = cursor.lastrowid
         # --- MODIFIED: Update log message ---
-        logging.info(f"[DB:User] Added new OAuth user '{username}' (Email: {email}, Provider: {oauth_provider}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")
+        logger.info(f"[DB:User] Added new OAuth user '{username}' (Email: {email}, Provider: {oauth_provider}) with ID {user_id}, role '{role_name}' (ID: {role_id}), AutoTitle: {default_auto_title_enabled}, Language: {language}, DefaultModel: {default_model}.")
         # --- END MODIFIED ---
         return get_user_by_id(user_id)
     except MySQLError as err:
         get_db().rollback()
         if err.errno == 1062:
             if 'users.email' in err.msg or 'idx_email' in err.msg:
-                 logging.warning(f"[DB:User] Attempted to add OAuth user with duplicate email: {email}")
+                 logger.warning(f"[DB:User] Attempted to add OAuth user with duplicate email: {email}")
             elif 'uk_oauth' in err.msg:
-                 logging.warning(f"[DB:User] Attempted to add OAuth user with duplicate provider/id: {oauth_provider}/{oauth_provider_id}")
+                 logger.warning(f"[DB:User] Attempted to add OAuth user with duplicate provider/id: {oauth_provider}/{oauth_provider_id}")
             else:
-                 logging.warning(f"[DB:User] Duplicate entry error adding OAuth user '{email}': {err}")
+                 logger.warning(f"[DB:User] Duplicate entry error adding OAuth user '{email}': {err}")
         else:
-            logging.error(f"[DB:User] Error adding OAuth user '{email}': {err}", exc_info=True)
+            logger.error(f"[DB:User] Error adding OAuth user '{email}': {err}", exc_info=True)
         return None
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -464,7 +466,7 @@ def get_user_by_username(username: str) -> Optional[User]:
         row = cursor.fetchone()
         user = _map_row_to_user(row)
     except MySQLError as err:
-        logging.error(f"[DB:User] Error retrieving user by username '{username}': {err}", exc_info=True)
+        logger.error(f"[DB:User] Error retrieving user by username '{username}': {err}", exc_info=True)
         user = None # Ensure user is None on error
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -481,7 +483,7 @@ def get_user_by_email(email: str) -> Optional[User]:
         row = cursor.fetchone()
         user = _map_row_to_user(row)
     except MySQLError as err:
-        logging.error(f"[DB:User] Error retrieving user by email '{email}': {err}", exc_info=True)
+        logger.error(f"[DB:User] Error retrieving user by email '{email}': {err}", exc_info=True)
         user = None # Ensure user is None on error
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -497,7 +499,7 @@ def get_user_by_id(user_id: int) -> Optional[User]:
         cursor.execute(sql, (user_id,))
         row = cursor.fetchone()
         if row:
-            logging.info(f"[DB:User] get_user_by_id({user_id}) - DB row: username={row.get('username')}, role_id={row.get('role_id')}, role_name={row.get('role_name')}")
+            logger.info(f"[DB:User] get_user_by_id({user_id}) - DB row: username={row.get('username')}, role_id={row.get('role_id')}, role_name={row.get('role_name')}")
             user = _map_row_to_user(row)
             # Eagerly pin role snapshot to avoid drift during long-running operations/tests
             if user and user.role_id is not None:
@@ -505,15 +507,15 @@ def get_user_by_id(user_id: int) -> Optional[User]:
                     role_snapshot = get_role_by_id(user.role_id) if get_role_by_id else None
                     user._role = role_snapshot
                     if role_snapshot:
-                        logging.info(f"[DB:User] get_user_by_id({user_id}) pinned role snapshot: role_id={user.role_id}, role_name={role_snapshot.name}, use_api_openai_whisper={role_snapshot.use_api_openai_whisper}")
+                        logger.info(f"[DB:User] get_user_by_id({user_id}) pinned role snapshot: role_id={user.role_id}, role_name={role_snapshot.name}, use_api_openai_whisper={role_snapshot.use_api_openai_whisper}")
                     else:
-                        logging.warning(f"[DB:User] get_user_by_id({user_id}) failed to load role snapshot for role_id={user.role_id}")
+                        logger.warning(f"[DB:User] get_user_by_id({user_id}) failed to load role snapshot for role_id={user.role_id}")
                 except Exception as pin_err:
-                    logging.error(f"[DB:User] Failed to pin role snapshot for user {user_id}: {pin_err}", exc_info=True)
+                    logger.error(f"[DB:User] Failed to pin role snapshot for user {user_id}: {pin_err}", exc_info=True)
         else:
-            logging.warning(f"[DB:User] get_user_by_id({user_id}) - No row found in database")
+            logger.warning(f"[DB:User] get_user_by_id({user_id}) - No row found in database")
     except MySQLError as err:
-        logging.error(f"[DB:User] Error retrieving user by ID '{user_id}': {err}", exc_info=True)
+        logger.error(f"[DB:User] Error retrieving user by ID '{user_id}': {err}", exc_info=True)
         user = None # Ensure user is None on error
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -529,9 +531,9 @@ def get_user_by_oauth(provider: str, provider_id: str) -> Optional[User]:
         cursor.execute(sql, (provider, provider_id))
         row = cursor.fetchone()
         user = _map_row_to_user(row)
-        logging.debug(f"[DB:User] Searched for user by OAuth '{provider}/{provider_id}'. Found: {'Yes' if user else 'No'}")
+        logger.debug(f"[DB:User] Searched for user by OAuth '{provider}/{provider_id}'. Found: {'Yes' if user else 'No'}")
     except MySQLError as err:
-        logging.error(f"[DB:User] Error retrieving user by OAuth '{provider}/{provider_id}': {err}", exc_info=True)
+        logger.error(f"[DB:User] Error retrieving user by OAuth '{provider}/{provider_id}': {err}", exc_info=True)
         user = None # Ensure user is None on error
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -544,10 +546,10 @@ def link_oauth_to_user(user_id: int, oauth_provider: str, oauth_provider_id: str
     try:
         cursor.execute(sql, (oauth_provider, oauth_provider_id, user_id))
         get_db().commit()
-        logging.info(f"[DB:User] Linked OAuth provider '{oauth_provider}' to user ID {user_id}.")
+        logger.info(f"[DB:User] Linked OAuth provider '{oauth_provider}' to user ID {user_id}.")
         return True
     except MySQLError as err:
-        logging.error(f"[DB:User] Error linking OAuth provider '{oauth_provider}' to user ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error linking OAuth provider '{oauth_provider}' to user ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
     finally:
@@ -560,10 +562,10 @@ def update_user_api_keys(user_id: int, encrypted_keys_json: Optional[str]) -> bo
     try:
         cursor.execute(sql, (encrypted_keys_json, user_id))
         get_db().commit()
-        logging.info(f"[DB:User] Updated API keys for user ID {user_id}.")
+        logger.info(f"[DB:User] Updated API keys for user ID {user_id}.")
         return True
     except MySQLError as err:
-        logging.error(f"[DB:User] Error updating API keys for user ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error updating API keys for user ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
     finally:
@@ -578,9 +580,9 @@ def get_all_users() -> List[User]:
         cursor.execute(sql)
         rows = cursor.fetchall()
         users = [user for row in rows if (user := _map_row_to_user(row)) is not None]
-        logging.debug(f"[DB:User] Retrieved {len(users)} users.")
+        logger.debug(f"[DB:User] Retrieved {len(users)} users.")
     except MySQLError as err:
-        logging.error(f"[DB:User] Error retrieving all users: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error retrieving all users: {err}", exc_info=True)
     finally:
         # The cursor is managed by the application context, so we don't close it here.
         pass
@@ -593,13 +595,13 @@ def delete_user_by_id(user_id: int) -> bool:
         cursor.execute(sql, (user_id,))
         get_db().commit()
         if cursor.rowcount > 0:
-            logging.info(f"[DB:User] Deleted user with ID {user_id}.")
+            logger.info(f"[DB:User] Deleted user with ID {user_id}.")
             return True
         else:
-            logging.warning(f"[DB:User] Attempted to delete non-existent user with ID {user_id}.")
+            logger.warning(f"[DB:User] Attempted to delete non-existent user with ID {user_id}.")
             return False
     except MySQLError as err:
-        logging.error(f"[DB:User] Error deleting user with ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error deleting user with ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
     finally:
@@ -612,10 +614,10 @@ def update_user_password_hash(user_id: int, new_password_hash: str) -> bool:
     try:
         cursor.execute(sql, (new_password_hash, user_id))
         get_db().commit()
-        logging.info(f"[DB:User] Updated password hash for user ID {user_id}.")
+        logger.info(f"[DB:User] Updated password hash for user ID {user_id}.")
         return True
     except MySQLError as err:
-        logging.error(f"[DB:User] Error updating password hash for user ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error updating password hash for user ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
     finally:
@@ -638,9 +640,9 @@ def update_user_role(user_id: int, new_role_id: int) -> bool:
             except Exception:
                 prev_role_name = None
     except Exception as diag_err:
-        logging.debug(f"[DB:User] update_user_role pre-fetch failed for user {user_id}: {diag_err}", exc_info=True)
+        logger.debug(f"[DB:User] update_user_role pre-fetch failed for user {user_id}: {diag_err}", exc_info=True)
 
-    logging.info(f"[DB:User] ROLE_UPDATE: Updating user {user_id} from role_id={prev_role_id}:{prev_role_name} to role_id={new_role_id}")
+    logger.info(f"[DB:User] ROLE_UPDATE: Updating user {user_id} from role_id={prev_role_id}:{prev_role_name} to role_id={new_role_id}")
 
     try:
         cursor.execute(sql, (new_role_id, user_id))
@@ -659,18 +661,18 @@ def update_user_role(user_id: int, new_role_id: int) -> bool:
                     'allow_auto_title_generation': new_role.allow_auto_title_generation
                 }
         except Exception as name_err:
-            logging.debug(f"[DB:User] update_user_role post-fetch failed to resolve role name for role_id {new_role_id}: {name_err}", exc_info=True)
+            logger.debug(f"[DB:User] update_user_role post-fetch failed to resolve role name for role_id {new_role_id}: {name_err}", exc_info=True)
 
-        logging.info(f"[DB:User] ROLE_UPDATE: Updated user {user_id}: {prev_role_id}:{prev_role_name} -> {new_role_id}:{new_role_name}, permissions={new_role_permissions}")
+        logger.info(f"[DB:User] ROLE_UPDATE: Updated user {user_id}: {prev_role_id}:{prev_role_name} -> {new_role_id}:{new_role_name}, permissions={new_role_permissions}")
         
         # Verify the update took effect
         verify_user = get_user_by_id(user_id)
         if verify_user:
-            logging.info(f"[DB:User] ROLE_UPDATE: Verification - user {user_id} now has role_id={verify_user.role_id}")
+            logger.info(f"[DB:User] ROLE_UPDATE: Verification - user {user_id} now has role_id={verify_user.role_id}")
         
         return True
     except MySQLError as err:
-        logging.error(f"[DB:User] Error updating role ID for user ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error updating role ID for user ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
     finally:
@@ -694,23 +696,23 @@ def update_user_profile(user_id: int, username: str, email: str, first_name: Opt
         cursor.execute(sql, (username, email, first_name, last_name, user_id))
         get_db().commit()
         if cursor.rowcount > 0:
-            logging.info(f"[DB:User:{user_id}] Updated core profile information (username, email, names).")
+            logger.info(f"[DB:User:{user_id}] Updated core profile information (username, email, names).")
             return True
         else:
-            logging.warning(f"[DB:User:{user_id}] Attempted to update profile for non-existent user or no changes made.")
+            logger.warning(f"[DB:User:{user_id}] Attempted to update profile for non-existent user or no changes made.")
             return False
     except MySQLError as err:
         get_db().rollback()
         if err.errno == 1062:
             if 'users.username' in err.msg or 'idx_username' in err.msg:
-                 logging.warning(f"[DB:User:{user_id}] Profile update failed: Username '{username}' is already taken.")
+                 logger.warning(f"[DB:User:{user_id}] Profile update failed: Username '{username}' is already taken.")
             elif 'users.email' in err.msg or 'idx_email' in err.msg:
-                 logging.warning(f"[DB:User:{user_id}] Profile update failed: Email '{email}' is already taken.")
+                 logger.warning(f"[DB:User:{user_id}] Profile update failed: Email '{email}' is already taken.")
             else:
-                 logging.warning(f"[DB:User:{user_id}] Profile update failed due to duplicate entry: {err}")
+                 logger.warning(f"[DB:User:{user_id}] Profile update failed due to duplicate entry: {err}")
             return False
         else:
-            logging.error(f"[DB:User:{user_id}] Error updating profile: {err}", exc_info=True)
+            logger.error(f"[DB:User:{user_id}] Error updating profile: {err}", exc_info=True)
             return False
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -741,7 +743,7 @@ def update_user_preferences(user_id: int, default_language: Optional[str], defau
         params.append(language if language else None)
 
     if not set_clauses:
-        logging.debug(f"{log_prefix} No preference fields provided for update.")
+        logger.debug(f"{log_prefix} No preference fields provided for update.")
         return False # Nothing to update
 
     sql = f"UPDATE users SET {', '.join(set_clauses)} WHERE id = %s"
@@ -752,14 +754,14 @@ def update_user_preferences(user_id: int, default_language: Optional[str], defau
         cursor.execute(sql, tuple(params))
         get_db().commit()
         if cursor.rowcount > 0:
-            logging.info(f"{log_prefix} Updated preferences. Clauses: {set_clauses}")
+            logger.info(f"{log_prefix} Updated preferences. Clauses: {set_clauses}")
             return True
         else:
-            logging.warning(f"{log_prefix} Attempted to update preferences for non-existent user or no changes made.")
+            logger.warning(f"{log_prefix} Attempted to update preferences for non-existent user or no changes made.")
             return False
     except MySQLError as err:
         get_db().rollback()
-        logging.error(f"{log_prefix} Error updating preferences: {err}", exc_info=True)
+        logger.error(f"{log_prefix} Error updating preferences: {err}", exc_info=True)
         return False
     finally:
         # The cursor is managed by the application context, so we don't close it here.
@@ -776,9 +778,9 @@ def count_users_by_role_id(role_id: int) -> int:
         result = cursor.fetchone()
         if result:
             count = result['count']
-        logging.debug(f"[DB:User] Counted {count} users for role_id {role_id}.")
+        logger.debug(f"[DB:User] Counted {count} users for role_id {role_id}.")
     except MySQLError as err:
-        logging.error(f"[DB:User] Error counting users by role_id {role_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Error counting users by role_id {role_id}: {err}", exc_info=True)
     finally:
         # The cursor is managed by the application context, so we don't close it here.
         pass

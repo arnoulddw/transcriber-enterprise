@@ -42,6 +42,7 @@ from app.tasks.title_generation import generate_title_task
 
 
 API_DISPLAY_NAMES = {
+    'gpt-4o-transcribe-diarize': 'OpenAI GPT-4o Diarize',
     'gpt-4o-transcribe': 'OpenAl GPT-4o Transcribe',
     'whisper': 'OpenAI Whisper',
     'assemblyai': 'AssemblyAI'
@@ -151,7 +152,8 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             permission_map = {
                 'assemblyai': 'use_api_assemblyai',
                 'whisper': 'use_api_openai_whisper',
-                'gpt-4o-transcribe': 'use_api_openai_gpt_4o_transcribe'
+                'gpt-4o-transcribe': 'use_api_openai_gpt_4o_transcribe',
+                'gpt-4o-transcribe-diarize': 'use_api_openai_gpt_4o_transcribe_diarize'
             }
             api_permission = permission_map.get(api_choice)
 
@@ -244,7 +246,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             mode = current_app.config['DEPLOYMENT_MODE']
             try:
                 if mode == 'multi':
-                    key_service_name = 'openai' if api_choice in ['whisper', 'gpt-4o-transcribe'] else api_choice
+                    key_service_name = 'openai' if api_choice in ['whisper', 'gpt-4o-transcribe', 'gpt-4o-transcribe-diarize'] else api_choice
                     api_key = get_decrypted_api_key(user_id, key_service_name)
 
                     if api_key:
@@ -259,7 +261,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                             logger.debug(f"User key not found and role does not allow key management. Falling back to global API key for '{api_display_name}'.")
                             key_env_var = None
                             if api_choice == 'assemblyai': key_env_var = 'ASSEMBLYAI_API_KEY'
-                            elif api_choice in ['whisper', 'gpt-4o-transcribe']: key_env_var = 'OPENAI_API_KEY'
+                            elif api_choice in ['whisper', 'gpt-4o-transcribe', 'gpt-4o-transcribe-diarize']: key_env_var = 'OPENAI_API_KEY'
                             
                             if key_env_var:
                                 api_key = current_app.config.get(key_env_var)
@@ -270,7 +272,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                 elif mode == 'single':
                     key_env_var = None
                     if api_choice == 'assemblyai': key_env_var = 'ASSEMBLYAI_API_KEY'
-                    elif api_choice in ['whisper', 'gpt-4o-transcribe']: key_env_var = 'OPENAI_API_KEY'
+                    elif api_choice in ['whisper', 'gpt-4o-transcribe', 'gpt-4o-transcribe-diarize']: key_env_var = 'OPENAI_API_KEY'
                     if key_env_var: api_key = current_app.config.get(key_env_var)
                     if not api_key:
                         raise ValueError(f"ERROR: Global {api_display_name} API key ({key_env_var}) is not configured.")

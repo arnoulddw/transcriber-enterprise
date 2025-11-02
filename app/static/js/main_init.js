@@ -107,6 +107,7 @@ async function fetchReadinessData() {
         window.API_KEY_STATUS = data.api_keys || {};
         window.USER_PERMISSIONS = data.permissions || {};
         window.logger.debug(mainInitLogPrefix, "Fresh readiness data fetched and cached:", data);
+        console.log("DIAGNOSTIC_LOG: Received readiness data from backend:", JSON.stringify(data, null, 2));
         isFetchingReadiness = false;
         pendingReadinessPromise = null;
         return data;
@@ -218,6 +219,7 @@ async function checkTranscribeButtonState() {
         if (selectedApiValue === 'gpt-4o-transcribe') canUseSelectedApi = permissions.use_api_openai_gpt_4o_transcribe;
         else if (selectedApiValue === 'whisper') canUseSelectedApi = permissions.use_api_openai_whisper;
         else if (selectedApiValue === 'assemblyai') canUseSelectedApi = permissions.use_api_assemblyai;
+        else if (selectedApiValue === 'gpt-4o-transcribe-diarize') canUseSelectedApi = permissions.use_api_openai_gpt_4o_transcribe_diarize;
 
         if (!canUseSelectedApi || (selectedApiOption && selectedApiOption.disabled)) {
             const apiName = window.API_NAME_MAP_FRONTEND[selectedApiValue] || selectedApiValue;

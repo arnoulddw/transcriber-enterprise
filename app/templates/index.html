@@ -49,6 +49,9 @@
                         {% if user_permissions.use_api_openai_gpt_4o_transcribe %}
                         <option value="gpt-4o-transcribe" {% if 'gpt-4o-transcribe' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI GPT-4o Transcribe</option>
                         {% endif %}
+                        {% if user_permissions.use_api_openai_gpt_4o_transcribe_diarize %}
+                        <option value="gpt-4o-transcribe-diarize" {% if 'gpt-4o-transcribe-diarize' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI GPT-4o Diarize</option>
+                        {% endif %}
                         {% if user_permissions.use_api_openai_whisper %}
                         <option value="whisper" {% if 'whisper' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI Whisper</option>
                         {% endif %}

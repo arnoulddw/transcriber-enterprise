@@ -71,6 +71,7 @@ class Role:
     use_api_assemblyai: bool
     use_api_openai_whisper: bool
     use_api_openai_gpt_4o_transcribe: bool
+    use_api_openai_gpt_4o_transcribe_diarize: bool
     # --- MODIFIED: Added use_api_google_gemini ---
     use_api_google_gemini: bool
     # --- END MODIFIED ---
@@ -101,6 +102,7 @@ class Role:
     updated_at: str
 
     def __init__(self, **kwargs):
+        logging.debug(f"[Role Init] Creating Role object with kwargs: {kwargs}")
         self.id = kwargs.get('id')
         self.name = kwargs.get('name')
         self.description = kwargs.get('description')
@@ -108,6 +110,7 @@ class Role:
         # --- MODIFIED: Added use_api_google_gemini to bool_fields ---
         bool_fields = [
             'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
+            'use_api_openai_gpt_4o_transcribe_diarize',
             'use_api_google_gemini', # Added
             'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
             'allow_api_key_management', 'allow_download_transcript', 'allow_workflows',
@@ -139,6 +142,10 @@ class Role:
         return f'<Role {self.name} (ID: {self.id})>'
 
     def has_permission(self, permission_name: str) -> bool:
+        # --- HOTFIX: Alias old diarize permission to new one to handle caching issues ---
+        if permission_name == 'use_api_openai_gpt_4o_diarize':
+            permission_name = 'use_api_openai_gpt_4o_transcribe_diarize'
+        # --- END HOTFIX ---
         # --- MODIFIED: Added use_api_google_gemini to valid prefixes (implicitly handled by use_) ---
         if not permission_name.startswith(('use_', 'allow_', 'access_', 'manage_')):
         # --- END MODIFIED ---
@@ -156,6 +163,10 @@ class Role:
 
 def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
     if row:
+        # --- MODIFIED: Added detailed diagnostic log ---
+        diarize_perm_value = row.get('use_api_openai_gpt_4o_transcribe_diarize', 'NOT_FOUND')
+        logging.debug(f"Mapping DB row to Role object. Role Name: '{row.get('name')}'. Diarize Permission Raw Value: '{diarize_perm_value}' (Type: {type(diarize_perm_value)}).")
+        # --- END MODIFIED ---
         if 'max_seconds_monthly' in row:
             row['max_minutes_monthly'] = row.pop('max_seconds_monthly')
         if 'max_seconds_total' in row:
@@ -163,6 +174,8 @@ def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
         # --- MODIFIED: Ensure use_api_google_gemini is present ---
         if 'use_api_google_gemini' not in row:
             row['use_api_google_gemini'] = 0
+        if 'use_api_openai_gpt_4o_transcribe_diarize' not in row:
+            row['use_api_openai_gpt_4o_transcribe_diarize'] = 0
         # --- END MODIFIED ---
         if 'allow_auto_title_generation' not in row:
             row['allow_auto_title_generation'] = 0
@@ -184,6 +197,7 @@ def init_roles_table() -> None:
                 use_api_assemblyai BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_openai_whisper BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_openai_gpt_4o_transcribe BOOLEAN NOT NULL DEFAULT FALSE,
+                use_api_openai_gpt_4o_transcribe_diarize BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_google_gemini BOOLEAN NOT NULL DEFAULT FALSE,
                 access_admin_panel BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_large_files BOOLEAN NOT NULL DEFAULT FALSE,
@@ -232,6 +246,8 @@ def init_roles_table() -> None:
         # --- MODIFIED: Add use_api_google_gemini column idempotently ---
         _ensure_column(cursor, "roles", None, "use_api_google_gemini",
                        "BOOLEAN NOT NULL DEFAULT FALSE", after="use_api_openai_gpt_4o_transcribe", log_prefix=log_prefix)
+        _ensure_column(cursor, "roles", None, "use_api_openai_gpt_4o_transcribe_diarize",
+                          "BOOLEAN NOT NULL DEFAULT FALSE", after="use_api_openai_gpt_4o_transcribe", log_prefix=log_prefix)
         # --- END MODIFIED ---
 
         get_db().commit()
@@ -257,6 +273,7 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
     # --- MODIFIED: Add use_api_google_gemini to valid columns ---
     valid_permission_columns = [
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
+        'use_api_openai_gpt_4o_transcribe_diarize',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
         'allow_api_key_management', 'allow_download_transcript',
@@ -429,6 +446,7 @@ def update_role(role_id: int, role_data: Dict[str, Any]) -> bool:
     updatable_columns = [
         'name', 'description',
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
+        'use_api_openai_gpt_4o_transcribe_diarize',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
         'allow_api_key_management', 'allow_download_transcript',

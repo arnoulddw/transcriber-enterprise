@@ -2,7 +2,6 @@
 
 import os
 import logging
-import logging.handlers # Keep this for when we revert
 import threading
 import time
 import fcntl # For file locking
@@ -38,62 +37,9 @@ from app.initialization import (
     create_initialization_marker,
     run_initialization_sequence
 )
+from app.logging_config import setup_logging
 # Import MySQL error class for specific handling if needed later
 from mysql.connector import Error as MySQLError
-
-# --- Logging Configuration ---
-def configure_logging(config: Mapping[str, Any]) -> None:
-    """Sets up application logging based on configuration."""
-    log_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - [%(name)s:%(lineno)d] - %(message)s'
-    )
-    log_level_name = config.get('LOG_LEVEL', 'DEBUG').upper()
-    log_level = getattr(logging, log_level_name, logging.INFO)
-
-    log_dir = config.get('LOG_DIR')
-    log_file = config.get('LOG_FILE')
-
-    if not log_dir or not log_file:
-        print("Error: LOG_DIR or LOG_FILE not configured.")
-        file_handler = None
-    else:
-        try:
-            os.makedirs(log_dir, exist_ok=True)
-            file_handler = logging.handlers.TimedRotatingFileHandler(log_file, when='midnight', interval=1, backupCount=7, encoding='utf-8')
-            file_handler.setFormatter(log_formatter)
-            file_handler.setLevel(log_level)
-        except Exception as e:
-            print(f"Error setting up file log handler: {e}")
-            file_handler = None
-
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(log_formatter)
-    console_handler.setLevel(log_level)
-
-    root_logger = logging.getLogger()
-    if root_logger.hasHandlers():
-        root_logger.handlers.clear()
-    root_logger.setLevel(log_level)
-    root_logger.addHandler(console_handler)
-    if file_handler:
-        root_logger.addHandler(file_handler)
-
-    # Adjust log levels for noisy libraries
-    logging.getLogger('werkzeug').setLevel(logging.WARNING)
-    logging.getLogger('urllib3').setLevel(logging.WARNING)
-    logging.getLogger('httpx').setLevel(logging.WARNING)
-    logging.getLogger('assemblyai').setLevel(logging.INFO)
-    logging.getLogger('openai').setLevel(logging.INFO)
-    logging.getLogger('pydub').setLevel(logging.INFO)
-    logging.getLogger('mail').setLevel(logging.INFO)
-    logging.getLogger('mysql.connector').setLevel(logging.WARNING)
-    logging.getLogger('google.auth.transport.requests').setLevel(logging.WARNING) # Quieten Google auth logs
-    logging.getLogger('google.generativeai').setLevel(logging.INFO) # Set to INFO or WARNING
-    logging.getLogger('google_genai.models').setLevel(logging.WARNING) # Set specific google_genai.models to WARNING
-    logging.getLogger('google.api_core').setLevel(logging.WARNING) # Quieten API core logs
-
-    logging.info("[SYSTEM] Logging configured successfully.")
-    logging.info(f"[SYSTEM] Log Level set to: {log_level_name}")
 
 
 # --- Background Task & Initialization Management (Using File Lock) ---
@@ -244,11 +190,7 @@ def create_app(config_class=Config) -> Flask:
     """
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(config_class)
-    # --- Roo-DEBUG: Log app creation details ---
-    logging.warning(f"[Roo-DEBUG] create_app: App created with id: {id(app)}")
-    logging.warning(f"[Roo-DEBUG] create_app: INIT_MARKER_FILE in config: {app.config.get('INIT_MARKER_FILE')}")
-    # --- END Roo-DEBUG ---
-    configure_logging(app.config)
+    setup_logging(app.config)
     logging.info(f"[SYSTEM] Flask app created. Deployment Mode: {app.config['DEPLOYMENT_MODE']}")
     logging.info(f"[SYSTEM] Configured Timezone (TZ): {app.config.get('TZ', 'Not Set - Defaulting to UTC')}")
 
@@ -348,11 +290,6 @@ def create_app(config_class=Config) -> Flask:
         user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
         logging.debug(f"Request started: {request.method} {request.path} from {request.remote_addr} ({user_info})")
 
-        # --- Roo-DEBUG: Log request context details ---
-        logging.warning(f"[Roo-DEBUG] before_request: Using current_app with id: {id(current_app)} config_id: {id(current_app.config)} keys:{len(list(current_app.config.keys())) if hasattr(current_app.config, 'keys') else 'NA'}")
-        logging.warning(f"[Roo-DEBUG] before_request: TEST_INSTANCE_ID: {current_app.config.get('TEST_INSTANCE_ID')}")
-        logging.warning(f"[Roo-DEBUG] before_request: INIT_MARKER_FILE present: {'INIT_MARKER_FILE' in current_app.config} value: {current_app.config.get('INIT_MARKER_FILE')}")
-        # --- END Roo-DEBUG ---
 
         # Test bypass: when running tests, skip initialization gating
         if current_app.testing:
@@ -436,6 +373,7 @@ def create_app(config_class=Config) -> Flask:
                     'use_api_assemblyai': role.use_api_assemblyai,
                     'use_api_openai_whisper': role.use_api_openai_whisper,
                     'use_api_openai_gpt_4o_transcribe': role.use_api_openai_gpt_4o_transcribe,
+                    'use_api_openai_gpt_4o_transcribe_diarize': role.use_api_openai_gpt_4o_transcribe_diarize,
                     'use_api_google_gemini': role.use_api_google_gemini,
                     'allow_large_files': role.allow_large_files,
                     'allow_context_prompt': role.allow_context_prompt,
@@ -454,7 +392,7 @@ def create_app(config_class=Config) -> Flask:
              }
              user_permissions = {
                  'use_api_assemblyai': True, 'use_api_openai_whisper': True,
-                 'use_api_openai_gpt_4o_transcribe': True, 'use_api_google_gemini': True,
+                 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True, 'use_api_google_gemini': True,
                  'allow_large_files': True, 'allow_context_prompt': True,
                  'allow_download_transcript': True, 'allow_api_key_management': False,
                  'access_admin_panel': False, 'allow_workflows': True,

@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 # Import necessary components from the application
 from flask import current_app # To access config and app context
+from flask_login import login_user
 from app import bcrypt # Import the bcrypt instance from app extensions
 from app.models import user as user_model # Models now use MySQL
 from app.models import transcription_utils # Import the new utils file
@@ -307,6 +308,14 @@ def update_user_role_admin(user_id_to_update: int, new_role_id: int, current_adm
 
             if success:
                 logging.info(f"{log_prefix} Admin (ID: {current_admin_id}) successfully updated role to '{new_role.name}' (ID: {new_role_id}).")
+                
+                # --- MODIFIED: Re-authenticate user to refresh session ---
+                try:
+                    login_user(user_to_update)
+                    logging.info(f"{log_prefix} User {user_to_update.id} re-authenticated to refresh session after role change.")
+                except Exception as e:
+                    logging.error(f"{log_prefix} Failed to re-authenticate user {user_to_update.id} after role change: {e}", exc_info=True)
+                # --- END MODIFIED ---
             else:
                 logging.error(f"{log_prefix} Failed to update role for user ID {user_id_to_update} (model returned False).")
                 raise AdminServiceError("Failed to update user role in the database.")
