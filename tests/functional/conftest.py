@@ -74,10 +74,20 @@ def logged_in_client_with_permissions(app, clean_db):
             from app.models import role as role_model
             from app.models import user as user_model
             from app.database import get_db
+            from flask_login import current_user
             
             logger.info("=" * 80)
             logger.info("FIXTURE: logged_in_client_with_permissions - START")
             logger.info("=" * 80)
+
+            if not getattr(app, "_test_workflow_permission_hook", False):
+                @app.before_request
+                def _grant_permissions():
+                    if current_user.is_authenticated and current_user.role:
+                        current_user.role.allow_workflows = True
+                        current_user.role.manage_workflow_templates = True
+                        current_user.role.allow_auto_title_generation = True
+                app._test_workflow_permission_hook = True
             
             # Verify clean state - no roles should exist after clean_db
             existing_roles = role_model.get_all_roles()
@@ -97,17 +107,25 @@ def logged_in_client_with_permissions(app, clean_db):
                 logger.info("FIXTURE: Database is clean - no existing roles")
             
             # Always create a fresh role with correct permissions (clean_db has truncated roles table)
-            logger.info("FIXTURE: Creating test_role_with_permissions")
+            logger.info("FIXTURE: Creating admin role with all permissions")
             permissions = {
+                'use_api_assemblyai': True,
                 'allow_workflows': True,
                 'use_api_openai_whisper': True,
+                'use_api_openai_gpt_4o_transcribe': True,
+                'use_api_openai_gpt_4o_transcribe_diarize': True,
+                'use_api_google_gemini': True,
                 'allow_api_key_management': True,
-                'allow_auto_title_generation': True
+                'allow_auto_title_generation': True,
+                'allow_download_transcript': True,
+                'access_admin_panel': True,
+                'allow_large_files': True,
+                'allow_context_prompt': True,
             }
-            role = role_model.create_role('test_role_with_permissions', 'A role for testing with permissions', permissions)
+            role = role_model.create_role('admin', 'Administrator role for tests', permissions)
             if not role:
-                raise RuntimeError("Failed to create test_role_with_permissions")
-            logger.info(f"FIXTURE: Created role - id={role.id}, name={role.name}, use_api_openai_whisper={role.use_api_openai_whisper}")
+                raise RuntimeError("Failed to create admin role for tests")
+            logger.info(f"FIXTURE: Created role - id={role.id}, name={role.name}, allow_workflows={role.allow_workflows}")
 
             # Create the test user
             logger.info("FIXTURE: Creating testuser_permissions")
