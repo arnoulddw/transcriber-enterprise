@@ -382,15 +382,26 @@ def create_app(config_class=Config) -> Flask:
         is_multi = app.config['DEPLOYMENT_MODE'] == 'multi'
         initial_key_status = {}
         user_permissions = {}
-        supported_languages = app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
+        from app.models import transcription_catalog as transcription_catalog_model
+
+        try:
+            catalog_models = transcription_catalog_model.get_active_models()
+        except Exception as catalog_err:
+            logging.error(f"[Context] Failed to load transcription models from catalog: {catalog_err}", exc_info=True)
+            catalog_models = []
+
+        try:
+            supported_languages = transcription_catalog_model.get_language_map()
+        except Exception as lang_err:
+            logging.error(f"[Context] Failed to load transcription languages from catalog: {lang_err}", exc_info=True)
+            supported_languages = app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
+
         supported_ui_languages = app.config.get('SUPPORTED_LANGUAGES', [])
 
         all_provider_names_from_config = app.config.get('API_PROVIDER_NAME_MAP', {})
-        transcription_provider_codes = app.config.get('TRANSCRIPTION_PROVIDERS', [])
 
         api_name_map_for_frontend_subset = {
-            code: all_provider_names_from_config.get(code, code.replace('_', ' ').replace('-', ' ').title())
-            for code in transcription_provider_codes
+            model['code']: model['display_name'] for model in catalog_models
         }
 
         color_name_map = {
@@ -474,6 +485,7 @@ def create_app(config_class=Config) -> Flask:
             SUPPORTED_UI_LANGS_CONFIG=supported_ui_languages,
             API_NAME_MAP_FRONTEND=api_name_map_for_frontend_subset,
             API_PROVIDER_NAME_MAP=all_provider_names_from_config,
+            TRANSCRIPTION_MODEL_CATALOG=catalog_models,
             COLOR_NAME_MAP=color_name_map,
             app_debug=app.debug,
             # --- MODIFIED: Provide both UI language and formatting locale ---

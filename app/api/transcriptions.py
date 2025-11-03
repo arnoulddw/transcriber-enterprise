@@ -18,6 +18,7 @@ from flask_login import login_required, current_user
 from app.config import Config
 from app.services import transcription_service, file_service, user_service, pricing_service
 from app.models import transcription as transcription_model
+from app.models import transcription_catalog as transcription_catalog_model
 from app.models import user as user_model
 from app.models.user import User # For type hinting
 from app.services.user_service import MissingApiKeyError
@@ -50,6 +51,31 @@ def transcribe_audio():
     user_id = user.id
     log_prefix = f"[API:Transcribe:User:{user_id}]"
     logging.debug(f"{log_prefix} /transcribe request received.")
+
+    try:
+        catalog_models = transcription_catalog_model.get_active_models()
+    except Exception as catalog_err:
+        logging.error(f"{log_prefix} Failed to load transcription models from catalog: {catalog_err}", exc_info=True)
+        catalog_models = []
+    model_lookup = {model['code']: model for model in catalog_models}
+    active_model_codes = set(model_lookup.keys())
+    default_model_code = next((model['code'] for model in catalog_models if model.get('is_default')), None)
+    if not default_model_code and catalog_models:
+        default_model_code = catalog_models[0]['code']
+    if not default_model_code:
+        default_model_code = current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER')
+
+    try:
+        language_rows = transcription_catalog_model.get_active_languages()
+    except Exception as lang_err:
+        logging.error(f"{log_prefix} Failed to load transcription languages from catalog: {lang_err}", exc_info=True)
+        language_rows = []
+    active_language_codes = {lang['code'] for lang in language_rows}
+    default_language_code = next((lang['code'] for lang in language_rows if lang.get('is_default')), None)
+    if not default_language_code and language_rows:
+        default_language_code = language_rows[0]['code']
+    if not default_language_code:
+        default_language_code = current_app.config.get('DEFAULT_LANGUAGE', 'auto')
 
     if 'audio_file' not in request.files:
         logging.error(f"{log_prefix} No 'audio_file' part in the request.")
@@ -107,8 +133,12 @@ def transcribe_audio():
         return jsonify({'error': 'Failed to save or process uploaded file.'}), 500
 
     try:
-        language_code = request.form.get('language_code', current_app.config['DEFAULT_LANGUAGE'])
-        api_choice = request.form.get('api_choice', current_app.config['DEFAULT_TRANSCRIPTION_PROVIDER'])
+        language_code = request.form.get('language_code', default_language_code)
+        if language_code not in active_language_codes:
+            logging.warning(f"{job_log_prefix} Received unsupported language '{language_code}'. Falling back to '{default_language_code}'.")
+            language_code = default_language_code
+
+        api_choice = request.form.get('api_choice', default_model_code)
         context_prompt = request.form.get('context_prompt', '')
         pending_workflow_prompt_text = request.form.get('pending_workflow_prompt_text')
         pending_workflow_prompt_title = request.form.get('pending_workflow_prompt_title')
@@ -124,9 +154,9 @@ def transcribe_audio():
         logging.debug(f"{job_log_prefix} Params - API: {api_choice}, Lang: {language_code}, Context: {'Yes' if context_prompt else 'No'}, Pending WF Text: {'Set' if pending_workflow_prompt_text else 'Not Set'}, Pending WF Origin ID: {parsed_pending_workflow_origin_id}")
 
 
-        if api_choice not in current_app.config['TRANSCRIPTION_PROVIDERS']:
-             logging.error(f"{job_log_prefix} Invalid API choice '{api_choice}'. Allowed: {current_app.config['TRANSCRIPTION_PROVIDERS']}")
-             raise ValueError(f"Invalid transcription provider selected: {api_choice}")
+        if api_choice not in active_model_codes:
+            logging.error(f"{job_log_prefix} Invalid API choice '{api_choice}'. Allowed: {sorted(active_model_codes)}")
+            raise ValueError(f"Invalid transcription provider selected: {api_choice}")
 
         price = pricing_service.get_price(item_type='transcription', item_key=api_choice)
         cost_to_add = 0.0

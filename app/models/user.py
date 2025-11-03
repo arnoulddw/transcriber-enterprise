@@ -14,6 +14,7 @@ from mysql.connector import Error as MySQLError
 
 # Import centralized DB functions (now MySQL based)
 from app.database import get_db, get_cursor
+from app.models import transcription_catalog as transcription_catalog_model
 
 # Import Role model and related functions needed for user operations
 try:
@@ -280,32 +281,37 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
     if not role:
         return None
 
-    # Map role permissions to provider codes
-    permission_to_provider = {
-        'use_api_assemblyai': 'assemblyai',
-        'use_api_openai_whisper': 'whisper',
-        'use_api_openai_gpt_4o_transcribe': 'gpt-4o-transcribe',
-        'use_api_openai_gpt_4o_transcribe_diarize': 'gpt-4o-transcribe-diarize',
-    }
-    
-    permitted_providers = sorted([
-        provider for perm, provider in permission_to_provider.items() if getattr(role, perm, False)
-    ])
+    try:
+        catalog_models = transcription_catalog_model.get_active_models()
+    except Exception as catalog_err:
+        logger.error(f"[DB:User] Failed to load transcription model catalog: {catalog_err}", exc_info=True)
+        catalog_models = []
 
-    if not permitted_providers:
+    if not catalog_models:
+        logger.warning(f"[DB:User] No active transcription models available while creating user with role '{role.name}'.")
+        return current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER')
+
+    permitted_model_codes: List[str] = []
+    default_model_code: Optional[str] = None
+
+    for model in catalog_models:
+        permission_key = model.get('permission_key')
+        if not permission_key or getattr(role, permission_key, False):
+            permitted_model_codes.append(model['code'])
+            if model.get('is_default'):
+                default_model_code = model['code']
+
+    if not permitted_model_codes:
         logger.warning(f"[DB:User] New user with role '{role.name}' has no transcription providers permitted.")
         return None
 
-    system_default_provider = current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER')
+    if default_model_code and default_model_code in permitted_model_codes:
+        logger.debug(f"[DB:User] Setting default model for new user to catalog default: '{default_model_code}'")
+        return default_model_code
 
-    if system_default_provider in permitted_providers:
-        logger.debug(f"[DB:User] Setting default model for new user to system default: '{system_default_provider}'")
-        return system_default_provider
-    else:
-        # Fallback: sort permitted providers alphabetically and return the first one
-        fallback_provider = permitted_providers[0]
-        logger.debug(f"[DB:User] System default '{system_default_provider}' not permitted for role '{role.name}'. Falling back to first available: '{fallback_provider}'")
-        return fallback_provider
+    fallback_provider = permitted_model_codes[0]
+    logger.debug(f"[DB:User] Catalog default not permitted for role '{role.name}'. Falling back to first available: '{fallback_provider}'")
+    return fallback_provider
 
 def add_user(username: str, email: str, password_hash: str, role_name: str = 'beta-tester', language: Optional[str] = None) -> Optional[User]:
     if get_role_by_name is None: return None
@@ -324,7 +330,7 @@ def add_user(username: str, email: str, password_hash: str, role_name: str = 'be
 
     # --- MODIFIED: Get default settings for new user ---
     default_model = _get_default_transcription_model_for_new_user(role)
-    default_language = 'auto'
+    default_language = transcription_catalog_model.get_default_language_code() or current_app.config.get('DEFAULT_LANGUAGE', 'auto')
     # --- END MODIFIED ---
 
     default_auto_title_enabled = False
@@ -396,7 +402,7 @@ def add_oauth_user(email: str, first_name: Optional[str], last_name: Optional[st
 
     # --- MODIFIED: Get default settings for new user ---
     default_model = _get_default_transcription_model_for_new_user(role)
-    default_language = 'auto'
+    default_language = transcription_catalog_model.get_default_language_code() or current_app.config.get('DEFAULT_LANGUAGE', 'auto')
     # --- END MODIFIED ---
 
     default_auto_title_enabled = False

@@ -1,6 +1,8 @@
 # app/forms.py
 # Defines WTForms classes for user input validation and CSRF protection.
 
+import logging
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, ValidationError, EmailField, TextAreaField, IntegerField, HiddenField, FloatField
 # --- MODIFIED: Removed Optional validator ---
@@ -9,11 +11,11 @@ from wtforms.validators import DataRequired, Length, EqualTo, Email, NumberRange
 from flask_login import current_user
 from flask import current_app
 
+from app.models import transcription_catalog as transcription_catalog_model
 try:
     from .models.user import get_user_by_username, get_user_by_email
     from .models.role import get_role_by_name
 except ImportError:
-    import logging
     logging.warning("[FORMS] Could not import user/role model functions. Validation might fail.")
     get_user_by_username = None
     get_user_by_email = None
@@ -151,19 +153,38 @@ class UserProfileForm(FlaskForm):
         # --- MODIFICATION START: Task 1 ---
         lang_choices = [] # Removed ('', '-- Use System Default --')
         # --- MODIFICATION END ---
-        supported_langs = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
-        sorted_langs = sorted(supported_langs.items(), key=lambda item: item[1])
-        if 'auto' in supported_langs:
-             lang_choices.append(('auto', supported_langs['auto']))
-             sorted_langs = [(code, name) for code, name in sorted_langs if code != 'auto']
-        lang_choices.extend(sorted_langs)
+        try:
+            catalog_languages = transcription_catalog_model.get_active_languages()
+        except Exception as catalog_err:
+            logging.warning(f"[FORMS] Failed to load languages from catalog: {catalog_err}", exc_info=True)
+            catalog_languages = []
+        if catalog_languages:
+            auto_entry = next((lang for lang in catalog_languages if lang['code'] == 'auto'), None)
+            if auto_entry:
+                lang_choices.append((auto_entry['code'], auto_entry['display_name']))
+            for lang in sorted(catalog_languages, key=lambda item: item['display_name']):
+                if lang['code'] != 'auto':
+                    lang_choices.append((lang['code'], lang['display_name']))
+        else:
+            supported_langs = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
+            sorted_langs = sorted(supported_langs.items(), key=lambda item: item[1])
+            if 'auto' in supported_langs:
+                lang_choices.append(('auto', supported_langs['auto']))
+                sorted_langs = [(code, name) for code, name in sorted_langs if code != 'auto']
+            lang_choices.extend(sorted_langs)
         self.default_content_language.choices = lang_choices
 
         # --- MODIFICATION START: Task 1 ---
         model_choices = []
-        provider_map = current_app.config.get('API_PROVIDER_NAME_MAP', {})
-        for provider in current_app.config.get('TRANSCRIPTION_PROVIDERS', []):
-            model_choices.append((provider, provider_map.get(provider, provider)))
+        try:
+            catalog_models = transcription_catalog_model.get_active_models()
+        except Exception as catalog_err:
+            logging.warning(f"[FORMS] Failed to load transcription models from catalog: {catalog_err}", exc_info=True)
+            catalog_models = []
+        for model in catalog_models:
+            permission_key = model.get('permission_key')
+            if not permission_key or (current_user.is_authenticated and current_user.has_permission(permission_key)):
+                model_choices.append((model['code'], model['display_name']))
         # --- MODIFICATION END ---
         self.default_transcription_model.choices = model_choices
 
@@ -311,12 +332,24 @@ class AdminTemplateWorkflowForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super(AdminTemplateWorkflowForm, self).__init__(*args, **kwargs)
         lang_choices = [('', 'All Languages')]
-        supported_langs = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
-        sorted_langs = sorted(
-            [(code, name) for code, name in supported_langs.items() if code != 'auto'],
-            key=lambda item: item[1]
-        )
-        lang_choices.extend(sorted_langs)
+        try:
+            catalog_languages = transcription_catalog_model.get_active_languages()
+        except Exception as catalog_err:
+            logging.warning(f"[FORMS] Failed to load languages from catalog for admin template workflow form: {catalog_err}", exc_info=True)
+            catalog_languages = []
+        if catalog_languages:
+            sorted_langs = sorted(
+                [(lang['code'], lang['display_name']) for lang in catalog_languages if lang['code'] != 'auto'],
+                key=lambda item: item[1]
+            )
+            lang_choices.extend(sorted_langs)
+        else:
+            supported_langs = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
+            sorted_langs = sorted(
+                [(code, name) for code, name in supported_langs.items() if code != 'auto'],
+                key=lambda item: item[1]
+            )
+            lang_choices.extend(sorted_langs)
         self.language.choices = lang_choices
 
     def validate_color(self, color_field):

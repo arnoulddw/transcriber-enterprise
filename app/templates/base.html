@@ -527,6 +527,9 @@
             window.USER_PERMISSIONS = JSON.parse('{{ user_permissions|tojson|safe }}');
             window.API_KEY_STATUS = JSON.parse('{{ initial_key_status|default({})|tojson|safe }}');
             try {
+                window.TRANSCRIPTION_MODELS = JSON.parse('{{ TRANSCRIPTION_MODEL_CATALOG|tojson|safe }}');
+            } catch (e) { window.TRANSCRIPTION_MODELS = []; console.error("Error parsing transcription model catalog:", e); }
+            try {
                 window.SUPPORTED_LANGUAGE_MAP = JSON.parse('{{ supported_languages|tojson|safe }}');
             } catch (e) { window.SUPPORTED_LANGUAGE_MAP = {}; console.error("Error parsing supported_languages map:", e); }
             try {

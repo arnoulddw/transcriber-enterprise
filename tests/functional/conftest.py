@@ -18,6 +18,9 @@ def clean_db(app):
         cursor.execute("TRUNCATE TABLE user_usage")
         cursor.execute("TRUNCATE TABLE users")
         cursor.execute("TRUNCATE TABLE roles")
+        # Reset centralized catalog tables to ensure consistent test state
+        cursor.execute("TRUNCATE TABLE transcription_models_catalog")
+        cursor.execute("TRUNCATE TABLE transcription_languages_catalog")
         # Explicitly reset auto-increment to ensure fresh IDs
         cursor.execute("ALTER TABLE roles AUTO_INCREMENT = 1")
         cursor.execute("ALTER TABLE users AUTO_INCREMENT = 1")

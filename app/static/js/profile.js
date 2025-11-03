@@ -216,13 +216,13 @@ async function loadProfileData() {
 
     // Populate model dropdown
     while (modelSelect.options.length > 0) modelSelect.remove(0);
-    const modelChoices = [
-        { value: 'gpt-4o-transcribe', text: 'OpenAl GPT-4o Transcribe' },
-        { value: 'whisper', text: 'OpenAI Whisper' },
-        { value: 'assemblyai', text: 'AssemblyAI' }
-    ];
-    modelChoices.forEach(choice => {
-        modelSelect.appendChild(new Option(choice.text, choice.value));
+    const catalogModels = window.TRANSCRIPTION_MODELS || [];
+    const userPermissions = window.USER_PERMISSIONS || {};
+    catalogModels.forEach(model => {
+        if (!model.permission_key || userPermissions[model.permission_key]) {
+            const opt = new Option(model.display_name, model.code);
+            modelSelect.appendChild(opt);
+        }
     });
 
     // Populate UI language dropdown

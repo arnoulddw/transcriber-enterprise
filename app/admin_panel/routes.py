@@ -15,6 +15,7 @@ from app.services.admin_management_service import AdminServiceError
 from app.forms import AdminRoleForm, AdminTemplateWorkflowForm # Import the new name
 from app.models import role as role_model
 from app.models import template_prompt as template_prompt_model
+from app.models import transcription_catalog as transcription_catalog_model
 
 # --- Helper Functions ---
 def _get_common_admin_context():
@@ -23,10 +24,16 @@ def _get_common_admin_context():
     workflow_model_display_name = workflow_model_id.replace('-', ' ').replace('_', ' ').title()
     if 'Gemini' in workflow_model_display_name and 'Flash' in workflow_model_display_name:
         workflow_model_display_name = workflow_model_display_name.replace('Flash', ' Flash')
+
+    try:
+        supported_languages = transcription_catalog_model.get_language_map()
+    except Exception as catalog_err:
+        logging.error(f"[AdminPanel] Failed to load language catalog for admin context: {catalog_err}", exc_info=True)
+        supported_languages = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
     
     return {
         'supported_workflow_models': {workflow_model_id: workflow_model_display_name},
-        'supported_languages': current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
+        'supported_languages': supported_languages
     }
 
 # --- Dashboard Route ---
@@ -451,8 +458,8 @@ def costs():
         if metrics.get('error'):
             flash(f"Warning: Could not load all cost metrics. {metrics['error']}", "warning")
 
-        # Get models from config
-        transcription_models = {provider: provider for provider in current_app.config['TRANSCRIPTION_PROVIDERS']}
+        catalog_models = transcription_catalog_model.get_active_models()
+        transcription_models = {model['code']: model['display_name'] for model in catalog_models}
         
         # --- FINAL CORRECTED LOGIC ---
         # Create a nested structure: { 'Provider Display Name': { 'model_id': 'model_display_name' } }

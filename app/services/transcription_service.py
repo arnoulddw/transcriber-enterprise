@@ -3,6 +3,7 @@
 # API client selection, background processing, and database updates.
 
 import os
+import logging
 from app.logging_config import get_logger
 import threading
 import json
@@ -16,6 +17,7 @@ from app.core.utils import format_currency
 from app.models import transcription as transcription_model
 from app.models import user as user_model
 from app.models import role as role_model
+from app.models import transcription_catalog as transcription_catalog_model
 
 # Import other services
 from app.services import file_service, workflow_service # Added workflow_service
@@ -41,12 +43,32 @@ from mysql.connector import Error as MySQLError
 from app.tasks.title_generation import generate_title_task
 
 
-API_DISPLAY_NAMES = {
+_API_DISPLAY_NAME_FALLBACKS = {
     'gpt-4o-transcribe-diarize': 'OpenAI GPT-4o Diarize',
-    'gpt-4o-transcribe': 'OpenAl GPT-4o Transcribe',
+    'gpt-4o-transcribe': 'OpenAI GPT-4o Transcribe',
     'whisper': 'OpenAI Whisper',
     'assemblyai': 'AssemblyAI'
 }
+
+
+def _get_api_display_name(model_code: str) -> str:
+    """
+    Resolves a human-friendly display name for a transcription model using the catalog as primary source.
+    Falls back to predefined labels or title-cased code.
+    """
+    try:
+        model_metadata = transcription_catalog_model.get_model_by_code(model_code)
+        if model_metadata and model_metadata.get('display_name'):
+            return model_metadata['display_name']
+    except Exception as catalog_err:
+        logging.getLogger(__name__).warning(
+            "Failed to resolve display name for model '%s' from catalog: %s",
+            model_code,
+            catalog_err,
+        )
+    if model_code in _API_DISPLAY_NAME_FALLBACKS:
+        return _API_DISPLAY_NAME_FALLBACKS[model_code]
+    return model_code.replace('_', ' ').replace('-', ' ').title()
 
 def _update_progress(app: Flask, job_id: str, message: str, is_error: bool = False,
                      log_message: bool = True, **context) -> None:
@@ -108,7 +130,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
     job_finalized_successfully = False
 
     with app.app_context():
-        api_display_name = API_DISPLAY_NAMES.get(api_choice, api_choice.capitalize())
+        api_display_name = _get_api_display_name(api_choice)
         last_error_message_from_callback = "Transcription failed via API client."
 
         try:
@@ -151,13 +173,13 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             if _check_for_cancellation(app, job_id):
                 was_cancelled = True; cancel_event.set(); raise InterruptedError("Job cancelled by user before permission checks.")
 
-            permission_map = {
-                'assemblyai': 'use_api_assemblyai',
-                'whisper': 'use_api_openai_whisper',
-                'gpt-4o-transcribe': 'use_api_openai_gpt_4o_transcribe',
-                'gpt-4o-transcribe-diarize': 'use_api_openai_gpt_4o_transcribe_diarize'
-            }
-            api_permission = permission_map.get(api_choice)
+            api_permission = None
+            try:
+                model_metadata = transcription_catalog_model.get_model_by_code(api_choice)
+                if model_metadata:
+                    api_permission = model_metadata.get('permission_key')
+            except Exception as catalog_err:
+                logger.error(f"Failed to resolve catalog metadata for model '{api_choice}': {catalog_err}", exc_info=True)
 
             # Diagnostic logging for permission context
             # Reuse resolved role_obj above; add deeper diagnostics about sources

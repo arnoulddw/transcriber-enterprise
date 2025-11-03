@@ -46,18 +46,12 @@
                 <div class="mt-1">
                     <select id="apiSelect" name="api_choice"
                             class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                        {% if user_permissions.use_api_openai_gpt_4o_transcribe %}
-                        <option value="gpt-4o-transcribe" {% if 'gpt-4o-transcribe' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI GPT-4o Transcribe</option>
-                        {% endif %}
-                        {% if user_permissions.use_api_openai_gpt_4o_transcribe_diarize %}
-                        <option value="gpt-4o-transcribe-diarize" {% if 'gpt-4o-transcribe-diarize' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI GPT-4o Diarize</option>
-                        {% endif %}
-                        {% if user_permissions.use_api_openai_whisper %}
-                        <option value="whisper" {% if 'whisper' == effective_default_api %}selected{% endif %} data-key-required="openai">OpenAI Whisper</option>
-                        {% endif %}
-                        {% if user_permissions.use_api_assemblyai %}
-                        <option value="assemblyai" {% if 'assemblyai' == effective_default_api %}selected{% endif %} data-key-required="assemblyai">AssemblyAI</option>
-                        {% endif %}
+                        {% for model in transcription_models %}
+                            {% set required_perm = model.permission_key %}
+                            {% if not required_perm or user_permissions.get(required_perm) %}
+                                <option value="{{ model.code }}" {% if model.code == effective_default_api %}selected{% endif %}{% if model.required_api_key %} data-key-required="{{ model.required_api_key }}"{% endif %}>{{ model.display_name }}</option>
+                            {% endif %}
+                        {% endfor %}
                     </select>
                 </div>
             </div>

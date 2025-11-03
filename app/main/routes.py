@@ -9,6 +9,7 @@ from flask_login import current_user, login_required
 # Import the main blueprint defined in app/main/__init__.py
 from . import main_bp
 from app.models import transcription_utils
+from app.models import transcription_catalog as transcription_catalog_model
 # --- ADDED: Import llm_operation model ---
 from app.models import llm_operation as llm_operation_model
 # --- END ADDED ---
@@ -29,32 +30,50 @@ def index():
     log_prefix = "[ROUTE:Main:Index]"
     user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
     logging.debug(f"{log_prefix} Accessing route '/'. ({user_info})")
-    logging.debug(f"Loaded TRANSCRIPTION_PROVIDERS: {current_app.config['TRANSCRIPTION_PROVIDERS']}")
 
     # --- Determine Effective Defaults ---
-    effective_default_language = current_app.config['DEFAULT_LANGUAGE']
-    effective_default_api = current_app.config['DEFAULT_TRANSCRIPTION_PROVIDER']
+    catalog_models = transcription_catalog_model.get_active_models()
+    logging.debug(f"{log_prefix} Loaded {len(catalog_models)} active transcription models from catalog.")
+    active_model_codes = {model['code'] for model in catalog_models}
+
+    supported_languages = transcription_catalog_model.get_language_map()
+    effective_default_language = (
+        transcription_catalog_model.get_default_language_code()
+        or current_app.config.get('DEFAULT_LANGUAGE')
+        or 'auto'
+    )
+    effective_default_api = (
+        transcription_catalog_model.get_default_model_code()
+        or current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER')
+    )
 
     if current_user.is_authenticated:
         if current_user.default_content_language:
-            effective_default_language = current_user.default_content_language
-            logging.debug(f"{log_prefix} Using user's default language: {effective_default_language}")
+            if current_user.default_content_language in supported_languages:
+                effective_default_language = current_user.default_content_language
+                logging.debug(f"{log_prefix} Using user's default language: {effective_default_language}")
+            else:
+                logging.warning(
+                    f"{log_prefix} User's preferred language '{current_user.default_content_language}' "
+                    f"is not currently available. Using catalog default: {effective_default_language}"
+                )
         else:
             logging.debug(f"{log_prefix} User has no language preference, using system default: {effective_default_language}")
 
         if current_user.default_transcription_model:
-            if current_user.default_transcription_model in current_app.config['TRANSCRIPTION_PROVIDERS']:
-                 effective_default_api = current_user.default_transcription_model
-                 logging.debug(f"{log_prefix} Using user's default model: {effective_default_api}")
+            if current_user.default_transcription_model in active_model_codes:
+                effective_default_api = current_user.default_transcription_model
+                logging.debug(f"{log_prefix} Using user's default model: {effective_default_api}")
             else:
-                 logging.warning(f"{log_prefix} User's preferred model '{current_user.default_transcription_model}' is not currently allowed. Falling back to system default: {effective_default_api}")
+                logging.warning(
+                    f"{log_prefix} User's preferred model '{current_user.default_transcription_model}' "
+                    f"is not currently allowed. Falling back to catalog default: {effective_default_api}"
+                )
         else:
             logging.debug(f"{log_prefix} User has no model preference, using system default: {effective_default_api}")
     else:
         logging.debug(f"{log_prefix} Using system defaults (Lang: {effective_default_language}, API: {effective_default_api})")
     # --- End Determine Effective Defaults ---
-
-    supported_languages = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
 
     # --- Pagination Logic ---
     page = request.args.get('page', 1, type=int)
@@ -168,6 +187,7 @@ def index():
         effective_default_api=effective_default_api,
         effective_default_language=effective_default_language,
         supported_languages=supported_languages,
+        transcription_models=catalog_models,
         transcriptions=transcriptions,
         pagination=pagination
     )

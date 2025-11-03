@@ -5,7 +5,6 @@ from app.services import auth_service
 from app.models import role as role_model
 from app.services.auth_service import AuthServiceError
 
-@pytest.mark.skip(reason="This test is flaky and fails intermittently due to test pollution. It needs to be rewritten.")
 def test_create_user_successfully(app, clean_db):
     """
     Tests that a user can be created successfully with valid data.
@@ -19,8 +18,11 @@ def test_create_user_successfully(app, clean_db):
         assert user is not None
         assert user.username == 'testuser'
         assert user.email == 'test@example.com'
-        assert user.role is not None
-        assert user.role.name == role_name
+        assert user.role_id == role.id
+
+        db_role = role_model.get_role_by_id(user.role_id)
+        assert db_role is not None
+        assert db_role.name == role_name
 
 def test_create_user_duplicate_username(app, clean_db):
     """
