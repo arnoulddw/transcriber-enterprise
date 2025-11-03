@@ -33,7 +33,7 @@ function createOptgroup(label) {
 }
 
 function updateSelect(selectElem) {
-  console.debug(workflowModalLogPrefix, `Select element '${selectElem.id}' updated with new options (Tailwind/HTML).`);
+  window.logger.debug(workflowModalLogPrefix, `Select element '${selectElem.id}' updated with new options (Tailwind/HTML).`);
 }
 
 function updatePlaceholders() {
@@ -55,7 +55,7 @@ window.Workflow.showToast = function(message, type = 'info') {
   if (typeof window.showNotification === 'function') {
     window.showNotification(message, type, duration, false);
   } else {
-    console.warn(workflowModalLogPrefix, "window.showNotification not found. Toast:", type, message);
+    window.logger.warn(workflowModalLogPrefix, "window.showNotification not found. Toast:", type, message);
     alert(`${type.toUpperCase()}: ${message}`);
   }
 };
@@ -70,7 +70,7 @@ function initializeWorkflowModalElements() {
     }
 
     if (!workflowModal || !workflowModalOverlay || !workflowModalPanel) {
-        console.warn(workflowModalLogPrefix, "One or more Workflow modal core elements not found.");
+        window.logger.warn(workflowModalLogPrefix, "One or more Workflow modal core elements not found.");
         return false;
     }
     return true;
@@ -78,7 +78,7 @@ function initializeWorkflowModalElements() {
 
 function openWorkflowModalDialog() {
     if (!workflowModal || !workflowModalOverlay || !workflowModalPanel) {
-        console.error(workflowModalLogPrefix, "Cannot open Workflow modal: core elements missing.");
+        window.logger.error(workflowModalLogPrefix, "Cannot open Workflow modal: core elements missing.");
         return;
     }
     previouslyFocusedElementWorkflow = document.activeElement;
@@ -108,12 +108,12 @@ function openWorkflowModalDialog() {
     } else {
         workflowModalPanel.focus();
     }
-    console.log(workflowModalLogPrefix, "Workflow modal opened (Tailwind).");
+    window.logger.info(workflowModalLogPrefix, "Workflow modal opened (Tailwind).");
 }
 
 function closeWorkflowModalDialog() {
     if (!workflowModal || !workflowModalOverlay || !workflowModalPanel) {
-        console.error(workflowModalLogPrefix, "Cannot close Workflow modal: core elements missing.");
+        window.logger.error(workflowModalLogPrefix, "Cannot close Workflow modal: core elements missing.");
         return;
     }
 
@@ -134,22 +134,22 @@ function closeWorkflowModalDialog() {
         previouslyFocusedElementWorkflow.focus();
         previouslyFocusedElementWorkflow = null;
     }
-    console.log(workflowModalLogPrefix, "Workflow modal closed (Tailwind).");
+    window.logger.info(workflowModalLogPrefix, "Workflow modal closed (Tailwind).");
 
     if (workflowModal.dataset.mode === 'pre-apply' && !qs("pendingWorkflowPromptText").value) {
         delete workflowModal.dataset.mode;
-        console.debug(workflowModalLogPrefix, "Cleared pre-apply mode from workflow modal as no workflow was set.");
+        window.logger.debug(workflowModalLogPrefix, "Cleared pre-apply mode from workflow modal as no workflow was set.");
     }
 }
 
 async function _openWorkflowModal(transcriptionId) {
   if (isWorkflowModalLoading) {
-    console.warn(workflowModalLogPrefix, "Workflow modal is already loading data. Ignoring request.");
+    window.logger.warn(workflowModalLogPrefix, "Workflow modal is already loading data. Ignoring request.");
     return;
   }
   isWorkflowModalLoading = true;
   const logContext = transcriptionId ? `transcription ID: ${transcriptionId}` : "pre-apply mode";
-  console.log(workflowModalLogPrefix, `Opening workflow modal for ${logContext}`);
+  window.logger.info(workflowModalLogPrefix, `Opening workflow modal for ${logContext}`);
 
   const promptSelect = qs("workflowPromptSelect"),
     promptInput = qs("workflowPromptInput"),
@@ -157,7 +157,7 @@ async function _openWorkflowModal(transcriptionId) {
     submitBtn = qs("submitWorkflowBtn");
 
   if (!promptSelect || !promptInput || !transcriptionIdInput || !submitBtn) {
-    console.error(workflowModalLogPrefix, "Workflow modal form elements not found.");
+    window.logger.error(workflowModalLogPrefix, "Workflow modal form elements not found.");
     window.Workflow.showToast("Error opening workflow modal.", "error");
     isWorkflowModalLoading = false;
     return;
@@ -172,7 +172,7 @@ async function _openWorkflowModal(transcriptionId) {
     promptSelect.remove(promptSelect.options.length - 1);
   }
   promptSelect.querySelectorAll("optgroup").forEach(group => group.remove());
-  console.debug(workflowModalLogPrefix, "Cleared existing options and optgroups.");
+  window.logger.debug(workflowModalLogPrefix, "Cleared existing options and optgroups.");
 
   const loadingOption = createOption("", "Loading Workflows...");
   loadingOption.disabled = true;
@@ -207,7 +207,7 @@ async function _openWorkflowModal(transcriptionId) {
         promptSelect.appendChild(savedGroup);
       }
     } else {
-      console.error(workflowModalLogPrefix, "Failed to load user workflows:", response.statusText);
+      window.logger.error(workflowModalLogPrefix, "Failed to load user workflows:", response.statusText);
       const errorOption = createOption("", "Error loading workflows");
       errorOption.disabled = true;
       promptSelect.appendChild(errorOption);
@@ -216,7 +216,7 @@ async function _openWorkflowModal(transcriptionId) {
     updateSelect(promptSelect);
     openWorkflowModalDialog();
   } catch (error) {
-    console.error(workflowModalLogPrefix, "Error fetching workflows for modal:", error);
+    window.logger.error(workflowModalLogPrefix, "Error fetching workflows for modal:", error);
     window.Workflow.showToast("Error loading workflows.", "error");
     const existingLoadingOption = qs("loading-workflows-option");
     if (existingLoadingOption) existingLoadingOption.remove();
@@ -297,7 +297,7 @@ async function _handleSubmitWorkflow() {
 
 
     if (isPreApplyMode) {
-        console.log(submitLog, `Pre-applying workflow. Title: ${promptTitle}, Color: ${promptColor}, Origin ID: ${promptId}`);
+        window.logger.info(submitLog, `Pre-applying workflow. Title: ${promptTitle}, Color: ${promptColor}, Origin ID: ${promptId}`);
         const pendingTextElem = qs("pendingWorkflowPromptText");
         const pendingTitleElem = qs("pendingWorkflowPromptTitle");
         const pendingColorElem = qs("pendingWorkflowPromptColor");
@@ -312,7 +312,7 @@ async function _handleSubmitWorkflow() {
         if (pendingColorElem) pendingColorElem.value = promptColor;
         if (pendingOriginPromptIdElem) {
             pendingOriginPromptIdElem.value = promptId || "";
-            console.debug(submitLog, `Set pendingWorkflowOriginPromptId to: ${pendingOriginPromptIdElem.value}`);
+            window.logger.debug(submitLog, `Set pendingWorkflowOriginPromptId to: ${pendingOriginPromptIdElem.value}`);
         }
 
         if (selectedInfoElem) {
@@ -355,7 +355,7 @@ async function _handleSubmitWorkflow() {
         }
     }
 
-    console.log(submitLog, `Submitting workflow for ${transcriptionId} (PromptID: ${promptId})`);
+    window.logger.info(submitLog, `Submitting workflow for ${transcriptionId} (PromptID: ${promptId})`);
     const originalButtonHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = 'Submitting... <span class="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></span>';
@@ -398,20 +398,20 @@ async function _handleSubmitWorkflow() {
         if (!response.ok) throw new Error(data.error || `HTTP error ${response.status}`);
 
         window.Workflow.showToast(data.message || "Workflow started!", "success");
-        console.log(submitLog, "Workflow started successfully via API.");
+        window.logger.info(submitLog, "Workflow started successfully via API.");
 
         const operationId = data.operation_id;
         if (operationId && typeof window.Workflow.startWorkflowPolling === 'function') {
             window.Workflow.startWorkflowPolling(transcriptionId, operationId);
         } else {
-            console.error(submitLog, "API response successful but missing operation_id or startWorkflowPolling not available.");
+            window.logger.error(submitLog, "API response successful but missing operation_id or startWorkflowPolling not available.");
             if (workflowPanel) {
                 workflowPanel.className = "workflow-panel w-full lg:w-auto mt-4 lg:mt-0 p-4 border border-red-500 rounded-md bg-red-50 relative pb-11 text-center";
                 workflowPanel.innerHTML = `<p class="text-red-700">Error: Could not track workflow status.</p>`;
             }
         }
     } catch (error) {
-        console.error(submitLog, "Error starting workflow:", error);
+        window.logger.error(submitLog, "Error starting workflow:", error);
         const escapedError = typeof window.escapeHtml === 'function' ? window.escapeHtml(error.message) : error.message;
         window.Workflow.showToast(`Error: ${escapedError}`, "error");
         if (workflowPanel) {
@@ -432,7 +432,7 @@ window.Workflow.handleSubmitWorkflow = _handleSubmitWorkflow;
 document.addEventListener("DOMContentLoaded", function () {
   const logPrefix = "[WorkflowJS:Modal:DOMContentLoaded]";
   if (!initializeWorkflowModalElements()) {
-      console.warn(logPrefix, "Workflow modal setup skipped due to missing elements.");
+      window.logger.warn(logPrefix, "Workflow modal setup skipped due to missing elements.");
   } else {
       workflowModalCloseButtons.forEach(button => {
           button.addEventListener('click', closeWorkflowModalDialog);
@@ -491,50 +491,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 "A workflow result already exists for this transcription. Starting a new workflow will overwrite the previous result. Do you want to continue?"
               )
             ) {
-              console.log(logPrefix, "Workflow start cancelled by user due to existing result.");
+              window.logger.info(logPrefix, "Workflow start cancelled by user due to existing result.");
               return;
             }
-            console.log(logPrefix, "User confirmed overwriting existing workflow result.");
+            window.logger.info(logPrefix, "User confirmed overwriting existing workflow result.");
           }
           if (workflowModal) delete workflowModal.dataset.mode;
           window.Workflow.openWorkflowModal(transcriptionId);
         } else {
-          console.error(logPrefix, "Could not find transcription ID for workflow button.");
+          window.logger.error(logPrefix, "Could not find transcription ID for workflow button.");
           window.Workflow.showToast("Error: Could not identify transcription.", "error");
         }
       }
     });
-    console.debug(logPrefix, "Workflow start button listener attached to history list.");
+    window.logger.debug(logPrefix, "Workflow start button listener attached to history list.");
   }
 
   const promptSelect = qs("workflowPromptSelect");
   if (promptSelect) {
     promptSelect.addEventListener("change", window.Workflow.handlePromptSelection);
-    console.debug(logPrefix, "Workflow select listener attached.");
+    window.logger.debug(logPrefix, "Workflow select listener attached.");
   }
   const promptInput = qs("workflowPromptInput");
   if (promptInput) {
     promptInput.addEventListener("input", window.Workflow.validateWorkflowPrompt);
-    console.debug(logPrefix, "Workflow input listener attached.");
+    window.logger.debug(logPrefix, "Workflow input listener attached.");
   }
   const submitBtn = qs("submitWorkflowBtn");
   if (submitBtn) {
     submitBtn.addEventListener("click", window.Workflow.handleSubmitWorkflow);
-    console.debug(logPrefix, "Workflow submit listener attached.");
+    window.logger.debug(logPrefix, "Workflow submit listener attached.");
   }
 
   updatePlaceholders();
-  if (typeof window.checkTranscribeButtonState === 'function') window.checkTranscribeButtonState(); else console.error(logPrefix, "checkTranscribeButtonState function not found.");
+  if (typeof window.checkTranscribeButtonState === 'function') window.checkTranscribeButtonState(); else window.logger.error(logPrefix, "checkTranscribeButtonState function not found.");
   if (typeof window.validateContextPrompt === 'function') {
       const contextPromptElem = qs("contextPrompt");
       if (contextPromptElem) {
           contextPromptElem.addEventListener("input", window.validateContextPrompt);
           window.validateContextPrompt();
       }
-  } else { console.error(logPrefix, "validateContextPrompt function not found."); }
+  } else { window.logger.error(logPrefix, "validateContextPrompt function not found."); }
 
-  if (typeof window.applyPillStyles === "function") window.applyPillStyles("#transcriptionHistory .prompt-label-pill"); else console.error(logPrefix, "applyPillStyles function not found.");
+  if (typeof window.applyPillStyles === "function") window.applyPillStyles("#transcriptionHistory .prompt-label-pill"); else window.logger.error(logPrefix, "applyPillStyles function not found.");
   if (typeof window.addReadMoreToWorkflowHTML === "function") {
     document.querySelectorAll("#transcriptionHistory .workflow-result-text").forEach(el => window.addReadMoreToWorkflowHTML(el));
-  } else { console.error(logPrefix, "addReadMoreToWorkflowHTML function not found."); }
+  } else { window.logger.error(logPrefix, "addReadMoreToWorkflowHTML function not found."); }
 });

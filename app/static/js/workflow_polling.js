@@ -26,7 +26,7 @@ window.Workflow = window.Workflow || {};
 
 function _startWorkflowPolling(transcriptionId, operationId) {
   const pollLog = `${workflowPollingLogPrefix}:Op${operationId}`;
-  console.log(pollLog, `Starting polling for transcription ${transcriptionId}`);
+  window.logger.info(pollLog, `Starting polling for transcription ${transcriptionId}`);
   _stopWorkflowPolling(); // Call local version
   currentPollingOperationId = operationId;
   currentPollingTranscriptionId = transcriptionId;
@@ -38,14 +38,14 @@ window.Workflow.startWorkflowPolling = _startWorkflowPolling;
 
 async function _pollWorkflowStatus() {
   if (!currentPollingOperationId || !currentPollingTranscriptionId) {
-    console.warn(workflowPollingLogPrefix, "Polling attempted without operation/transcription ID. Stopping poll.");
+    window.logger.warn(workflowPollingLogPrefix, "Polling attempted without operation/transcription ID. Stopping poll.");
     _stopWorkflowPolling(); // Call local version
     return;
   }
   const opId = currentPollingOperationId,
     transcriptionId = currentPollingTranscriptionId,
     pollLog = `${workflowPollingLogPrefix}:Op${opId}`;
-  console.debug(pollLog, "Polling status...");
+  window.logger.debug(pollLog, "Polling status...");
   try {
     const response = await fetch(`/api/llm/operations/${opId}/status`, {
       method: "GET",
@@ -53,20 +53,20 @@ async function _pollWorkflowStatus() {
     });
     if (!response.ok) {
       const errorStatus = response.status;
-      console.warn(pollLog, `Polling failed (${errorStatus}). Stopping poll.`);
+      window.logger.warn(pollLog, `Polling failed (${errorStatus}). Stopping poll.`);
       _stopWorkflowPolling(); // Call local version
       _updateWorkflowPanel(transcriptionId, { status: "error", error: `Workflow status check failed (${errorStatus}).`, operation_id: opId }); // Call local version
       return;
     }
     const data = await response.json();
-    console.debug(pollLog, "Received status:", data.status);
+    window.logger.debug(pollLog, "Received status:", data.status);
     _updateWorkflowPanel(transcriptionId, data); // Call local version
     if (data.status === "finished" || data.status === "error") {
-      console.log(pollLog, `Polling stopped. Final status: ${data.status}`);
+      window.logger.info(pollLog, `Polling stopped. Final status: ${data.status}`);
       _stopWorkflowPolling(); // Call local version
     }
   } catch (error) {
-    console.error(pollLog, "Error during polling request:", error);
+    window.logger.error(pollLog, "Error during polling request:", error);
     // Optionally, implement retry logic or stop polling on persistent errors
   }
 }
@@ -76,7 +76,7 @@ function _stopWorkflowPolling() {
     if (workflowPollIntervalId) {
         clearInterval(workflowPollIntervalId);
         workflowPollIntervalId = null;
-        console.debug(workflowPollingLogPrefix, `Main polling stopped for OpID: ${currentPollingOperationId}`);
+        window.logger.debug(workflowPollingLogPrefix, `Main polling stopped for OpID: ${currentPollingOperationId}`);
     }
     currentPollingOperationId = null;
     currentPollingTranscriptionId = null;
@@ -90,7 +90,7 @@ function _updateWorkflowPanel(transcriptionId, operationData) {
   const historyItem = document.querySelector(`li[data-transcription-id="${transcriptionId}"]`);
 
   if (!historyItem) {
-    console.error(updateLog, `Could not find history item for transcription ID ${transcriptionId}`);
+    window.logger.error(updateLog, `Could not find history item for transcription ID ${transcriptionId}`);
     return;
   }
   const workflowPanel = historyItem.querySelector(".workflow-panel"),
@@ -98,7 +98,7 @@ function _updateWorkflowPanel(transcriptionId, operationData) {
     contentContainer = historyItem.querySelector(".history-item-content");
 
   if (!workflowPanel) {
-    console.error(updateLog, `Could not find workflow panel within history item ${transcriptionId}`);
+    window.logger.error(updateLog, `Could not find workflow panel within history item ${transcriptionId}`);
     return;
   }
   workflowPanel.innerHTML = ""; // Clear previous content
@@ -111,7 +111,7 @@ function _updateWorkflowPanel(transcriptionId, operationData) {
     workflowPanel.dataset.operationId = opId;
   } else {
     delete workflowPanel.dataset.operationId;
-    console.warn(updateLog, "Operation ID missing in operationData. Panel actions might not work correctly.");
+    window.logger.warn(updateLog, "Operation ID missing in operationData. Panel actions might not work correctly.");
   }
 
   const status = operationData.status;
@@ -167,7 +167,7 @@ function _updateWorkflowPanel(transcriptionId, operationData) {
         marked.setOptions({ gfm: true, breaks: false });
         resultHtml = marked.parse(resultText);
       } catch (e) {
-        console.error(updateLog, "Error parsing Markdown:", e);
+        window.logger.error(updateLog, "Error parsing Markdown:", e);
         resultHtml = `<pre class="whitespace-pre-wrap break-words">${window.escapeHtml(resultText)}</pre>`;
       }
     } else {
@@ -273,7 +273,7 @@ window.Workflow.updateWorkflowPanel = _updateWorkflowPanel;
 
 function _startWorkflowPollingForTranscription(transcriptionId) {
     const metaPollLog = `[WorkflowJS:Polling:MetaPoll:Tr${transcriptionId.substring(0,8)}]`; 
-    console.log(metaPollLog, "Starting meta-polling for operation_id.");
+    window.logger.info(metaPollLog, "Starting meta-polling for operation_id.");
 
     _stopMetaPolling(); 
     currentMetaPollingTranscriptionId = transcriptionId;
@@ -289,7 +289,7 @@ function _stopMetaPolling() {
     if (metaPollIntervalId) {
         clearInterval(metaPollIntervalId);
         metaPollIntervalId = null;
-        console.debug(workflowPollingLogPrefix, `Meta-polling stopped for TrID: ${currentMetaPollingTranscriptionId}`);
+        window.logger.debug(workflowPollingLogPrefix, `Meta-polling stopped for TrID: ${currentMetaPollingTranscriptionId}`);
     }
     currentMetaPollingTranscriptionId = null;
     metaPollAttempts = 0;
@@ -306,7 +306,7 @@ async function _fetchOperationIdAndStartPolling() {
     const metaPollLog = `[WorkflowJS:Polling:MetaPoll:Tr${transcriptionId.substring(0,8)}]`; 
     metaPollAttempts++;
 
-    console.debug(metaPollLog, `Attempt ${metaPollAttempts} to fetch operation_id.`);
+    window.logger.debug(metaPollLog, `Attempt ${metaPollAttempts} to fetch operation_id.`);
 
     try {
         const response = await fetch(`/api/transcriptions/${transcriptionId}/workflow-details`, {
@@ -315,7 +315,7 @@ async function _fetchOperationIdAndStartPolling() {
         });
 
         if (!response.ok) {
-            console.warn(metaPollLog, `Failed to fetch workflow details (${response.status}).`);
+            window.logger.warn(metaPollLog, `Failed to fetch workflow details (${response.status}).`);
             if (metaPollAttempts >= MAX_META_POLL_ATTEMPTS || response.status === 404) {
                 _stopMetaPolling(); 
                 _updateWorkflowPanel(transcriptionId, { status: "error", error: "Could not retrieve workflow details." }); 
@@ -328,11 +328,11 @@ async function _fetchOperationIdAndStartPolling() {
         const operationStatusOnTranscription = data.llm_operation_status;
 
         if (operationId) {
-            console.log(metaPollLog, `Found operation_id: ${operationId}, status on transcript: ${operationStatusOnTranscription}.`);
+            window.logger.info(metaPollLog, `Found operation_id: ${operationId}, status on transcript: ${operationStatusOnTranscription}.`);
             _stopMetaPolling(); 
 
             if (operationStatusOnTranscription === 'finished' || operationStatusOnTranscription === 'error') {
-                console.debug(metaPollLog, "Workflow status on transcription is terminal. Fetching full LLMOperation details.");
+                window.logger.debug(metaPollLog, "Workflow status on transcription is terminal. Fetching full LLMOperation details.");
                 const opResponse = await fetch(`/api/llm/operations/${operationId}/status`, {
                     method: "GET",
                     headers: { Accept: "application/json", "X-CSRFToken": window.csrfToken }
@@ -341,7 +341,7 @@ async function _fetchOperationIdAndStartPolling() {
                     const opData = await opResponse.json();
                     _updateWorkflowPanel(transcriptionId, opData); 
                 } else {
-                     console.warn(metaPollLog, `Failed to fetch full LLMOperation details for OpID ${operationId}. Using data from transcription record.`);
+                     window.logger.warn(metaPollLog, `Failed to fetch full LLMOperation details for OpID ${operationId}. Using data from transcription record.`);
                      _updateWorkflowPanel(transcriptionId, { 
                         status: operationStatusOnTranscription,
                         error: data.llm_operation_error,
@@ -352,17 +352,17 @@ async function _fetchOperationIdAndStartPolling() {
                      });
                 }
             } else {
-                console.debug(metaPollLog, "Workflow status on transcription is not terminal. Starting main poll for LLMOperation.");
+                window.logger.debug(metaPollLog, "Workflow status on transcription is not terminal. Starting main poll for LLMOperation.");
                 window.Workflow.startWorkflowPolling(transcriptionId, operationId); 
             }
         } else if (metaPollAttempts >= MAX_META_POLL_ATTEMPTS) {
-            console.warn(metaPollLog, "Max meta-poll attempts reached. Operation ID not found.");
+            window.logger.warn(metaPollLog, "Max meta-poll attempts reached. Operation ID not found.");
             _stopMetaPolling(); 
             _updateWorkflowPanel(transcriptionId, { status: "error", error: "Workflow did not start or details are unavailable." }); 
         }
 
     } catch (error) {
-        console.error(metaPollLog, "Error during meta-polling:", error);
+        window.logger.error(metaPollLog, "Error during meta-polling:", error);
         if (metaPollAttempts >= MAX_META_POLL_ATTEMPTS) {
             _stopMetaPolling(); 
             _updateWorkflowPanel(transcriptionId, { status: "error", error: "Error checking workflow status." }); 

@@ -117,7 +117,7 @@ function translateBackendErrorMessage(backendMessage) {
             icon = 'warning'; iconColorClass = 'text-red-600';
         } else { 
             message = `An unexpected error occurred: ${escapeHtml(errorContent)}`;
-            console.warn(mainPollLogPrefix, "Unhandled backend error message:", backendMessage);
+            window.logger.warn(mainPollLogPrefix, "Unhandled backend error message:", backendMessage);
         }
     }
     else if (lowerMessage.includes("cancelled") || lowerMessage.includes("cancelling")) {
@@ -160,14 +160,14 @@ function pollProgress(jobId) {
         lastProgressValue = 0;
         uploadPhaseActualEndTime = null;
         processingPhaseActualEndTime = null;
-        console.log(mainPollLogPrefix, `Polling started for Transcription Job ID: ${jobId} at ${new Date(jobStartTime).toLocaleTimeString()}`);
+        window.logger.info(mainPollLogPrefix, `Polling started for Transcription Job ID: ${jobId} at ${new Date(jobStartTime).toLocaleTimeString()}`);
     }
 
     currentPollIntervalId = setInterval(async () => {
         if (jobIsFinishedOrErrored) {
              clearInterval(currentPollIntervalId);
              currentPollIntervalId = null;
-             console.log(mainPollLogPrefix, `Polling stopped for Job ID: ${jobId}. Reason: Transcription finished/errored/cancelled.`);
+             window.logger.info(mainPollLogPrefix, `Polling stopped for Job ID: ${jobId}. Reason: Transcription finished/errored/cancelled.`);
              setTimeout(() => {
                  const progressContainer = document.getElementById('progressContainer');
                  if (progressContainer && currentJobId === jobId && jobIsFinishedOrErrored) {
@@ -180,7 +180,7 @@ function pollProgress(jobId) {
         if (currentJobId !== jobId) {
             clearInterval(currentPollIntervalId);
             currentPollIntervalId = null;
-            console.log(mainPollLogPrefix, `Polling stopped for Job ID: ${jobId}. Reason: New Job Started.`);
+            window.logger.info(mainPollLogPrefix, `Polling stopped for Job ID: ${jobId}. Reason: New Job Started.`);
             return;
         }
 
@@ -189,7 +189,7 @@ function pollProgress(jobId) {
             if (typeof window.fetchReadinessData === 'function') {
                 currentReadiness = await window.fetchReadinessData();
                 if (!currentReadiness) {
-                    console.warn(mainPollLogPrefix, "Readiness check failed during poll. Stopping poll.");
+                    window.logger.warn(mainPollLogPrefix, "Readiness check failed during poll. Stopping poll.");
                     jobIsFinishedOrErrored = true;
                     resetTranscribeUI(true, true);
                     return;
@@ -213,7 +213,7 @@ function pollProgress(jobId) {
             const jobData = await response.json();
 
             if (!jobData || jobData.job_id !== currentJobId) {
-                console.warn(mainPollLogPrefix, `Received invalid or mismatched progress data for job ID ${currentJobId}. Stopping poll.`);
+                window.logger.warn(mainPollLogPrefix, `Received invalid or mismatched progress data for job ID ${currentJobId}. Stopping poll.`);
                 jobIsFinishedOrErrored = true;
                 updateProgressActivity('error', 'Error receiving progress updates.', 'text-red-600');
                 resetTranscribeUI(true, true);
@@ -235,7 +235,7 @@ function pollProgress(jobId) {
                 newMessages.forEach(msg => {
                     const upperMsg = msg.toUpperCase();
                     if (currentPhase === 'upload' && upperMsg.includes("PHASE_MARKER:UPLOAD_COMPLETE")) {
-                        console.log(mainPollLogPrefix, "Phase transition: Upload -> Processing/Transcribing");
+                        window.logger.info(mainPollLogPrefix, "Phase transition: Upload -> Processing/Transcribing");
                         uploadPhaseActualEndTime = now;
                         const threshold = typeof LARGE_FILE_THRESHOLD_MB !== 'undefined' ? LARGE_FILE_THRESHOLD_MB : 25;
                         const needsProcessing = (currentJobFileSizeMB > threshold);
@@ -243,7 +243,7 @@ function pollProgress(jobId) {
                         phaseStartTime = now;
                         lastProgressValue = progressBoundaries.upload;
                     } else if (currentPhase === 'processing' && upperMsg.includes("PHASE_MARKER:TRANSCRIPTION_START")) {
-                        console.log(mainPollLogPrefix, "Phase transition: Processing -> Transcribing");
+                        window.logger.info(mainPollLogPrefix, "Phase transition: Processing -> Transcribing");
                         processingPhaseActualEndTime = now;
                         currentPhase = 'transcribing';
                         phaseStartTime = now;
@@ -323,7 +323,7 @@ function pollProgress(jobId) {
                 else if (contextField) { contextField.value = ""; }
 
                 if (typeof window.addTranscriptionToHistory === 'function') {
-                    console.debug(mainPollLogPrefix, `Calling addTranscriptionToHistory for job ${jobId}`);
+                    window.logger.debug(mainPollLogPrefix, `Calling addTranscriptionToHistory for job ${jobId}`);
                     const hadPendingWorkflow = jobData.result && jobData.result.pending_workflow_prompt_text && jobData.result.pending_workflow_prompt_text.trim() !== '';
                     window.addTranscriptionToHistory(
                         jobData.result, 
@@ -334,7 +334,7 @@ function pollProgress(jobId) {
                         hadPendingWorkflow 
                     );
                 } else {
-                    console.error(mainPollLogPrefix, "addTranscriptionToHistory function is missing. Cannot update history item.");
+                    window.logger.error(mainPollLogPrefix, "addTranscriptionToHistory function is missing. Cannot update history item.");
                 }
 
             } else if (transcriptionStatus === 'error') {
@@ -345,13 +345,13 @@ function pollProgress(jobId) {
             } else if (transcriptionStatus === 'cancelled') {
                 if (window.cancellationRequestedForJobId === jobId) {
                     window.cancellationRequestedForJobId = null;
-                    console.debug(mainPollLogPrefix, `Backend confirmed cancellation for ${jobId}. Frontend flag cleared.`);
+                    window.logger.debug(mainPollLogPrefix, `Backend confirmed cancellation for ${jobId}. Frontend flag cleared.`);
                 }
             }
 
         } catch (error) {
             errorCount++;
-            console.error(mainPollLogPrefix, `Error polling progress (Attempt ${errorCount}/${maxErrors}):`, error);
+            window.logger.error(mainPollLogPrefix, `Error polling progress (Attempt ${errorCount}/${maxErrors}):`, error);
 
             if (error.message.includes('Authentication required') || error.message.includes('Access denied') || error.message.includes('Job not found') || errorCount >= maxErrors) {
                 jobIsFinishedOrErrored = true;
@@ -367,7 +367,7 @@ function pollProgress(jobId) {
                     const translatedError = translateBackendErrorMessage(`ERROR: ${userMessage}`);
                     updateProgressActivity(translatedError.icon, `Error: ${translatedError.message}`, translatedError.iconColorClass);
                 } else {
-                    console.warn(mainPollLogPrefix, "Polling failed, but job already reached final state. Not updating activity message.");
+                    window.logger.warn(mainPollLogPrefix, "Polling failed, but job already reached final state. Not updating activity message.");
                 }
 
                 // M.toast({ html: userMessage, classes: toastClass, displayLength: 6000 }); // Replaced
@@ -379,7 +379,7 @@ function pollProgress(jobId) {
                 }
             } else {
                 pollIntervalMs = Math.min(pollIntervalMs + 1000, 8000);
-                console.warn(mainPollLogPrefix, `Polling interval increased to ${pollIntervalMs}ms due to error.`);
+                window.logger.warn(mainPollLogPrefix, `Polling interval increased to ${pollIntervalMs}ms due to error.`);
                 const progressActivityElem = document.getElementById('progressActivity');
                 const isAlreadyShowingFinalState = progressActivityElem && (progressActivityElem.textContent.includes('completed') || progressActivityElem.textContent.includes('Error:') || progressActivityElem.textContent.includes('cancelled'));
                 if (!isAlreadyShowingFinalState) {
@@ -439,7 +439,7 @@ function resetTranscribeUI(keepProgressBox = false, isErrorState = false) {
          if (typeof checkTranscribeButtonState === 'function') {
              checkTranscribeButtonState();
          } else {
-             console.error(mainPollLogPrefix, "checkTranscribeButtonState function not found.");
+             window.logger.error(mainPollLogPrefix, "checkTranscribeButtonState function not found.");
          }
     }
     if (stopBtn) {
@@ -476,7 +476,7 @@ function resetPollingState() {
         window.currentJobIdForStop = null;
     }
     window.cancellationRequestedForJobId = null;
-    console.debug(mainPollLogPrefix, "Polling state reset.");
+    window.logger.debug(mainPollLogPrefix, "Polling state reset.");
 }
 window.resetPollingState = resetPollingState;
 

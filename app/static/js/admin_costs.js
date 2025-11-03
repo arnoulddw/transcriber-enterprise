@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                console.error('Error fetching prices:', data.error);
+                window.logger.error('Error fetching prices:', data.error);
                 return;
             }
             for (const type in data) {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         })
-        .catch(error => console.error('Error fetching prices:', error));
+        .catch(error => window.logger.error('Error fetching prices:', error));
 
     // Handle form submission
     pricingForm.addEventListener('submit', function(event) {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Error updating prices:', error);
+            window.logger.error('Error updating prices:', error);
             showNotification('An unexpected error occurred.', 'error', 5000, true);
         });
     });

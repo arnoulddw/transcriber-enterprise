@@ -3,18 +3,103 @@
 
 const mainUtilsLogPrefix = "[MainUtilsJS]";
 
-// Global Logger for conditional console output based on app_debug
+const LOG_LEVELS = Object.freeze({
+    debug: 10,
+    info: 20,
+    warn: 30,
+    error: 40
+});
+
+function isDebugEnabled() {
+    return Boolean(window.APP_DEBUG_MODE);
+}
+
+function isInfoEnabled() {
+    return Boolean(window.APP_DEBUG_MODE);
+}
+
+function shouldLog(level) {
+    if (level === 'warn' || level === 'error') return true;
+    if (level === 'info') return isInfoEnabled();
+    if (level === 'debug') return isDebugEnabled();
+    return false;
+}
+
+function normalizeScope(scope) {
+    if (!scope) return "App";
+    if (scope.startsWith("[") && scope.endsWith("]")) {
+        return scope.slice(1, -1);
+    }
+    return scope;
+}
+
+function emitLog(level, scope, message, metadata) {
+    if (!shouldLog(level)) return;
+    const consoleMethod = level === 'debug'
+        ? console.debug
+        : level === 'info'
+            ? console.info
+            : level === 'warn'
+                ? console.warn
+                : console.error;
+
+    const parts = [`[${scope}]`];
+    if (message !== undefined && message !== null) {
+        parts.push(message);
+    }
+    if (metadata !== undefined) {
+        parts.push(metadata);
+    }
+    consoleMethod(...parts);
+}
+
+function normalizeLegacyArgs(arg1, arg2, arg3) {
+    if (typeof arg1 === 'string' && arg1.startsWith("[")) {
+        return {
+            scope: normalizeScope(arg1),
+            message: arg2,
+            metadata: arg3
+        };
+    }
+    return {
+        scope: "App",
+        message: arg1,
+        metadata: arg2
+    };
+}
+
 window.logger = {
-    debug: function(...args) {
-        if (window.APP_DEBUG_MODE) { // APP_DEBUG_MODE is set in base.html
-            console.debug(...args);
-        }
+    debug(arg1, arg2, arg3) {
+        const { scope, message, metadata } = normalizeLegacyArgs(arg1, arg2, arg3);
+        emitLog('debug', scope, message, metadata);
     },
-    log: console.log,
-    info: console.info,
-    warn: console.warn,
-    error: console.error
+    info(arg1, arg2, arg3) {
+        const { scope, message, metadata } = normalizeLegacyArgs(arg1, arg2, arg3);
+        emitLog('info', scope, message, metadata);
+    },
+    warn(arg1, arg2, arg3) {
+        const { scope, message, metadata } = normalizeLegacyArgs(arg1, arg2, arg3);
+        emitLog('warn', scope, message, metadata);
+    },
+    error(arg1, arg2, arg3) {
+        const { scope, message, metadata } = normalizeLegacyArgs(arg1, arg2, arg3);
+        emitLog('error', scope, message, metadata);
+    },
+    scoped(scopeName) {
+        const normalizedScope = normalizeScope(scopeName);
+        return {
+            debug: (message, metadata) => emitLog('debug', normalizedScope, message, metadata),
+            info: (message, metadata) => emitLog('info', normalizedScope, message, metadata),
+            warn: (message, metadata) => emitLog('warn', normalizedScope, message, metadata),
+            error: (message, metadata) => emitLog('error', normalizedScope, message, metadata),
+            isDebugEnabled: () => shouldLog('debug'),
+            isInfoEnabled: () => shouldLog('info')
+        };
+    },
+    isDebugEnabled,
+    isInfoEnabled
 };
+const mainUtilsLogger = window.logger.scoped("MainUtilsJS");
 
 
 /**
@@ -46,7 +131,7 @@ window.escapeHtml = escapeHtml;
 function showNotification(message, type = 'info', duration = 6000, persistent = true, id = null) {
     const container = document.getElementById('notification-container');
     if (!container) {
-        console.error(mainUtilsLogPrefix, "Notification container not found!");
+        mainUtilsLogger.error("Notification container not found!");
         return null;
     }
 
@@ -164,7 +249,7 @@ function openApiKeyModal(event) {
     if (typeof window.openApiKeyModalDialog === 'function') {
         window.openApiKeyModalDialog();
     } else {
-        console.error(mainUtilsLogPrefix, "openApiKeyModalDialog function not found in user_settings.js. API Key management might be unavailable.");
+        mainUtilsLogger.error("openApiKeyModalDialog function not found in user_settings.js. API Key management might be unavailable.");
         // Removed Materialize fallback code
         // alert('API Key management is not available or modal function missing.'); // This alert was commented out
     }
@@ -201,7 +286,7 @@ function initializeLocalizedDates() {
             if (typeof window.formatDateTime === 'function') {
                 timeEl.textContent = window.formatDateTime(isoString);
             } else {
-                console.warn(mainUtilsLogPrefix, "window.formatDateTime function not found. Dates will not be localized.");
+                mainUtilsLogger.warn("window.formatDateTime function not found. Dates will not be localized.");
             }
         }
     });
@@ -216,7 +301,7 @@ let lastCopyToastTime = 0;
 const TOAST_COOLDOWN_MS = 1000; // 1 second cooldown for copy toasts
 
 function fallbackCopyToClipboard(text) {
-  const logPrefix = "[MainUtilsJS:fallbackCopy]";
+  const log = window.logger.scoped("MainUtilsJS:fallbackCopy");
   const textArea = document.createElement("textarea");
   textArea.value = text;
   textArea.style.position = "fixed"; // Prevent scrolling to bottom
@@ -233,23 +318,23 @@ function fallbackCopyToClipboard(text) {
         showNotification('Copied (fallback)!', 'info', 2000, false);
         lastCopyToastTime = now;
       } else {
-        window.logger.debug(logPrefix, "Fallback copy toast suppressed due to cooldown.");
+        log.debug("Fallback copy toast suppressed due to cooldown.");
       }
-      window.logger.debug(logPrefix, "Text copied using fallback method.");
+      log.debug("Text copied using fallback method.");
     } else {
       showNotification('Copy failed (fallback)!', 'error', 3000, false);
-      console.error(logPrefix, 'Fallback copy command failed.');
+      log.error('Fallback copy command failed.');
     }
   } catch (err) {
     showNotification('Copy failed (fallback)!', 'error', 3000, false);
-    console.error(logPrefix, 'Error during fallback copy:', err);
+    log.error('Error during fallback copy:', err);
   }
   document.body.removeChild(textArea);
 }
 window.fallbackCopyToClipboard = fallbackCopyToClipboard; // Expose globally
 
 function copyToClipboard(text) {
-  const logPrefix = "[MainUtilsJS:copyToClipboard]";
+  const log = window.logger.scoped("MainUtilsJS:copyToClipboard");
   if (!text) {
     showNotification('Nothing to copy!', 'warning', 2000, false);
     return;
@@ -264,21 +349,21 @@ function copyToClipboard(text) {
           showNotification('Copied to clipboard!', 'success', 2000, false);
           lastCopyToastTime = now;
         } else {
-          window.logger.debug(logPrefix, "Clipboard API copy toast suppressed due to cooldown.");
+          log.debug("Clipboard API copy toast suppressed due to cooldown.");
         }
-        window.logger.debug(logPrefix, "Text copied using Clipboard API.");
+        log.debug("Text copied using Clipboard API.");
       })
       .catch(err => {
         showNotification('Copy failed!', 'error', 3000, false);
-        console.error(logPrefix, 'Async copy failed:', err);
+        log.error('Async copy failed:', err);
         window.fallbackCopyToClipboard(text); // Ensure fallback is called
       });
   } else {
-    console.warn(logPrefix, "Using fallback copy method (navigator.clipboard not available or insecure context).");
+    log.warn("Using fallback copy method (navigator.clipboard not available or insecure context).");
     window.fallbackCopyToClipboard(text); // Ensure fallback is called
   }
 }
 window.copyToClipboard = copyToClipboard; // Expose globally
 
 
-console.log(mainUtilsLogPrefix, "Utilities loaded.");
+mainUtilsLogger.info("Utilities ready.");

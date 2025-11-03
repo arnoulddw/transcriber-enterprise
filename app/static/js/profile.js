@@ -21,18 +21,18 @@ function initializeProfileModalElements() {
     }
 
     if (!profileModal || !profileModalOverlay || !profileModalPanel) {
-        console.warn(profileLogPrefix, "One or more Profile modal core elements not found.");
+        window.logger.warn(profileLogPrefix, "One or more Profile modal core elements not found.");
         return false;
     }
     if (profileModalTriggers.length === 0 && window.IS_MULTI_USER) {
-        console.warn(profileLogPrefix, "Profile modal trigger buttons not found.");
+        window.logger.warn(profileLogPrefix, "Profile modal trigger buttons not found.");
     }
     return true;
 }
 
 function openProfileModalDialog() {
     if (!profileModal || !profileModalOverlay || !profileModalPanel) {
-        console.error(profileLogPrefix, "Cannot open Profile modal: core elements missing.");
+        window.logger.error(profileLogPrefix, "Cannot open Profile modal: core elements missing.");
         return;
     }
     previouslyFocusedElementProfile = document.activeElement;
@@ -64,12 +64,12 @@ function openProfileModalDialog() {
     } else {
         profileModalPanel.focus();
     }
-    console.log(profileLogPrefix, "Profile modal opened.");
+    window.logger.info(profileLogPrefix, "Profile modal opened.");
 }
 
 function closeProfileModalDialog() {
     if (!profileModal || !profileModalOverlay || !profileModalPanel) {
-        console.error(profileLogPrefix, "Cannot close Profile modal: core elements missing.");
+        window.logger.error(profileLogPrefix, "Cannot close Profile modal: core elements missing.");
         return;
     }
 
@@ -90,13 +90,13 @@ function closeProfileModalDialog() {
         previouslyFocusedElementProfile.focus();
         previouslyFocusedElementProfile = null;
     }
-    console.log(profileLogPrefix, "Profile modal closed.");
+    window.logger.info(profileLogPrefix, "Profile modal closed.");
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!initializeProfileModalElements()) {
-        console.warn(profileLogPrefix, "Profile modal setup skipped due to missing elements.");
+        window.logger.warn(profileLogPrefix, "Profile modal setup skipped due to missing elements.");
         return;
     }
 
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (profileForm) {
         profileForm.addEventListener('submit', handleProfileSave);
     } else if (window.IS_MULTI_USER) {
-        console.warn(profileLogPrefix, "User settings form element (#profileForm) not found.");
+        window.logger.warn(profileLogPrefix, "User settings form element (#profileForm) not found.");
     }
 
     const changePasswordToggleBtn = document.getElementById('changePasswordToggleBtn');
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadProfileData() {
-    console.debug(profileLogPrefix, "Fetching profile data...");
+    window.logger.debug(profileLogPrefix, "Fetching profile data...");
     const usernameInput = document.getElementById('profileUsername');
     const emailInput = document.getElementById('profileEmail');
     const firstNameInput = document.getElementById('profileFirstName');
@@ -188,7 +188,7 @@ async function loadProfileData() {
     const uiLangSelect = document.getElementById('profileLanguage');
 
     if (!usernameInput || !emailInput || !firstNameInput || !lastNameInput || !langSelect || !modelSelect || !autoTitleCheckbox || !uiLangSelect) {
-        console.error(profileLogPrefix, "One or more profile form elements not found.");
+        window.logger.error(profileLogPrefix, "One or more profile form elements not found.");
         window.showNotification('Error loading profile form.', 'error', 4000, false);
         return;
     }
@@ -244,7 +244,7 @@ async function loadProfileData() {
             throw new Error(errorData.error || `Failed to fetch profile (${response.status})`);
         }
         const data = await response.json();
-        console.debug(profileLogPrefix, "Profile data received:", data);
+        window.logger.debug(profileLogPrefix, "Profile data received:", data);
 
         usernameInput.value = data.username || '';
         emailInput.value = data.email || '';
@@ -256,7 +256,7 @@ async function loadProfileData() {
         autoTitleCheckbox.checked = data.enable_auto_title_generation === true;
 
     } catch (error) {
-        console.error(profileLogPrefix, 'Error fetching profile data:', error);
+        window.logger.error(profileLogPrefix, 'Error fetching profile data:', error);
         window.showNotification(`Error loading profile: ${escapeHtmlProfile(error.message)}`, 'error', 6000, false);
     }
 }
@@ -264,7 +264,7 @@ async function loadProfileData() {
 async function handleProfileSave(event) {
     event.preventDefault();
     const logPrefix = "[ProfileJS:handleProfileSave]";
-    console.log(logPrefix, "Save profile form submitted.");
+    window.logger.info(logPrefix, "Save profile form submitted.");
 
     const form = event.target;
     const submitButton = document.getElementById('saveProfileBtn');
@@ -282,7 +282,7 @@ async function handleProfileSave(event) {
     const autoTitleCheckbox = document.getElementById('enable_auto_title_generation');
     data.enable_auto_title_generation = autoTitleCheckbox ? autoTitleCheckbox.checked : false;
 
-    console.debug(logPrefix, "Sending data:", data);
+    window.logger.debug(logPrefix, "Sending data:", data);
 
     try {
         const response = await fetch('/api/user/profile', {
@@ -298,14 +298,14 @@ async function handleProfileSave(event) {
 
         if (!response.ok) {
             if (response.status === 400 || response.status === 409) {
-                console.warn(logPrefix, `Validation/Conflict Error (${response.status}):`, responseData);
+                window.logger.warn(logPrefix, `Validation/Conflict Error (${response.status}):`, responseData);
                 displayProfileErrors(responseData.errors || { general: responseData.error });
                 window.showNotification(responseData.error || 'Please check the form for errors.', 'warning', 4000, false);
             } else {
                 throw new Error(responseData.error || `HTTP error ${response.status}`);
             }
         } else {
-            console.log(logPrefix, "Profile update successful:", responseData);
+            window.logger.info(logPrefix, "Profile update successful:", responseData);
             window.showNotification(responseData.message || 'Profile updated successfully!', 'success', 4000, false);
             
             // Reload the page if the language was changed to apply new translations
@@ -328,7 +328,7 @@ async function handleProfileSave(event) {
             }
         }
     } catch (error) {
-        console.error(logPrefix, 'Error saving profile:', error);
+        window.logger.error(logPrefix, 'Error saving profile:', error);
         window.showNotification(`Error saving profile: ${escapeHtmlProfile(error.message)}`, 'error', 6000, false);
         displayProfileErrors({ general: error.message });
     } finally {
@@ -342,7 +342,7 @@ async function handleProfileSave(event) {
 async function handlePasswordChange(event) {
     event.preventDefault();
     const logPrefix = "[ProfileJS:handlePasswordChange]";
-    console.log(logPrefix, "Change password form submitted.");
+    window.logger.info(logPrefix, "Change password form submitted.");
 
     const form = event.target;
     const submitButton = document.getElementById('submitPasswordChangeBtn');
@@ -377,7 +377,7 @@ async function handlePasswordChange(event) {
 
         if (!response.ok) {
             if (response.status === 400) {
-                console.warn(logPrefix, `Validation Error (400):`, responseData);
+                window.logger.warn(logPrefix, `Validation Error (400):`, responseData);
                 displayPasswordErrors(responseData.errors || { general: responseData.error });
                 if (responseData.field === 'current_password') {
                      document.getElementById('currentPassword')?.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
@@ -387,7 +387,7 @@ async function handlePasswordChange(event) {
                 throw new Error(responseData.error || `HTTP error ${response.status}`);
             }
         } else {
-            console.log(logPrefix, "Password change successful:", responseData);
+            window.logger.info(logPrefix, "Password change successful:", responseData);
             window.showNotification(responseData.message || 'Password changed successfully!', 'success', 4000, false);
             form.reset();
             const changePasswordSection = document.getElementById('changePasswordSection');
@@ -396,7 +396,7 @@ async function handlePasswordChange(event) {
             if (passwordToggleIconDisplay) passwordToggleIconDisplay.textContent = 'expand_more';
         }
     } catch (error) {
-        console.error(logPrefix, 'Error changing password:', error);
+        window.logger.error(logPrefix, 'Error changing password:', error);
         window.showNotification(`Error changing password: ${escapeHtmlProfile(error.message)}`, 'error', 6000, false);
         displayPasswordErrors({ general: error.message });
     } finally {
@@ -416,7 +416,7 @@ function displayProfileErrors(errors) {
         if (errorSpan) {
             errorSpan.textContent = errorMsg;
         } else if (field === 'general') {
-             console.warn("Unhandled general profile error:", errorMsg);
+             window.logger.warn("Unhandled general profile error:", errorMsg);
         }
         if (inputElement) {
             inputElement.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
@@ -443,7 +443,7 @@ function displayPasswordErrors(errors) {
         if (field === 'current_password') { errorSpanId = 'currentPasswordError'; inputElementId = 'currentPassword'; }
         else if (field === 'new_password') { errorSpanId = 'newPasswordError'; inputElementId = 'newPassword'; }
         else if (field === 'confirm_new_password') { errorSpanId = 'confirmNewPasswordError'; inputElementId = 'confirmNewPassword'; }
-        else if (field === 'general') { console.warn("Unhandled general password error:", errorMsg); }
+        else if (field === 'general') { window.logger.warn("Unhandled general password error:", errorMsg); }
 
         const errorSpan = document.getElementById(errorSpanId);
         const inputElement = document.getElementById(inputElementId);
@@ -475,10 +475,10 @@ function setupPasswordToggleProfile(inputId, toggleIconId) {
             passwordInput.setAttribute('type', newType);
             this.textContent = newType === 'password' ? 'visibility' : 'visibility_off';
         });
-        console.debug(profileLogPrefix, `Password toggle initialized for input #${inputId}`);
+        window.logger.debug(profileLogPrefix, `Password toggle initialized for input #${inputId}`);
     } else {
-        if (!passwordInput) console.debug(profileLogPrefix, `Password input element #${inputId} not found.`);
-        if (!toggleIcon) console.debug(profileLogPrefix, `Password toggle icon #${toggleIconId} not found.`);
+        if (!passwordInput) window.logger.debug(profileLogPrefix, `Password input element #${inputId} not found.`);
+        if (!toggleIcon) window.logger.debug(profileLogPrefix, `Password toggle icon #${toggleIconId} not found.`);
     }
 }
 

@@ -36,7 +36,7 @@ function initializeEditPromptModalElements() {
     }
 
     if (!editPromptModal || !editPromptModalOverlay || !editPromptModalPanel) {
-        console.warn(managePromptsLogPrefix, "One or more Edit Prompt modal core elements not found.");
+        window.logger.warn(managePromptsLogPrefix, "One or more Edit Prompt modal core elements not found.");
         return false;
     }
     return true;
@@ -48,7 +48,7 @@ function initializeEditPromptModalElements() {
  */
 function openEditPromptModalDialog() {
     if (!editPromptModal || !editPromptModalOverlay || !editPromptModalPanel) {
-        console.error(managePromptsLogPrefix, "Cannot open Edit Prompt modal: core elements missing.");
+        window.logger.error(managePromptsLogPrefix, "Cannot open Edit Prompt modal: core elements missing.");
         return;
     }
     previouslyFocusedElementEditPrompt = document.activeElement;
@@ -79,7 +79,7 @@ function openEditPromptModalDialog() {
     } else {
         editPromptModalPanel.focus(); // Fallback focus
     }
-    console.log(managePromptsLogPrefix, "Edit Prompt modal opened.");
+    window.logger.info(managePromptsLogPrefix, "Edit Prompt modal opened.");
 }
 
 /**
@@ -88,7 +88,7 @@ function openEditPromptModalDialog() {
  */
 function closeEditPromptModalDialog() {
     if (!editPromptModal || !editPromptModalOverlay || !editPromptModalPanel) {
-        console.error(managePromptsLogPrefix, "Cannot close Edit Prompt modal: core elements missing.");
+        window.logger.error(managePromptsLogPrefix, "Cannot close Edit Prompt modal: core elements missing.");
         return;
     }
 
@@ -111,14 +111,14 @@ function closeEditPromptModalDialog() {
         previouslyFocusedElementEditPrompt.focus();
         previouslyFocusedElementEditPrompt = null;
     }
-    console.log(managePromptsLogPrefix, "Edit Prompt modal closed.");
+    window.logger.info(managePromptsLogPrefix, "Edit Prompt modal closed.");
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Edit Prompt Modal elements and event listeners
     if (!initializeEditPromptModalElements()) {
-        console.warn(managePromptsLogPrefix, "Edit Prompt modal setup skipped due to missing elements.");
+        window.logger.warn(managePromptsLogPrefix, "Edit Prompt modal setup skipped due to missing elements.");
     } else {
         editPromptModalCloseButtons.forEach(button => {
             button.addEventListener('click', closeEditPromptModalDialog);
@@ -163,20 +163,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const addForm = document.getElementById('addPromptForm');
     if (addForm) {
         addForm.addEventListener('submit', handleAddPrompt);
-        console.debug(managePromptsLogPrefix, "Add prompt form listener attached.");
+        window.logger.debug(managePromptsLogPrefix, "Add prompt form listener attached.");
         populateColorPicker('newPromptColorOptions', 'newPromptColor');
     } else {
-        console.warn(managePromptsLogPrefix, "Add prompt form not found.");
+        window.logger.warn(managePromptsLogPrefix, "Add prompt form not found.");
     }
 
     // Event listener for the "Edit Workflow" form (inside the modal)
     const editForm = document.getElementById('editPromptForm');
     if (editForm) {
         editForm.addEventListener('submit', handleSaveEditPrompt);
-        console.debug(managePromptsLogPrefix, "Edit prompt form listener attached.");
+        window.logger.debug(managePromptsLogPrefix, "Edit prompt form listener attached.");
         populateColorPicker('editPromptColorOptions', 'editPromptColor');
     } else {
-        console.warn(managePromptsLogPrefix, "Edit prompt form not found.");
+        window.logger.warn(managePromptsLogPrefix, "Edit prompt form not found.");
     }
 
     // Event delegation for Edit/Delete buttons on the saved prompts list
@@ -205,9 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        console.debug(managePromptsLogPrefix, "Edit/Delete prompt listeners attached.");
+        window.logger.debug(managePromptsLogPrefix, "Edit/Delete prompt listeners attached.");
     } else {
-        console.warn(managePromptsLogPrefix, "Saved prompts list not found.");
+        window.logger.warn(managePromptsLogPrefix, "Saved prompts list not found.");
     }
 
     // Auto-resize for textareas
@@ -248,7 +248,7 @@ function getTextColorForBackground(hexColor) {
         const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
         return luminance > 0.5 ? 'black' : 'white';
     } catch (e) {
-        console.error(managePromptsLogPrefix, `Error calculating text color for ${hexColor}:`, e);
+        window.logger.error(managePromptsLogPrefix, `Error calculating text color for ${hexColor}:`, e);
         return 'black'; // Default to black on error
     }
 }
@@ -262,7 +262,7 @@ function populateColorPicker(containerId, hiddenInputId) {
     const container = document.getElementById(containerId);
     const hiddenInput = document.getElementById(hiddenInputId);
     if (!container || !hiddenInput) {
-        console.warn(managePromptsLogPrefix, `Color picker container or hidden input not found: ${containerId}, ${hiddenInputId}`);
+        window.logger.warn(managePromptsLogPrefix, `Color picker container or hidden input not found: ${containerId}, ${hiddenInputId}`);
         return;
     }
 
@@ -321,12 +321,12 @@ function populateColorPicker(containerId, hiddenInputId) {
  */
 async function loadUserPrompts() {
     const logPrefix = "[ManagePromptsJS:loadUserPrompts]";
-    console.debug(logPrefix, "Fetching user prompts...");
+    window.logger.debug(logPrefix, "Fetching user prompts...");
     const promptsList = document.getElementById('savedPromptsList');
     const placeholder = document.getElementById('prompts-placeholder');
 
     if (!promptsList || !placeholder) {
-        console.error(logPrefix, "Prompts list or placeholder element not found.");
+        window.logger.error(logPrefix, "Prompts list or placeholder element not found.");
         return;
     }
 
@@ -348,7 +348,7 @@ async function loadUserPrompts() {
         }
 
         const data = await response.json();
-        console.debug(logPrefix, "User prompts received:", data);
+        window.logger.debug(logPrefix, "User prompts received:", data);
 
         promptsList.innerHTML = ''; // Clear loading placeholder
 
@@ -361,7 +361,7 @@ async function loadUserPrompts() {
         }
 
     } catch (error) {
-        console.error(logPrefix, 'Error loading user prompts:', error);
+        window.logger.error(logPrefix, 'Error loading user prompts:', error);
         promptsList.innerHTML = ''; // Clear list on error
         placeholder.textContent = `Error loading workflows: ${escapeHtml(error.message)}`;
         promptsList.appendChild(placeholder); // Show error in placeholder
@@ -452,7 +452,7 @@ async function handleAddPrompt(event) {
         return;
     }
 
-    console.log(logPrefix, "Submitting new workflow:", title, "Color:", color);
+    window.logger.info(logPrefix, "Submitting new workflow:", title, "Color:", color);
     const originalButtonHtml = submitButton.innerHTML;
     submitButton.disabled = true;
     submitButton.innerHTML = 'Adding... <span class="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></span>';
@@ -490,7 +490,7 @@ async function handleAddPrompt(event) {
             colorInput.value = '#ffffff';
         }
     } catch (error) {
-        console.error(logPrefix, "Error adding workflow:", error);
+        window.logger.error(logPrefix, "Error adding workflow:", error);
         window.showNotification(`Error: ${escapeHtml(error.message)}`, 'error', 6000, false);
     } finally {
         submitButton.disabled = false;
@@ -506,7 +506,7 @@ function openEditPromptModal(promptId) {
     const logPrefix = `[ManagePromptsJS:openEdit:${promptId}]`;
     const promptItem = document.querySelector(`li[data-prompt-id="${promptId}"]`);
     if (!promptItem) {
-        console.error(logPrefix, "Could not find workflow item in list.");
+        window.logger.error(logPrefix, "Could not find workflow item in list.");
         window.showNotification('Error: Could not find workflow to edit.', 'error', 4000, false);
         return;
     }
@@ -523,7 +523,7 @@ function openEditPromptModal(promptId) {
     const colorOptionsContainer = document.getElementById('editPromptColorOptions');
 
     if (!idInput || !titleInput || !textInput || !colorInput || !colorOptionsContainer) {
-        console.error(logPrefix, "Edit modal form elements not found.");
+        window.logger.error(logPrefix, "Edit modal form elements not found.");
         return;
     }
 
@@ -555,7 +555,7 @@ function openEditPromptModal(promptId) {
     textInput.style.height = (textInput.scrollHeight) + 'px';
 
     openEditPromptModalDialog();
-    console.log(logPrefix, "Edit modal opened for workflow:", title, "Color:", color);
+    window.logger.info(logPrefix, "Edit modal opened for workflow:", title, "Color:", color);
 }
 
 /**
@@ -581,7 +581,7 @@ async function handleSaveEditPrompt(event) {
         return;
     }
 
-    console.log(logPrefix, `Saving changes for workflow ID: ${promptId}`, "Color:", color);
+    window.logger.info(logPrefix, `Saving changes for workflow ID: ${promptId}`, "Color:", color);
     const originalButtonHtml = saveButton.innerHTML;
     saveButton.disabled = true;
     saveButton.innerHTML = 'Saving... <span class="ml-2 inline-block animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent"></span>';
@@ -606,7 +606,7 @@ async function handleSaveEditPrompt(event) {
 
         loadUserPrompts();
     } catch (error) {
-        console.error(logPrefix, "Error updating workflow:", error);
+        window.logger.error(logPrefix, "Error updating workflow:", error);
         window.showNotification(`Error: ${escapeHtml(error.message)}`, 'error', 6000, false);
     } finally {
         saveButton.disabled = false;
@@ -623,10 +623,10 @@ async function handleSaveEditPrompt(event) {
 async function handleDeletePrompt(promptId, promptTitle, listItemElement) {
     const logPrefix = `[ManagePromptsJS:handleDelete:${promptId}]`;
     if (!confirm(`Are you sure you want to delete the workflow "${promptTitle}"?`)) {
-        console.debug(logPrefix, "Delete cancelled by user.");
+        window.logger.debug(logPrefix, "Delete cancelled by user.");
         return;
     }
-    console.log(logPrefix, "Deleting workflow...");
+    window.logger.info(logPrefix, "Deleting workflow...");
     const deleteButton = listItemElement.querySelector('.delete-prompt-btn');
     if (deleteButton) deleteButton.disabled = true;
 
@@ -639,7 +639,7 @@ async function handleDeletePrompt(promptId, promptTitle, listItemElement) {
         if (!response.ok) throw new Error(data.error || `HTTP error ${response.status}`);
 
         window.showNotification(data.message || 'Workflow deleted successfully!', 'success', 4000, false);
-        console.log(logPrefix, "Workflow deleted successfully via API.");
+        window.logger.info(logPrefix, "Workflow deleted successfully via API.");
         listItemElement.remove();
 
         const promptsList = document.getElementById('savedPromptsList');
@@ -650,7 +650,7 @@ async function handleDeletePrompt(promptId, promptTitle, listItemElement) {
              placeholder.style.display = 'block';
         }
     } catch (error) {
-        console.error(logPrefix, "Error deleting workflow:", error);
+        window.logger.error(logPrefix, "Error deleting workflow:", error);
         window.showNotification(`Error: ${escapeHtml(error.message)}`, 'error', 6000, false);
         if (deleteButton) deleteButton.disabled = false;
     }

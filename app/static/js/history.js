@@ -3,6 +3,11 @@
 // Includes polling for generated titles.
 
 const historyLogPrefix = "[HistoryJS]";
+const historyLogger = window.logger.scoped("HistoryJS");
+
+function scopedHistoryLogger(section) {
+    return window.logger.scoped(`HistoryJS:${section}`);
+}
 
 // Title Polling State
 let titlePollIntervalId = null;
@@ -26,7 +31,7 @@ function getTextColorForBackground(hexColor) {
         const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
         return luminance > 0.5 ? 'black' : 'white';
     } catch (e) {
-        console.error(historyLogPrefix, `Error calculating text color for ${hexColor}:`, e);
+        historyLogger.error(`Error calculating text color for ${hexColor}.`, e);
         return 'black';
     }
 }
@@ -48,7 +53,7 @@ function applyPillStyles(selector, parentElement = document) {
              pill.style.backgroundColor = bgColor;
              pill.style.color = textColor;
         } else {
-             console.warn(`[HistoryJS] Invalid or missing data-background-color found for pill, defaulting styles:`, bgColor, pill);
+             window.logger.warn(`[HistoryJS] Invalid or missing data-background-color found for pill, defaulting styles:`, bgColor, pill);
              pill.style.backgroundColor = '#ffffff';
              pill.style.color = 'black';
         }
@@ -84,18 +89,18 @@ function hasMeaningfulContent(value) {
  */
 function addTranscriptionToHistory(transcription, canDownload, canRunWorkflow, prepend = false, shouldPollTitle = false, hadPendingWorkflow = false) {
     const logPrefix = `[HistoryJS:addTranscriptionToHistory:${transcription.id.substring(0, 8)}]`;
-    console.debug(logPrefix, "Attempting to add/update history item:", transcription, "Should Poll Title:", shouldPollTitle, "Had Pending WF:", hadPendingWorkflow);
+window.logger.debug(logPrefix, "Attempting to add/update history item:", transcription, "Should Poll Title:", shouldPollTitle, "Had Pending WF:", hadPendingWorkflow);
 
     const historyList = document.getElementById('transcriptionHistory');
     if (!historyList) {
-        console.error(logPrefix, "History list element (#transcriptionHistory) not found.");
+        window.logger.error(logPrefix, "History list element (#transcriptionHistory) not found.");
         return;
     }
     const placeholder = document.getElementById('history-placeholder');
 
     const existingItem = historyList.querySelector(`li[data-transcription-id="${transcription.id}"]`);
     if (existingItem) {
-        console.debug(logPrefix, "Removing existing history item before adding updated one.");
+        window.logger.debug(logPrefix, "Removing existing history item before adding updated one.");
         existingItem.remove();
         idsToPollForTitle.delete(transcription.id); 
         delete titlePollAttempts[transcription.id]; 
@@ -115,7 +120,7 @@ function addTranscriptionToHistory(transcription, canDownload, canRunWorkflow, p
         if (transcription.pending_workflow_origin_prompt_id) {
             listItem.dataset.workflowOriginPromptId = transcription.pending_workflow_origin_prompt_id;
         }
-        console.debug(logPrefix, "Stored pending workflow details on dataset:", listItem.dataset);
+        window.logger.debug(logPrefix, "Stored pending workflow details on dataset:", listItem.dataset);
     }
 
 
@@ -226,31 +231,31 @@ function addTranscriptionToHistory(transcription, canDownload, canRunWorkflow, p
 
     if (prepend) {
         historyList.prepend(listItem); 
-        console.debug(logPrefix, "Prepended new history item to the list.");
+        window.logger.debug(logPrefix, "Prepended new history item to the list.");
     } else {
         historyList.appendChild(listItem);
-        console.debug(logPrefix, "Appended new history item to the list.");
+        window.logger.debug(logPrefix, "Appended new history item to the list.");
     }
 
     if (shouldPollTitle) {
         idsToPollForTitle.add(transcription.id);
         titlePollAttempts[transcription.id] = 0;
-        console.debug(logPrefix, `Added ${transcription.id} to title polling list.`);
+        window.logger.debug(logPrefix, `Added ${transcription.id} to title polling list.`);
         startTitlePolling();
     } else if (prepend && transcription.status === 'finished' && !showInitialTitleIcon) {
-        console.debug(logPrefix, `Newly finished job ${transcription.id}, not polling. Making one-time call to fetchTitleStatus.`);
+        window.logger.debug(logPrefix, `Newly finished job ${transcription.id}, not polling. Making one-time call to fetchTitleStatus.`);
         fetchTitleStatus(transcription.id);
     } else {
-        console.debug(logPrefix, `Skipping title polling for ${transcription.id} (shouldPollTitle=${shouldPollTitle}, prepend=${prepend}, status=${transcription.status}, showInitialIcon=${showInitialTitleIcon}).`);
+        window.logger.debug(logPrefix, `Skipping title polling for ${transcription.id} (shouldPollTitle=${shouldPollTitle}, prepend=${prepend}, status=${transcription.status}, showInitialIcon=${showInitialTitleIcon}).`);
     }
 
 
     if (hadPendingWorkflow) {
-        console.debug(logPrefix, `Pre-applied workflow detected for ${transcription.id}. Initiating workflow status polling.`);
+        window.logger.debug(logPrefix, `Pre-applied workflow detected for ${transcription.id}. Initiating workflow status polling.`);
         if (typeof window.Workflow !== 'undefined' && typeof window.Workflow.startWorkflowPollingForTranscription === 'function') {
             Workflow.startWorkflowPollingForTranscription(transcription.id);
         } else {
-            console.error(logPrefix, "Workflow.startWorkflowPollingForTranscription function is missing.");
+            window.logger.error(logPrefix, "Workflow.startWorkflowPollingForTranscription function is missing.");
             const workflowPanel = listItem.querySelector(".workflow-panel");
             if (workflowPanel) workflowPanel.innerHTML = '<p class="text-red-600 text-center">Error: Could not start workflow polling.</p>';
         }
@@ -270,7 +275,7 @@ function addReadMoreToWorkflowHTML(resultElement) {
         let fullHtml = '', truncatedHtml = '';
         if (typeof marked !== "undefined") {
             try { marked.setOptions({ gfm: true, breaks: false }); fullHtml = marked.parse(originalMarkdown); truncatedHtml = marked.parse(truncatedMarkdown); }
-            catch (e) { console.error(historyLogPrefix, "Error parsing Markdown:", e); fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; truncatedHtml = `<pre>${window.escapeHtml(truncatedMarkdown)}</pre>`; }
+            catch (e) { window.logger.error(historyLogPrefix, "Error parsing Markdown:", e); fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; truncatedHtml = `<pre>${window.escapeHtml(truncatedMarkdown)}</pre>`; }
         } else { fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; truncatedHtml = `<pre>${window.escapeHtml(truncatedMarkdown)}</pre>`; }
         resultElement.innerHTML = truncatedHtml;
         resultElement.dataset.readMoreState = 'truncated';
@@ -289,7 +294,7 @@ function addReadMoreToWorkflowHTML(resultElement) {
         let fullHtml = '';
          if (typeof marked !== 'undefined') {
             try { marked.setOptions({ gfm: true, breaks: false }); fullHtml = marked.parse(originalMarkdown); }
-            catch (e) { console.error(historyLogPrefix, "Error parsing short Markdown:", e); fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; }
+            catch (e) { window.logger.error(historyLogPrefix, "Error parsing short Markdown:", e); fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; }
         } else { fullHtml = `<pre>${window.escapeHtml(originalMarkdown)}</pre>`; }
         resultElement.innerHTML = fullHtml; resultElement.dataset.readMoreState = 'full';
         let existingLink = resultElement.nextElementSibling;
@@ -307,10 +312,10 @@ function togglePrompt(ellipsisElement) {
 window.togglePrompt = togglePrompt;
 
 function logDownload(transcriptionId) {
-    const logPrefix = `[HistoryJS:logDownload:${transcriptionId}]`; console.debug(logPrefix, "Logging download...");
+    const logPrefix = `[HistoryJS:logDownload:${transcriptionId}]`; window.logger.debug(logPrefix, "Logging download...");
     fetch(`/api/transcriptions/${transcriptionId}/log_download`, { method: 'POST', headers: { 'X-CSRFToken': window.csrfToken, 'Accept': 'application/json' } })
-    .then(response => { if (!response.ok) { response.json().then(errData => { console.error(logPrefix, `Failed to log download (${response.status}):`, errData.error || 'Unknown error'); }).catch(() => { console.error(logPrefix, `Failed to log download (${response.status}) and couldn't parse error response.`); }); } else { console.debug(logPrefix, "Download logged successfully."); } })
-    .catch(error => { console.error(logPrefix, "Network error logging download:", error); });
+    .then(response => { if (!response.ok) { response.json().then(errData => { window.logger.error(logPrefix, `Failed to log download (${response.status}):`, errData.error || 'Unknown error'); }).catch(() => { window.logger.error(logPrefix, `Failed to log download (${response.status}) and couldn't parse error response.`); }); } else { window.logger.debug(logPrefix, "Download logged successfully."); } })
+    .catch(error => { window.logger.error(logPrefix, "Network error logging download:", error); });
 }
 window.logDownload = logDownload; 
 
@@ -323,43 +328,43 @@ function downloadTranscription(transcriptionId, text, baseFilename) {
   const fileContent = text || ""; const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob); element.setAttribute('href', url); element.setAttribute('download', filename);
   element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); URL.revokeObjectURL(url);
-  console.debug(historyLogPrefix, `Download triggered for ${filename}`); window.logDownload(transcriptionId);
+  window.logger.debug(historyLogPrefix, `Download triggered for ${filename}`); window.logDownload(transcriptionId);
 }
 window.downloadTranscription = downloadTranscription; 
 
 
 function handleClearAll() {
     if (confirm('Are you sure you want to clear your entire transcription history?\nThis action cannot be undone.')) {
-        console.log(historyLogPrefix, "Clear All confirmed. Sending request...");
+        window.logger.info(historyLogPrefix, "Clear All confirmed. Sending request...");
         fetch('/api/transcriptions/clear', { method: 'DELETE', headers: { 'X-CSRFToken': window.csrfToken } })
         .then(response => { if (!response.ok) { return response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` })).then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); }); } return response.json(); })
         .then(data => {
             window.showNotification(data.message || 'History cleared successfully.', 'success', 4000, false);
-            console.log(historyLogPrefix, "History cleared successfully via API.");
+            window.logger.info(historyLogPrefix, "History cleared successfully via API.");
             const historyList = document.getElementById('transcriptionHistory'); const clearAllBtn = document.getElementById('clearAllBtn');
             if (historyList) { historyList.innerHTML = '<li class="py-4 text-center text-gray-500" id="history-placeholder">No transcriptions found.</li>'; } 
             if (clearAllBtn) clearAllBtn.style.display = 'none';
             const paginationContainer = document.querySelector('.pagination-container'); if (paginationContainer) paginationContainer.remove();
         })
         .catch(error => { 
-            console.error(historyLogPrefix, 'Error clearing transcriptions:', error); 
+            window.logger.error(historyLogPrefix, 'Error clearing transcriptions:', error); 
             window.showNotification(`Error clearing history: ${window.escapeHtml(error.message)}`, 'error', 5000, false);
         });
-    } else { console.debug(historyLogPrefix, "Clear All cancelled by user."); }
+    } else { window.logger.debug(historyLogPrefix, "Clear All cancelled by user."); }
 }
 window.handleClearAll = handleClearAll; 
 
 function deleteTranscription(transcriptionId, transcriptionItemElement) {
-    const logPrefix = `[HistoryJS:deleteTranscription:${transcriptionId}]`; console.debug(logPrefix, "Delete requested.");
+    const logPrefix = `[HistoryJS:deleteTranscription:${transcriptionId}]`; window.logger.debug(logPrefix, "Delete requested.");
     fetch(`/api/transcriptions/${transcriptionId}`, { method: 'DELETE', headers: { 'X-CSRFToken': window.csrfToken } })
     .then(response => { if (!response.ok) { return response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` })).then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); }); } return response.json(); })
     .then(data => {
         window.showNotification(data.message || 'Transcription deleted.', 'success', 4000, false);
-        console.log(logPrefix, "Deletion successful via API.");
+        window.logger.info(logPrefix, "Deletion successful via API.");
         window.location.reload(); 
     })
     .catch(error => { 
-        console.error(historyLogPrefix, 'Error deleting transcription:', error); 
+        window.logger.error(historyLogPrefix, 'Error deleting transcription:', error); 
         window.showNotification(`Error deleting: ${window.escapeHtml(error.message)}`, 'error', 5000, false);
     });
 }
@@ -382,7 +387,7 @@ async function fetchTitleStatus(transcriptionId) {
         });
 
         if (!response.ok) {
-            console.error(pollLogPrefix, `Error fetching title status (${response.status}). Removing from poll.`);
+            window.logger.error(pollLogPrefix, `Error fetching title status (${response.status}). Removing from poll.`);
             idsToPollForTitle.delete(transcriptionId);
             delete titlePollAttempts[transcriptionId];
             return;
@@ -393,7 +398,7 @@ async function fetchTitleStatus(transcriptionId) {
         const iconElement = document.getElementById(`title-icon-${transcriptionId}`);
 
         if (!titleElement || !iconElement) {
-            console.warn(pollLogPrefix, `Title or icon element not found for ID. Removing from poll.`);
+            window.logger.warn(pollLogPrefix, `Title or icon element not found for ID. Removing from poll.`);
             idsToPollForTitle.delete(transcriptionId);
             delete titlePollAttempts[transcriptionId];
             return;
@@ -401,7 +406,7 @@ async function fetchTitleStatus(transcriptionId) {
 
         switch (data.status) {
             case 'generated':
-                console.log(pollLogPrefix, `Title generated: '${data.title}'`);
+                window.logger.info(pollLogPrefix, `Title generated: '${data.title}'`);
                 titleElement.innerHTML = `${window.escapeHtml(data.title)}<i class="material-icons tiny text-primary align-middle ml-1" id="title-icon-${transcriptionId}">auto_awesome</i>`;
                 titleElement.classList.add('title-updated'); 
                 idsToPollForTitle.delete(transcriptionId);
@@ -410,7 +415,7 @@ async function fetchTitleStatus(transcriptionId) {
             case 'failed':
             case 'unknown':
             case 'disabled': // Added 'disabled' case
-                console.warn(pollLogPrefix, `Title generation status is '${data.status}'. Using filename. Stopping poll.`);
+                window.logger.warn(pollLogPrefix, `Title generation status is '${data.status}'. Using filename. Stopping poll.`);
                 titleElement.innerHTML = `${window.escapeHtml(data.title)}<i class="material-icons tiny text-primary align-middle ml-1 hidden" id="title-icon-${transcriptionId}">auto_awesome</i>`;
                 idsToPollForTitle.delete(transcriptionId);
                 delete titlePollAttempts[transcriptionId];
@@ -419,17 +424,17 @@ async function fetchTitleStatus(transcriptionId) {
             case 'pending':
                 titlePollAttempts[transcriptionId] = (titlePollAttempts[transcriptionId] || 0) + 1;
                 if (titlePollAttempts[transcriptionId] > MAX_TITLE_POLL_ATTEMPTS) {
-                    console.warn(pollLogPrefix, `Max poll attempts reached for title generation. Stopping poll.`);
+                    window.logger.warn(pollLogPrefix, `Max poll attempts reached for title generation. Stopping poll.`);
                     iconElement.classList.add('hidden'); 
                     iconElement.style.display = 'none';
                     idsToPollForTitle.delete(transcriptionId);
                     delete titlePollAttempts[transcriptionId];
                 } else {
-                    console.debug(pollLogPrefix, `Title status is '${data.status}'. Continuing poll (Attempt ${titlePollAttempts[transcriptionId]}).`);
+                    window.logger.debug(pollLogPrefix, `Title status is '${data.status}'. Continuing poll (Attempt ${titlePollAttempts[transcriptionId]}).`);
                 }
                 break;
             default:
-                console.error(pollLogPrefix, `Unexpected title status received: ${data.status}. Stopping poll.`);
+                window.logger.error(pollLogPrefix, `Unexpected title status received: ${data.status}. Stopping poll.`);
                 iconElement.classList.add('hidden'); 
                 iconElement.style.display = 'none';
                 idsToPollForTitle.delete(transcriptionId);
@@ -437,7 +442,7 @@ async function fetchTitleStatus(transcriptionId) {
         }
 
     } catch (error) {
-        console.error(pollLogPrefix, "Error during title status fetch:", error);
+        window.logger.error(pollLogPrefix, "Error during title status fetch:", error);
         const iconElement = document.getElementById(`title-icon-${transcriptionId}`);
         if(iconElement) { 
             iconElement.classList.add('hidden');
@@ -453,24 +458,24 @@ async function fetchTitleStatus(transcriptionId) {
  */
 function startTitlePolling() {
     if (titlePollIntervalId) {
-        console.debug(historyLogPrefix, "Title polling interval already running.");
+        window.logger.debug(historyLogPrefix, "Title polling interval already running.");
         return;
     }
     if (idsToPollForTitle.size === 0) {
-        console.debug(historyLogPrefix, "No transcription IDs to poll for titles.");
+        window.logger.debug(historyLogPrefix, "No transcription IDs to poll for titles.");
         return;
     }
 
-    console.log(historyLogPrefix, "Starting title polling interval...");
+    window.logger.info(historyLogPrefix, "Starting title polling interval...");
     titlePollIntervalId = setInterval(() => {
         if (idsToPollForTitle.size === 0) {
-            console.log(historyLogPrefix, "No more IDs to poll for titles. Stopping interval.");
+            window.logger.info(historyLogPrefix, "No more IDs to poll for titles. Stopping interval.");
             clearInterval(titlePollIntervalId);
             titlePollIntervalId = null;
             return;
         }
         const idsToCheck = new Set(idsToPollForTitle); // Iterate over a copy
-        console.debug(historyLogPrefix, `Polling titles for ${idsToCheck.size} IDs...`);
+        window.logger.debug(historyLogPrefix, `Polling titles for ${idsToCheck.size} IDs...`);
         idsToCheck.forEach(id => fetchTitleStatus(id));
     }, TITLE_POLL_INTERVAL_MS);
 }
@@ -479,8 +484,8 @@ window.startTitlePolling = startTitlePolling;
 
 document.addEventListener('DOMContentLoaded', function() {
     const clearAllBtn = document.getElementById('clearAllBtn');
-    if (clearAllBtn) { clearAllBtn.addEventListener('click', window.handleClearAll); console.debug(historyLogPrefix, "Clear All button listener attached."); }
-    else { console.debug(historyLogPrefix, "Clear All button not found on page load."); }
+    if (clearAllBtn) { clearAllBtn.addEventListener('click', window.handleClearAll); window.logger.debug(historyLogPrefix, "Clear All button listener attached."); }
+    else { window.logger.debug(historyLogPrefix, "Clear All button not found on page load."); }
 
     const historyList = document.getElementById('transcriptionHistory');
     if (historyList) {
@@ -511,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; 
             }
         });
-        console.debug(historyLogPrefix, "Transcription action listeners attached via delegation.");
+        window.logger.debug(historyLogPrefix, "Transcription action listeners attached via delegation.");
 
         historyList.addEventListener('click', function(event) {
             const readMoreWorkflow = event.target.closest('.read-more-workflow');
@@ -562,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; 
             }
         });
-        console.debug(historyLogPrefix, "Read more listeners attached via delegation.");
+        window.logger.debug(historyLogPrefix, "Read more listeners attached via delegation.");
 
         historyList.querySelectorAll('.transcription-text').forEach(el => {
             const transcriptionItem = el.closest('li[data-transcription-id]'); 
@@ -596,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof window.applyPillStyles === 'function') {
             window.applyPillStyles('#transcriptionHistory .prompt-label-pill');
         } else {
-            console.error("applyPillStyles function not found in history.js");
+            window.logger.error("applyPillStyles function not found in history.js");
         }
 
         historyList.querySelectorAll('li[data-transcription-id]').forEach(item => {
@@ -605,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 titlePollAttempts[item.dataset.transcriptionId] = 0;
             }
         });
-        console.debug(historyLogPrefix, `Initial title polling list size: ${idsToPollForTitle.size}`);
+        window.logger.debug(historyLogPrefix, `Initial title polling list size: ${idsToPollForTitle.size}`);
         startTitlePolling(); 
     }
 });

@@ -2,7 +2,6 @@
 # Defines the Abstract Base Class for transcription API clients.
 
 import os
-import logging
 from app.logging_config import get_logger
 import time
 import concurrent.futures
@@ -456,13 +455,13 @@ class BaseTranscriptionClient(ABC):
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_concurrent_chunks) as executor:
                     for idx, chunk_path in enumerate(chunk_files):
                         if self.cancel_event.is_set():
-                            logging.info(f"{log_prefix} Cancellation detected, skipping submission of chunk {idx+1}.")
+                            self.logger.info(f"{log_prefix} Cancellation detected, skipping submission of chunk {idx+1}.")
                             results[idx+1] = None; overall_success = False; continue
 
                         chunk_num = idx + 1
                         chunk_log_prefix = f"{log_prefix}:Chunk{chunk_num}"
                         current_chunk_lang_param = requested_language
-                        logging.info(f"{chunk_log_prefix} Submitting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
+                        self.logger.info(f"{chunk_log_prefix} Submitting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
 
                         future = executor.submit(
                             self._transcribe_single_chunk_with_retry,
@@ -477,15 +476,15 @@ class BaseTranscriptionClient(ABC):
                         try:
                             chunk_result = future.result()
                             results[chunk_num] = chunk_result
-                            logging.info(f"{log_prefix}:Chunk{chunk_num} completed successfully.")
+                            self.logger.info(f"{log_prefix}:Chunk{chunk_num} completed successfully.")
                         except InterruptedError:
                              overall_success = False; results[chunk_num] = None
-                             logging.info(f"{log_prefix}:Chunk{chunk_num} processing interrupted by cancellation.")
+                             self.logger.info(f"{log_prefix}:Chunk{chunk_num} processing interrupted by cancellation.")
                              self._report_progress(f"Chunk {chunk_num} cancelled.", False)
                              self.cancel_event.set() # Ensure event is set for other threads
                         except Exception as exc:
                             overall_success = False; results[chunk_num] = None
-                            logging.error(f"{log_prefix}:Chunk{chunk_num} failed: {exc}")
+                            self.logger.error(f"{log_prefix}:Chunk{chunk_num} failed: {exc}")
                             self._report_progress(f"ERROR: Chunk {chunk_num} failed: {exc}", True)
                             # Don't raise immediately in parallel, let others finish/cancel
 
@@ -498,7 +497,7 @@ class BaseTranscriptionClient(ABC):
                     chunk_num = idx + 1
                     chunk_log_prefix = f"{log_prefix}:Chunk{chunk_num}"
                     current_chunk_lang_param = requested_language
-                    logging.info(f"{chunk_log_prefix} Starting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
+                    self.logger.info(f"{chunk_log_prefix} Starting chunk {chunk_num} with language '{current_chunk_lang_param}'.")
 
                     try:
                         chunk_result = self._transcribe_single_chunk_with_retry(
@@ -507,19 +506,19 @@ class BaseTranscriptionClient(ABC):
                             context_prompt=context_prompt, log_prefix=chunk_log_prefix, max_retries=chunk_max_retries
                         )
                         results[chunk_num] = chunk_result
-                        logging.info(f"{chunk_log_prefix} completed successfully.")
+                        self.logger.info(f"{chunk_log_prefix} completed successfully.")
                         if requested_language == 'auto' and idx == 0:
                             _, detected_lang = chunk_result
                             if detected_lang: self._report_progress(f"Detected language: {detected_lang}", False)
                             else: self._report_progress("First chunk language detection failed or returned None.", False)
                     except InterruptedError:
                          overall_success = False; results[chunk_num] = None
-                         logging.info(f"{log_prefix}:Chunk{chunk_num} processing interrupted by cancellation.")
+                         self.logger.info(f"{log_prefix}:Chunk{chunk_num} processing interrupted by cancellation.")
                          self._report_progress(f"Chunk {chunk_num} cancelled.", False)
                          raise # Stop sequential processing
                     except Exception as exc:
                         overall_success = False; results[chunk_num] = None
-                        logging.error(f"{chunk_log_prefix} failed: {exc}")
+                        self.logger.error(f"{chunk_log_prefix} failed: {exc}")
                         self._report_progress(f"ERROR: Chunk {chunk_num} failed: {exc}", True)
                         raise TranscriptionProcessingError(f"Sequential chunk {chunk_num} failed.", provider=api_name) from exc
 
@@ -546,13 +545,13 @@ class BaseTranscriptionClient(ABC):
                         if first_successful_lang is None: first_successful_lang = lang
 
             full_transcription = " ".join(filter(None, transcription_texts))
-            logging.debug(f"{log_prefix} Successfully aggregated transcriptions from {successful_chunks} completed chunks.")
+            self.logger.debug(f"{log_prefix} Successfully aggregated transcriptions from {successful_chunks} completed chunks.")
 
             if requested_language == 'auto':
                 if first_successful_lang:
                     final_language_used = first_successful_lang
                 else:
-                    logging.warning(f"{log_prefix} Language auto-detection requested, but no chunk provided a detected language.")
+                    self.logger.warning(f"{log_prefix} Language auto-detection requested, but no chunk provided a detected language.")
                     final_language_used = UNKNOWN_LANGUAGE_CODE
                 log_lang_msg = f"{mode_log} chunked transcription aggregated. Final language (detected/fallback): {final_language_used}"
                 ui_lang_msg = f"Aggregated chunk transcriptions. Final language (detected/fallback): {final_language_used}"
@@ -561,7 +560,7 @@ class BaseTranscriptionClient(ABC):
                 log_lang_msg = f"{mode_log} chunked transcription aggregated. Used requested language: {final_language_used}"
                 ui_lang_msg = f"Aggregated chunk transcriptions. Used requested language: {final_language_used}"
 
-            logging.info(f"{log_prefix} {log_lang_msg}")
+            self.logger.info(f"{log_prefix} {log_lang_msg}")
             self._report_progress(ui_lang_msg, False)
             self._report_progress("PHASE_MARKER:TRANSCRIPTION_COMPLETE", False)
             self._report_progress("Transcription completed.", False)
@@ -569,13 +568,13 @@ class BaseTranscriptionClient(ABC):
             return full_transcription, final_language_used
 
         except InterruptedError:
-             logging.info(f"{log_prefix} Split/transcribe process interrupted by cancellation.")
+             self.logger.info(f"{log_prefix} Split/transcribe process interrupted by cancellation.")
              raise
         except Exception as e:
             error_msg = f"Error during {mode_log.lower()} split/transcribe process: {e}"
             if overall_success: # Only report if no chunk error was reported before
                  self._report_progress(f"ERROR: {error_msg}", True)
-            logging.exception(f"{log_prefix} Error detail in _split_and_transcribe:")
+            self.logger.exception(f"{log_prefix} Error detail in _split_and_transcribe:")
             # Wrap unexpected errors
             if isinstance(e, TranscriptionApiError): raise e
             else: raise TranscriptionProcessingError(error_msg, provider=api_name) from e
@@ -583,7 +582,7 @@ class BaseTranscriptionClient(ABC):
             if chunk_files:
                 self._report_progress("Cleaning up temporary chunk files...", False)
                 removed_count = file_service.remove_files(chunk_files)
-                logging.info(f"{log_prefix} Cleaned up {removed_count} temporary chunk file(s).")
+                self.logger.info(f"{log_prefix} Cleaned up {removed_count} temporary chunk file(s).")
 
 
     def _transcribe_single_chunk_with_retry(self, chunk_path: str, idx: int, total_chunks: int,
@@ -623,14 +622,14 @@ class BaseTranscriptionClient(ABC):
 
                 log_params = {k: v for k, v in api_params.items() if k != 'file'}
                 prompt_log = f", Prompt: '{context_prompt[:30]}...'" if context_prompt else ""
-                logging.debug(f"{effective_log_prefix} Attempt {attempt+1}: Calling API with parameters: {log_params}{prompt_log}")
+                self.logger.debug(f"{effective_log_prefix} Attempt {attempt+1}: Calling API with parameters: {log_params}{prompt_log}")
 
                 with open(abs_chunk_path, "rb") as audio_file:
                     start_time = time.time()
                     self._report_progress("Checking cancellation before API call...") # Implicit check
                     raw_response = self._call_api(audio_file, api_params) # Can raise TranscriptionApiError subclasses
                     duration = time.time() - start_time
-                    logging.debug(f"{effective_log_prefix} Attempt {attempt+1}: API call successful. Duration: {duration:.2f}s")
+                    self.logger.debug(f"{effective_log_prefix} Attempt {attempt+1}: API call successful. Duration: {duration:.2f}s")
 
                 text, detected_lang = self._process_response(raw_response, actual_response_format) # Can raise TranscriptionProcessingError
 
@@ -638,7 +637,7 @@ class BaseTranscriptionClient(ABC):
                 return (text.strip() if text else ""), detected_lang
 
             except InterruptedError:
-                 logging.info(f"{effective_log_prefix} Chunk {idx} cancelled during attempt {attempt+1}.")
+                 self.logger.info(f"{effective_log_prefix} Chunk {idx} cancelled during attempt {attempt+1}.")
                  raise
             except tuple(self._get_retryable_errors()) as retry_err:
                 last_error = retry_err
@@ -646,22 +645,22 @@ class BaseTranscriptionClient(ABC):
                     wait_time = self._get_retry_delay_seconds(attempt, is_chunk=True)
                     error_detail = f"Retryable error on chunk {idx}, attempt {attempt+1}. Retrying in {wait_time}s... ({type(retry_err).__name__})"
                     self._report_progress(error_detail, False)
-                    logging.warning(f"{effective_log_prefix} {error_detail}: {retry_err}")
+                    self.logger.warning(f"{effective_log_prefix} {error_detail}: {retry_err}")
                     time.sleep(wait_time)
                 else:
-                    logging.error(f"{effective_log_prefix} Max retries ({max_retries}) reached for chunk {idx}. Last error: {retry_err}")
+                    self.logger.error(f"{effective_log_prefix} Max retries ({max_retries}) reached for chunk {idx}. Last error: {retry_err}")
                     raise TranscriptionProcessingError(f"Chunk {idx} failed after {max_retries} retries: {retry_err}", provider=api_name) from retry_err
             except (TranscriptionApiError, ValueError, FileNotFoundError) as specific_error:
                 last_error = specific_error
                 error_detail = f"ERROR: Error processing chunk {idx}: {specific_error}"
                 self._report_progress(error_detail, True)
-                logging.error(f"{effective_log_prefix} {error_detail}")
+                self.logger.error(f"{effective_log_prefix} {error_detail}")
                 raise specific_error # Re-raise specific errors to fail fast
             except Exception as e:
                 last_error = e
                 error_detail = f"ERROR: Unexpected error transcribing chunk {idx}: {e}"
                 self._report_progress(error_detail, True)
-                logging.exception(f"{effective_log_prefix} Unexpected error detail on attempt {attempt+1}:")
+                self.logger.exception(f"{effective_log_prefix} Unexpected error detail on attempt {attempt+1}:")
                 raise TranscriptionProcessingError(f"Unexpected error transcribing chunk {idx}: {e}", provider=api_name) from e
 
         # Should not be reached if exceptions are raised correctly

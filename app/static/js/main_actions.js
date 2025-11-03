@@ -10,6 +10,9 @@ let expectedTimes = { upload: 0, processing: 0, transcription: 0, total: 0 };
 let progressBoundaries = { upload: 0, processing: 0, transcriptionStart: 0 };
 
 const mainActionsLogPrefix = "[MainActionsJS]";
+const actionsLogger = window.logger.scoped("MainActionsJS");
+const expectedLogger = window.logger.scoped("MainActionsJS:calculateExpected");
+const stopLogger = window.logger.scoped("MainActionsJS:handleStopTranscription");
 
 const timeFormulas = {
     'gpt-4o-transcribe': {
@@ -47,11 +50,10 @@ const timeFormulas = {
 };
 
 function calculateExpectedProgressData(apiChoice, fileSizeMB, audioLengthMin, scenario) {
-    const logPrefix = "[MainActionsJS:calculateExpected]";
     const formulas = timeFormulas[apiChoice]?.[scenario];
 
     if (!formulas) {
-        console.error(logPrefix, `No time formulas found for API '${apiChoice}' and scenario '${scenario}'. Using defaults.`);
+        expectedLogger.error(`No time formulas found for API '${apiChoice}' and scenario '${scenario}'. Using defaults.`);
         expectedTimes = { upload: 5, processing: 5, transcription: 60, total: 70 };
         progressBoundaries = { upload: 7, processing: 14, transcriptionStart: 14 };
         return;
@@ -66,7 +68,7 @@ function calculateExpectedProgressData(apiChoice, fileSizeMB, audioLengthMin, sc
     expectedTimes.total = expectedTimes.upload + expectedTimes.processing + expectedTimes.transcription;
 
     if (expectedTimes.total <= 0) {
-        console.warn(logPrefix, `Calculated total expected time is zero or negative (${expectedTimes.total}s). Setting to 1s.`);
+        expectedLogger.warn(`Calculated total expected time is zero or negative (${expectedTimes.total}s). Forcing minimum thresholds.`);
         expectedTimes.total = 1;
         if (expectedTimes.upload <= 0) expectedTimes.upload = 0.2;
         if (expectedTimes.processing <= 0) expectedTimes.processing = 0.2;
@@ -85,21 +87,40 @@ function calculateExpectedProgressData(apiChoice, fileSizeMB, audioLengthMin, sc
     }
     progressBoundaries.transcriptionStart = progressBoundaries.processing;
 
-    console.log(logPrefix, `API: ${apiChoice}, Scenario: ${scenario}, Size: ${size.toFixed(2)}MB, Length: ${length.toFixed(2)}min`);
-    console.log(logPrefix, `Expected Times (s): Upload=${expectedTimes.upload.toFixed(1)}, Processing=${expectedTimes.processing.toFixed(1)}, Transcription=${expectedTimes.transcription.toFixed(1)}, Total=${expectedTimes.total.toFixed(1)}`);
-    console.log(logPrefix, `Progress Boundaries (%): Upload=${progressBoundaries.upload}, Processing=${progressBoundaries.processing}`);
+    expectedLogger.debug("Expected timings computed.", {
+        apiChoice,
+        scenario,
+        sizeMB: Number(size.toFixed(2)),
+        lengthMinutes: Number(length.toFixed(2)),
+        expectedTimes: {
+            upload: Number(expectedTimes.upload.toFixed(2)),
+            processing: Number(expectedTimes.processing.toFixed(2)),
+            transcription: Number(expectedTimes.transcription.toFixed(2)),
+            total: Number(expectedTimes.total.toFixed(2))
+        },
+        progressBoundaries: { ...progressBoundaries }
+    });
 }
 
 async function handleTranscribeSubmit() {
-    console.log(mainActionsLogPrefix, "Transcribe button clicked.");
+    const apiSelect = document.getElementById('apiSelect');
+    const fileInput = document.getElementById('audioFile');
+    const contextPromptInput = document.getElementById('contextPrompt');
+
+    actionsLogger.info("Transcribe button clicked.", {
+        api: apiSelect ? apiSelect.value : null,
+        hasFileSelected: Boolean(fileInput && fileInput.files && fileInput.files.length > 0)
+    });
+
     if (typeof window.checkTranscribeButtonState !== 'function') {
-        console.error(mainActionsLogPrefix, "checkTranscribeButtonState function not found.");
+        actionsLogger.error("checkTranscribeButtonState function not found.");
         window.showNotification('Error: Cannot verify readiness.', 'error', 4000, false);
         return;
     }
+
     const canProceed = await window.checkTranscribeButtonState();
     if (!canProceed) {
-        console.warn(mainActionsLogPrefix, "Transcription submission blocked by frontend readiness check.");
+        actionsLogger.warn("Transcription submission blocked by frontend readiness check.");
         const statusSpan = document.getElementById('transcribeBtnStatus');
         const statusText = statusSpan ? statusSpan.textContent.trim() : '';
 
@@ -121,10 +142,7 @@ async function handleTranscribeSubmit() {
     }
 
     const form = document.getElementById('transcription-form');
-    const fileInput = document.getElementById('audioFile');
     const languageSelect = document.getElementById('languageSelect');
-    const apiSelect = document.getElementById('apiSelect');
-    const contextPromptInput = document.getElementById('contextPrompt');
     const transcribeBtn = document.getElementById('transcribeBtn');
     const stopBtn = document.getElementById('stopBtn');
     const progressContainer = document.getElementById('progressContainer');
@@ -140,7 +158,7 @@ async function handleTranscribeSubmit() {
     if (typeof window.resetPollingState === 'function') {
         window.resetPollingState();
     } else {
-        console.error(mainActionsLogPrefix, "resetPollingState function not found.");
+        actionsLogger.error("resetPollingState function not found.");
         if (window.currentPollIntervalId) { clearInterval(window.currentPollIntervalId); window.currentPollIntervalId = null; }
     }
     statusSpan.innerHTML = '';
@@ -167,7 +185,7 @@ async function handleTranscribeSubmit() {
     if (typeof window.updateProgressActivity === 'function') {
         window.updateProgressActivity('cloud_upload', `Uploading audio for ${window.escapeHtml(jobApiName)}...`);
     } else {
-        console.error(mainActionsLogPrefix, "updateProgressActivity function not found.");
+        actionsLogger.error("updateProgressActivity function not found.");
     }
 
     const formData = new FormData(form);
@@ -180,11 +198,15 @@ async function handleTranscribeSubmit() {
         if (pendingWorkflowPromptColorElem && pendingWorkflowPromptColorElem.value) {
             formData.append('pending_workflow_prompt_color', pendingWorkflowPromptColorElem.value);
         }
-        console.log(mainActionsLogPrefix, "Appending pending workflow data to submission.");
+        actionsLogger.debug("Appending pending workflow data to submission.");
     }
 
 
-    console.log(mainActionsLogPrefix, "Submitting transcription request via Fetch...");
+    actionsLogger.info("Submitting transcription request via Fetch...", {
+        api: apiSelect.value,
+        filename: file.name,
+        hasWorkflow: Boolean(pendingWorkflowPromptTextElem && pendingWorkflowPromptTextElem.value)
+    });
     fetch('/api/transcribe', {
         method: 'POST',
         body: formData,
@@ -209,7 +231,7 @@ async function handleTranscribeSubmit() {
     })
     .then(data => {
         if (data.job_id) {
-            console.log(mainActionsLogPrefix, "Transcription job started successfully. Job ID:", data.job_id);
+            actionsLogger.info("Transcription job started successfully.", { jobId: data.job_id });
             currentJobIdForStop = data.job_id;
             window.showNotification(data.message || 'Transcription job started.', 'success', 4000, false);
 
@@ -227,7 +249,7 @@ async function handleTranscribeSubmit() {
             if (typeof window.pollProgress === 'function') {
                 window.pollProgress(data.job_id);
             } else {
-                 console.error(mainActionsLogPrefix, "pollProgress function not found. Cannot poll for status.");
+                 actionsLogger.error("pollProgress function not found. Cannot poll for status.");
                  window.showNotification('Error: Could not start progress polling.', 'error', 4000, false);
                  if (typeof window.resetTranscribeUI === 'function') {
                      window.resetTranscribeUI(true, true);
@@ -238,7 +260,7 @@ async function handleTranscribeSubmit() {
         }
     })
     .catch(error => {
-        console.error(mainActionsLogPrefix, 'Error starting transcription:', error);
+        actionsLogger.error('Error starting transcription.', error);
         const errorMessage = error.message || "An unknown error occurred.";
         const errorCode = error.cause?.code;
 
@@ -252,7 +274,7 @@ async function handleTranscribeSubmit() {
         if (typeof window.translateBackendErrorMessage === 'function') {
             translatedError = window.translateBackendErrorMessage(`ERROR: ${errorMessage}`);
         } else {
-            console.warn(mainActionsLogPrefix, "translateBackendErrorMessage function not found.");
+            actionsLogger.warn("translateBackendErrorMessage function not found.");
         }
         if (typeof window.updateProgressActivity === 'function') {
              window.updateProgressActivity(translatedError.icon, translatedError.message, translatedError.iconColorClass);
@@ -286,34 +308,32 @@ async function handleTranscribeSubmit() {
         if (pendingWorkflowPromptColorElem) pendingWorkflowPromptColorElem.value = "";
         const selectedInfoElem = document.getElementById('selectedWorkflowInfo');
         if (selectedInfoElem) selectedInfoElem.style.display = 'none';
-        console.log(mainActionsLogPrefix, "Cleared pending workflow fields from main form.");
+        actionsLogger.debug("Cleared pending workflow fields from main form.");
     });
 }
 window.handleTranscribeSubmit = handleTranscribeSubmit;
 
 async function handleStopTranscription() {
     const stopBtn = document.getElementById('stopBtn');
-    const logPrefix = "[MainActionsJS:handleStopTranscription]";
-
     if (!stopBtn || stopBtn.disabled) {
-        console.warn(logPrefix, "Stop button not found or already disabled.");
+        stopLogger.warn("Stop button not found or already disabled.");
         return;
     }
     if (!currentJobIdForStop) {
-        console.error(logPrefix, "No current job ID found to stop.");
+        stopLogger.error("No current job ID found to stop.");
         window.showNotification('Error: Cannot determine which job to stop.', 'error', 4000, false);
         return;
     }
 
     const jobIdToCancel = currentJobIdForStop;
-    console.log(logPrefix, `Stop requested for Job ID: ${jobIdToCancel}`);
+    stopLogger.info("Stop requested.", { jobId: jobIdToCancel });
     stopBtn.disabled = true;
     stopBtn.innerHTML = 'Cancelling... <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-current border-r-transparent ml-2"></span>';
 
     if (typeof window.updateProgressActivity === 'function') {
         window.updateProgressActivity('cancel', 'Requesting cancellation...', 'orange-text');
     } else {
-        console.error(logPrefix, "updateProgressActivity function not found.");
+        stopLogger.error("updateProgressActivity function not found.");
     }
 
     try {
@@ -324,7 +344,7 @@ async function handleStopTranscription() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(logPrefix, "Cancellation request successful:", data.message);
+            stopLogger.info("Cancellation request acknowledged by server.", { jobId: jobIdToCancel, message: data.message });
             window.cancellationRequestedForJobId = jobIdToCancel;
             if (typeof window.updateProgressActivity === 'function') {
                 window.updateProgressActivity('cancel', 'Cancellation requested. Waiting for process to stop...', 'orange-text');
@@ -333,7 +353,7 @@ async function handleStopTranscription() {
 
             setTimeout(() => {
                 if (window.currentJobId === jobIdToCancel && window.cancellationRequestedForJobId === jobIdToCancel) {
-                    console.warn(logPrefix, `Frontend forcing UI to 'cancelled' state for Job ID ${jobIdToCancel} after 5s timeout.`);
+                    stopLogger.warn("Frontend forcing UI to cancelled state after timeout.", { jobId: jobIdToCancel });
                     if (typeof window.updateProgressActivity === 'function') {
                         window.updateProgressActivity('cancel', 'Transcription cancelled by user.', 'orange-text');
                     }
@@ -350,20 +370,20 @@ async function handleStopTranscription() {
                         window.resetPollingState();
                     }
                 } else {
-                    console.debug(logPrefix, `Cancellation timeout for ${jobIdToCancel} expired, but polling already stopped or job changed.`);
+                    stopLogger.debug("Cancellation timeout expired but job already settled.", { jobId: jobIdToCancel });
                 }
             }, 5000);
 
         } else {
             let errorMsg = `Failed to request cancellation (Status: ${response.status})`;
             try { const errData = await response.json(); errorMsg = errData.error || errorMsg; } catch (e) {}
-            console.error(logPrefix, "Cancellation request failed:", errorMsg);
+            stopLogger.error("Cancellation request failed.", { jobId: jobIdToCancel, error: errorMsg });
             window.showNotification(`Error: ${window.escapeHtml(errorMsg)}`, 'error', 5000, false);
             stopBtn.disabled = false;
             stopBtn.innerHTML = 'STOP <i class="material-icons right">cancel</i>';
         }
     } catch (error) {
-        console.error(logPrefix, "Network error requesting cancellation:", error);
+        stopLogger.error("Network error requesting cancellation.", error);
         window.showNotification('Network error trying to stop transcription.', 'error', 4000, false);
         stopBtn.disabled = false;
         stopBtn.innerHTML = 'STOP <i class="material-icons right">cancel</i>';
@@ -371,4 +391,4 @@ async function handleStopTranscription() {
 }
 window.handleStopTranscription = handleStopTranscription;
 
-console.log(mainActionsLogPrefix, "Action handlers loaded.");
+actionsLogger.info("Action handlers loaded.");

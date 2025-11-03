@@ -12,13 +12,13 @@ function qs(id) { return document.getElementById(id); }
 
 
 function _handleEditWorkflowResult(operationId, workflowPanel) {
-  console.log(workflowResultsLogPrefix, `Edit workflow result requested for operation ID: ${operationId}`);
+  window.logger.info(workflowResultsLogPrefix, `Edit workflow result requested for operation ID: ${operationId}`);
   const resultTextElement = workflowPanel.querySelector(".workflow-result-text"),
     actionsDiv = workflowPanel.querySelector(".workflow-actions"),
     readMoreLink = workflowPanel.querySelector(".read-more-workflow");
   if (!resultTextElement || !actionsDiv) return;
   if (!operationId) {
-    console.error(workflowResultsLogPrefix, "Cannot edit workflow: Operation ID is missing.");
+    window.logger.error(workflowResultsLogPrefix, "Cannot edit workflow: Operation ID is missing.");
     window.Workflow.showToast("Error: Cannot identify workflow to edit.", "error");
     return;
   }
@@ -53,7 +53,7 @@ function _handleCopyWorkflowResult(workflowPanel) {
     if (typeof window.copyToClipboard === "function") {
       window.copyToClipboard(textToCopy);
     } else {
-      console.error(workflowResultsLogPrefix, "copyToClipboard function not found.");
+      window.logger.error(workflowResultsLogPrefix, "copyToClipboard function not found.");
       window.Workflow.showToast("Error: Copy function unavailable.", "error");
     }
   } else {
@@ -75,7 +75,7 @@ function _handleDownloadWorkflowResult(transcriptionId, workflowPanel) {
     if (typeof window.downloadTranscription === "function") {
       window.downloadTranscription(transcriptionId, textToDownload, `${baseFilename}_workflow`);
     } else {
-      console.error(workflowResultsLogPrefix, "downloadTranscription function not found.");
+      window.logger.error(workflowResultsLogPrefix, "downloadTranscription function not found.");
       window.Workflow.showToast("Error: Download function unavailable.", "error");
     }
   } else {
@@ -87,7 +87,7 @@ window.Workflow.handleDownloadWorkflowResult = _handleDownloadWorkflowResult;
 async function _handleDeleteWorkflowResult(transcriptionId, transcriptionItem) {
   const delLog = `[WorkflowJS:Results:handleDelete:${transcriptionId}]`;
   if (!confirm("Are you sure you want to delete this workflow result?")) return;
-  console.log(delLog, "Deleting workflow result...");
+  window.logger.info(delLog, "Deleting workflow result...");
   const workflowPanel = transcriptionItem.querySelector(".workflow-panel");
   const deleteButton = workflowPanel?.querySelector(".delete-workflow-btn");
   if (deleteButton) deleteButton.disabled = true;
@@ -99,7 +99,7 @@ async function _handleDeleteWorkflowResult(transcriptionId, transcriptionItem) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || `HTTP error ${response.status}`);
     window.Workflow.showToast(data.message || "Workflow result deleted.", "success");
-    console.log(delLog, "Workflow result deleted successfully via API.");
+    window.logger.info(delLog, "Workflow result deleted successfully via API.");
     if (workflowPanel) {
       workflowPanel.innerHTML = "";
       workflowPanel.style.display = "none";
@@ -111,7 +111,7 @@ async function _handleDeleteWorkflowResult(transcriptionId, transcriptionItem) {
     const contentContainer = transcriptionItem.querySelector(".history-item-content");
     if (contentContainer) contentContainer.classList.remove("has-active-workflow");
   } catch (error) {
-    console.error(delLog, "Error deleting workflow result:", error);
+    window.logger.error(delLog, "Error deleting workflow result:", error);
     const escapedError = typeof window.escapeHtml === 'function' ? window.escapeHtml(error.message) : error.message;
     window.Workflow.showToast(`Error: ${escapedError}`, "error");
     if (deleteButton) deleteButton.disabled = false;
@@ -124,7 +124,7 @@ async function _handleSaveWorkflowEdit(operationId, workflowPanel) {
   const textArea = workflowPanel.querySelector(".workflow-edit-area");
   const saveButton = workflowPanel.querySelector(".save-edit-workflow-btn");
   if (!textArea || !saveButton || !operationId) {
-    console.error(saveLog, "Missing required elements for save.");
+    window.logger.error(saveLog, "Missing required elements for save.");
     window.Workflow.showToast("Error saving edit.", "error");
     return;
   }
@@ -145,10 +145,10 @@ async function _handleSaveWorkflowEdit(operationId, workflowPanel) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || `HTTP error ${response.status}`);
     window.Workflow.showToast(data.message || "Workflow result updated.", "success");
-    console.log(saveLog, "Workflow edit saved successfully.");
+    window.logger.info(saveLog, "Workflow edit saved successfully.");
     _handleCancelWorkflowEdit(workflowPanel, newResult); // Call local version
   } catch (error) {
-    console.error(saveLog, "Error saving workflow edit:", error);
+    window.logger.error(saveLog, "Error saving workflow edit:", error);
     const escapedError = typeof window.escapeHtml === 'function' ? window.escapeHtml(error.message) : error.message;
     window.Workflow.showToast(`Error: ${escapedError}`, "error");
     saveButton.disabled = false;
@@ -173,7 +173,7 @@ function _handleCancelWorkflowEdit(workflowPanel, updatedText = null) {
         marked.setOptions({ gfm: true, breaks: false });
         resultHtml = marked.parse(textToDisplay);
       } catch (e) {
-        console.error(workflowResultsLogPrefix, "Error parsing Markdown:", e);
+        window.logger.error(workflowResultsLogPrefix, "Error parsing Markdown:", e);
         resultHtml = `<pre class="whitespace-pre-wrap break-words">${window.escapeHtml(textToDisplay)}</pre>`;
       }
     } else {
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const operationId = workflowPanel.dataset.operationId;
 
             if (!transcriptionId) { // Should always have transcriptionId if workflowPanel exists
-                console.warn(logPrefix, "Could not find transcription ID for workflow action.");
+                window.logger.warn(logPrefix, "Could not find transcription ID for workflow action.");
                 return;
             }
 
@@ -270,6 +270,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.Workflow.handleCancelWorkflowEdit(workflowPanel);
             }
         });
-        console.debug(logPrefix, "Workflow result action listener attached to history list.");
+        window.logger.debug(logPrefix, "Workflow result action listener attached to history list.");
     }
 });

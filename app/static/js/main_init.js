@@ -2,6 +2,7 @@
 /* Handles initial page setup, readiness checks, and event listener attachment. */
 
 const mainInitLogPrefix = "[MainInitJS]";
+const initLogger = window.logger.scoped("MainInitJS");
 const LARGE_FILE_THRESHOLD_MB = 25; 
 const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe', 'gpt-4o-transcribe-diarize'];
 
@@ -14,6 +15,25 @@ let pendingReadinessPromise = null;
 let hasLoggedReadinessCacheHit = false;
 let hasLoggedReadinessFetchInProgress = false;
 let READINESS_DIAGNOSTICS_ENABLED = false;
+let lastApiDropdownSignature = null;
+let lastContextPromptVisibility = null;
+let lastTranscribeButtonState = { enabled: null, reason: null };
+let lastTranscribeButtonMeta = {};
+let hasLoggedReadinessAttempt = false;
+
+function logTranscribeButtonState(enabled, reason, meta = {}) {
+    const normalizedReason = reason || null;
+    if (lastTranscribeButtonState.enabled === enabled && lastTranscribeButtonState.reason === normalizedReason) {
+        return;
+    }
+    lastTranscribeButtonState = { enabled, reason: normalizedReason };
+    lastTranscribeButtonMeta = meta;
+    if (enabled) {
+        initLogger.info("Transcribe button enabled.", meta);
+    } else {
+        initLogger.info("Transcribe button disabled.", { reason: normalizedReason, ...meta });
+    }
+}
 
 try {
     const storedReadinessDiagnosticsFlag = window.localStorage
@@ -33,20 +53,21 @@ function invalidateReadinessCache() {
     readinessCacheTimestamp = 0;
     hasLoggedReadinessCacheHit = false;
     hasLoggedReadinessFetchInProgress = false;
-    window.logger.debug(mainInitLogPrefix, "Readiness cache invalidated.");
+    hasLoggedReadinessAttempt = false;
+    initLogger.debug("Readiness cache invalidated.");
 }
 window.invalidateReadinessCache = invalidateReadinessCache; 
 
 function updateApiDropdownState(apiKeyStatus) {
     const apiSelect = document.getElementById('apiSelect');
     if (!apiSelect || !window.IS_MULTI_USER) {
-        window.logger.debug(mainInitLogPrefix, "Skipping API dropdown update (not multi-user or element missing).");
+        initLogger.debug("Skipping API dropdown update (not multi-user or element missing).");
         return;
     }
     const currentKeyStatus = (typeof apiKeyStatus === 'object' && apiKeyStatus !== null) ? apiKeyStatus : {};
     const options = apiSelect.options;
     const disabledMarker = " (API Key Missing)";
-    window.logger.debug(mainInitLogPrefix, "Updating API dropdown state based on keys:", currentKeyStatus);
+    const changes = [];
 
     for (let i = 0; i < options.length; i++) {
         const option = options[i];
@@ -61,21 +82,31 @@ function updateApiDropdownState(apiKeyStatus) {
                 if (!currentText.includes(disabledMarker)) {
                     option.textContent += disabledMarker;
                 }
-                console.log(mainInitLogPrefix, `Disabling API option: ${option.value}`);
+                changes.push({ value: option.value, action: 'disabled' });
             } else if (isKeySet && isDisabled) {
                 option.disabled = false;
                 option.textContent = currentText.replace(disabledMarker, "").trim();
-                console.log(mainInitLogPrefix, `Enabling API option: ${option.value}`);
+                changes.push({ value: option.value, action: 'enabled' });
             }
         }
     }
-    window.logger.debug(mainInitLogPrefix, "API dropdown state updated directly (Tailwind/HTML).");
+    const signature = JSON.stringify({
+        keyStatus: currentKeyStatus,
+        disabledState: Array.from(options).map(opt => ({ value: opt.value, disabled: opt.disabled }))
+    });
+
+    if (changes.length) {
+        initLogger.info("API dropdown state updated.", { changes, keyStatus: currentKeyStatus });
+    } else if (initLogger.isDebugEnabled && initLogger.isDebugEnabled() && signature !== lastApiDropdownSignature) {
+        initLogger.debug("API dropdown evaluated with no state changes.", { keyStatus: currentKeyStatus });
+    }
+    lastApiDropdownSignature = signature;
 }
 window.updateApiDropdownState = updateApiDropdownState;
 
 async function fetchReadinessData() {
     if (!window.IS_MULTI_USER) {
-        window.logger.debug(mainInitLogPrefix, "Single-user mode: Assuming readiness.");
+        initLogger.debug("Single-user mode: Assuming readiness.");
         return {
             api_keys: { openai: true, assemblyai: true, gemini: true },
             permissions: {
@@ -92,7 +123,7 @@ async function fetchReadinessData() {
     const now = Date.now();
     if (readinessCache && (now - readinessCacheTimestamp < READINESS_CACHE_DURATION_MS)) {
         if (!hasLoggedReadinessCacheHit) {
-            window.logger.debug(mainInitLogPrefix, "Returning cached readiness data.");
+            initLogger.debug("Returning cached readiness data.");
             hasLoggedReadinessCacheHit = true;
         }
         return Promise.resolve(readinessCache);
@@ -100,13 +131,13 @@ async function fetchReadinessData() {
 
     if (isFetchingReadiness && pendingReadinessPromise) {
         if (!hasLoggedReadinessFetchInProgress) {
-            window.logger.debug(mainInitLogPrefix, "Readiness data fetch already in progress. Returning existing promise.");
+            initLogger.debug("Readiness data fetch already in progress. Returning existing promise.");
             hasLoggedReadinessFetchInProgress = true;
         }
         return pendingReadinessPromise;
     }
 
-    window.logger.debug(mainInitLogPrefix, `Fetching fresh readiness data (Cache expired or not set)...`);
+    initLogger.debug("Fetching fresh readiness data (cache expired or not set).");
     isFetchingReadiness = true;
     hasLoggedReadinessCacheHit = false;
     hasLoggedReadinessFetchInProgress = false;
@@ -117,13 +148,13 @@ async function fetchReadinessData() {
     })
     .then(async response => {
         if (response.status === 401) {
-            console.warn(mainInitLogPrefix, "Readiness check failed (401 Unauthorized). User likely logged out.");
+            initLogger.warn("Readiness check failed (401 Unauthorized). User likely logged out.");
             window.showNotification('Session expired. Please log in.', 'warning', 4000, false);
             setTimeout(() => { window.location.href = '/login'; }, 2000);
             throw new Error('Unauthorized (401)');
         }
         if (!response.ok) {
-            console.error(mainInitLogPrefix, `Error fetching readiness data: ${response.status} ${response.statusText}`);
+            initLogger.error(`Error fetching readiness data: ${response.status} ${response.statusText}`);
             throw new Error(`HTTP error ${response.status}`);
         }
         return response.json();
@@ -133,18 +164,19 @@ async function fetchReadinessData() {
         readinessCacheTimestamp = Date.now();
         window.API_KEY_STATUS = data.api_keys || {};
         window.USER_PERMISSIONS = data.permissions || {};
-        window.logger.debug(mainInitLogPrefix, "Fresh readiness data fetched and cached:", data);
+        initLogger.debug("Fresh readiness data fetched and cached.", data);
         if (READINESS_DIAGNOSTICS_ENABLED) {
-            console.debug("DIAGNOSTIC_LOG: Received readiness data from backend:", JSON.stringify(data, null, 2));
+            initLogger.debug("DIAGNOSTIC_LOG: Received readiness data from backend:", JSON.stringify(data, null, 2));
         }
         isFetchingReadiness = false;
         pendingReadinessPromise = null;
         hasLoggedReadinessFetchInProgress = false;
         hasLoggedReadinessCacheHit = false;
+        hasLoggedReadinessAttempt = false;
         return data;
     })
     .catch(error => {
-        console.error(mainInitLogPrefix, 'Error fetching readiness data:', error.message);
+        initLogger.error('Error fetching readiness data:', error.message);
         isFetchingReadiness = false;
         pendingReadinessPromise = null;
         hasLoggedReadinessFetchInProgress = false;
@@ -165,7 +197,7 @@ async function checkTranscribeButtonState() {
     const toggleContextPromptBtn = document.getElementById('toggleContextPromptBtn');
 
     if (!transcribeBtn || !apiSelect || !fileInput) { 
-        console.warn(mainInitLogPrefix, "Required elements for transcribe button check not found (transcribeBtn, apiSelect, or fileInput).");
+        initLogger.warn("Required elements for transcribe button check not found (transcribeBtn, apiSelect, or fileInput).");
         return false;
     }
 
@@ -176,12 +208,15 @@ async function checkTranscribeButtonState() {
     }
 
 
-    window.logger.debug(mainInitLogPrefix, "checkTranscribeButtonState: Attempting to get readiness data...");
+    if (initLogger.isDebugEnabled && initLogger.isDebugEnabled() && !hasLoggedReadinessAttempt) {
+        initLogger.debug("checkTranscribeButtonState: Attempting to get readiness data...");
+        hasLoggedReadinessAttempt = true;
+    }
     let readinessData;
     try {
         readinessData = await fetchReadinessData();
     } catch (error) {
-        console.error(mainInitLogPrefix, "Failed to get readiness data in checkTranscribeButtonState:", error.message);
+        initLogger.error("Failed to get readiness data in checkTranscribeButtonState:", error.message);
         if (statusSpan) statusSpan.textContent = 'Could not verify user status.';
         if (contextPromptSection) contextPromptSection.classList.add('hidden');
         if (toggleContextPromptBtn) toggleContextPromptBtn.classList.add('hidden');
@@ -215,14 +250,22 @@ async function checkTranscribeButtonState() {
         const supportsContextPrompt = CONTEXT_PROMPT_SUPPORTED_APIS.includes(selectedApiValue);
         const canShowContextPromptButton = hasContextPermission && supportsContextPrompt;
 
+        if (lastContextPromptVisibility !== canShowContextPromptButton) {
+            lastContextPromptVisibility = canShowContextPromptButton;
+            const meta = { api: selectedApiValue, hasContextPermission, supportsContextPrompt };
+            if (canShowContextPromptButton) {
+                initLogger.info("Context prompt controls shown.", meta);
+            } else {
+                initLogger.info("Context prompt controls hidden.", meta);
+            }
+        }
+
         if (canShowContextPromptButton) {
             toggleContextPromptBtn.classList.remove('hidden');
             toggleContextPromptBtn.style.display = 'inline-flex'; 
-            window.logger.debug(mainInitLogPrefix, "Context prompt button SHOWN.");
         } else {
             toggleContextPromptBtn.classList.add('hidden');
             toggleContextPromptBtn.style.display = 'none';
-            window.logger.debug(mainInitLogPrefix, `Context prompt button HIDDEN.`);
             if (contextPromptSection) {
                 contextPromptSection.classList.add('hidden');
                 if (contextPromptInput) {
@@ -296,7 +339,7 @@ async function checkTranscribeButtonState() {
     if (!disableReason && !isFileSelected) {
         transcribeBtn.disabled = true;
         if (statusSpan) statusSpan.innerHTML = '';
-        window.logger.debug(mainInitLogPrefix, "Transcribe button disabled: No file selected.");
+        logTranscribeButtonState(false, "no-file-selected", { api: selectedApiValue, contextVisible: Boolean(contextPromptSection && !contextPromptSection.classList.contains('hidden')) });
         return false;
     }
 
@@ -309,7 +352,7 @@ async function checkTranscribeButtonState() {
                 if (typeof window.translateBackendErrorMessage === 'function') {
                     translatedReason = window.translateBackendErrorMessage(disableReason, 0, 0, '', '');
                 } else {
-                    console.warn(mainInitLogPrefix, "translateBackendErrorMessage function not found.");
+                    initLogger.warn("translateBackendErrorMessage function not found.");
                 }
                 statusSpan.innerHTML = translatedReason.message;
                 statusSpan.className = `mt-2 text-xs ${translatedReason.iconColorClass || 'text-red-600'} text-center`;
@@ -317,12 +360,12 @@ async function checkTranscribeButtonState() {
                 statusSpan.innerHTML = '';
             }
         }
-        console.log(mainInitLogPrefix, "Transcribe button disabled:", disableReason);
+        logTranscribeButtonState(false, disableReason, { api: selectedApiValue, isPermissionError });
         return false;
     } else {
         transcribeBtn.disabled = false;
         if (statusSpan) statusSpan.innerHTML = '';
-        console.log(mainInitLogPrefix, "Transcribe button enabled.");
+        logTranscribeButtonState(true, null, { api: selectedApiValue });
         return true;
     }
 }
@@ -370,23 +413,23 @@ function updateApiKeyNotificationVisibility(keyStatus, permissions) {
     }
     if (shouldShow) {
         if (!notificationElement) {
-            console.log(mainInitLogPrefix, "Showing API key needed notification.");
+            initLogger.info("Showing API key needed notification.");
             window.showNotification(
                 'API Key needed. Please go to  <a href="#" onclick="openApiKeyModal(event)" class="underline text-blue-600 hover:text-blue-800">Manage API Keys</a>  to use all features.',
                 'warning', 0, true, 'api-key-notification'
             );
         } else {
-             window.logger.debug(mainInitLogPrefix, "API key notification should be shown, but it already exists.");
+            initLogger.debug("API key notification should be shown, but it already exists.");
         }
     } else {
         if (notificationElement) {
-            console.log(mainInitLogPrefix, "Hiding API key needed notification.");
+            initLogger.info("Hiding API key needed notification.");
             notificationElement.style.opacity = '0';
             setTimeout(() => {
                 notificationElement.remove();
             }, 500);
         } else {
-             window.logger.debug(mainInitLogPrefix, "API key notification is correctly not shown as it's not needed.");
+            initLogger.debug("API key notification is correctly not shown as it's not needed.");
         }
     }
 }
@@ -426,14 +469,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof window.handleTranscribeSubmit === 'function') {
             transcribeBtn.addEventListener('click', window.handleTranscribeSubmit);
         } else {
-            console.error(mainInitLogPrefix, "handleTranscribeSubmit function not found.");
+            initLogger.error("handleTranscribeSubmit function not found.");
         }
     }
     if (stopBtn) {
         if (typeof window.handleStopTranscription === 'function') {
             stopBtn.addEventListener('click', window.handleStopTranscription);
         } else {
-            console.error(mainInitLogPrefix, "handleStopTranscription function not found.");
+            initLogger.error("handleStopTranscription function not found.");
         }
     }
 
@@ -462,12 +505,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (applyWorkflowBtn && workflowModal) {
         applyWorkflowBtn.addEventListener('click', function() {
-            console.log(mainInitLogPrefix, "Apply Workflow button clicked.");
+            initLogger.info("Apply Workflow button clicked.");
             if (typeof window.Workflow !== 'undefined' && typeof window.Workflow.openWorkflowModal === 'function') {
                 workflowModal.dataset.mode = 'pre-apply';
                 window.Workflow.openWorkflowModal(null);
             } else {
-                console.error(mainInitLogPrefix, "Workflow.openWorkflowModal function not found.");
+                initLogger.error("Workflow.openWorkflowModal function not found.");
                 window.showNotification('Error opening workflow selection.', 'error', 4000, false);
             }
         });
@@ -512,11 +555,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof window.checkTranscribeButtonState === 'function') {
                 window.checkTranscribeButtonState();
             }
-            console.log(mainInitLogPrefix, "Applied workflow removed.");
+            initLogger.info("Applied workflow removed.");
             // Clear pre-apply mode from modal if it was set
             if (workflowModal && workflowModal.dataset.mode === 'pre-apply') {
                 delete workflowModal.dataset.mode;
-                console.debug(mainInitLogPrefix, "Cleared pre-apply mode from workflow modal after removal.");
+                initLogger.debug("Cleared pre-apply mode from workflow modal after removal.");
             }
         });
     }
@@ -531,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
         checkTranscribeButtonState();
     }
 
-    console.log(mainInitLogPrefix, "Event listeners attached.");
+    initLogger.info("Event listeners attached.");
 });
 
-console.log(mainInitLogPrefix, "Initialization script loaded.");
+initLogger.info("Initialization script loaded.");

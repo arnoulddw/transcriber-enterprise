@@ -21,18 +21,18 @@ function initializeApiKeyModalElements() {
     }
 
     if (!apiKeyModal || !apiKeyModalOverlay || !apiKeyModalPanel) {
-        console.warn(userSettingsLogPrefix, "One or more API Key modal core elements not found.");
+        window.logger.warn(userSettingsLogPrefix, "One or more API Key modal core elements not found.");
         return false;
     }
     if (apiKeyModalTriggers.length === 0 && window.IS_MULTI_USER) { // Only warn if multi-user and triggers expected
-        console.warn(userSettingsLogPrefix, "API Key trigger buttons not found.");
+        window.logger.warn(userSettingsLogPrefix, "API Key trigger buttons not found.");
     }
     return true;
 }
 
 function openApiKeyModalDialog() {
     if (!apiKeyModal || !apiKeyModalOverlay || !apiKeyModalPanel) {
-        console.error(userSettingsLogPrefix, "Cannot open API Key modal: core elements missing.");
+        window.logger.error(userSettingsLogPrefix, "Cannot open API Key modal: core elements missing.");
         return;
     }
     previouslyFocusedElement = document.activeElement;
@@ -67,12 +67,12 @@ function openApiKeyModalDialog() {
     } else {
         apiKeyModalPanel.focus(); // Fallback
     }
-    console.log(userSettingsLogPrefix, "API Key modal opened.");
+    window.logger.info(userSettingsLogPrefix, "API Key modal opened.");
 }
 
 function closeApiKeyModalDialog() {
     if (!apiKeyModal || !apiKeyModalOverlay || !apiKeyModalPanel) {
-        console.error(userSettingsLogPrefix, "Cannot close API Key modal: core elements missing.");
+        window.logger.error(userSettingsLogPrefix, "Cannot close API Key modal: core elements missing.");
         return;
     }
 
@@ -95,13 +95,13 @@ function closeApiKeyModalDialog() {
         previouslyFocusedElement.focus();
         previouslyFocusedElement = null;
     }
-    console.log(userSettingsLogPrefix, "API Key modal closed.");
+    window.logger.info(userSettingsLogPrefix, "API Key modal closed.");
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
     if (!initializeApiKeyModalElements()) {
-        console.warn(userSettingsLogPrefix, "API Key modal setup skipped due to missing elements.");
+        window.logger.warn(userSettingsLogPrefix, "API Key modal setup skipped due to missing elements.");
         return;
     }
 
@@ -155,9 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const apiKeyForm = document.getElementById('apiKeyForm');
     if (apiKeyForm) {
         apiKeyForm.addEventListener('submit', handleApiKeySave);
-        console.debug(userSettingsLogPrefix, "API Key save form listener attached.");
+        window.logger.debug(userSettingsLogPrefix, "API Key save form listener attached.");
     } else if (window.IS_MULTI_USER) {
-         console.warn(userSettingsLogPrefix, "API Key form element (#apiKeyForm) not found.");
+         window.logger.warn(userSettingsLogPrefix, "API Key form element (#apiKeyForm) not found.");
     }
 
     // --- API Key Deletion Listener (Event Delegation) ---
@@ -166,14 +166,14 @@ document.addEventListener('DOMContentLoaded', function() {
         keyStatusListContainer.addEventListener('click', function(event) {
             const deleteButton = event.target.closest('.delete-key-btn');
             if (deleteButton) {
-                console.log(userSettingsLogPrefix, "Delete button clicked:", deleteButton);
+                window.logger.info(userSettingsLogPrefix, "Delete button clicked:", deleteButton);
                 event.preventDefault();
                 handleApiKeyDelete(deleteButton);
             }
         });
-        console.debug(userSettingsLogPrefix, "API Key delete listener (delegation) attached.");
+        window.logger.debug(userSettingsLogPrefix, "API Key delete listener (delegation) attached.");
     } else if (window.IS_MULTI_USER) {
-         console.warn(userSettingsLogPrefix, "API Key status list container not found for delete listener.");
+         window.logger.warn(userSettingsLogPrefix, "API Key status list container not found for delete listener.");
     }
 
 }); // End DOMContentLoaded
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
  * Returns a Promise that resolves with the key status data or rejects on error.
  */
 function fetchApiKeyStatus() {
-    console.debug(userSettingsLogPrefix, "Fetching API key status...");
+    window.logger.debug(userSettingsLogPrefix, "Fetching API key status...");
     return new Promise((resolve, reject) => {
         const openaiStatusElem = document.getElementById('openaiKeyStatus');
         const assemblyaiStatusElem = document.getElementById('assemblyaiKeyStatus');
@@ -202,19 +202,19 @@ function fetchApiKeyStatus() {
         if (canUseOpenAI && openaiStatusElem && openaiActionsElem) {
             updateStatusElement(openaiStatusElem, openaiActionsElem, null, 'openai', 'Checking...');
         } else if (canUseOpenAI) {
-            console.debug(userSettingsLogPrefix, "OpenAI status elements not found (but permission exists), skipping initial reset.");
+            window.logger.debug(userSettingsLogPrefix, "OpenAI status elements not found (but permission exists), skipping initial reset.");
         }
 
         if (canUseAssemblyAI && assemblyaiStatusElem && assemblyaiActionsElem) {
             updateStatusElement(assemblyaiStatusElem, assemblyaiActionsElem, null, 'assemblyai', 'Checking...');
         } else if (canUseAssemblyAI) {
-             console.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping initial reset.");
+             window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping initial reset.");
         }
 
         if (canUseGemini && geminiStatusElem && geminiActionsElem) {
             updateStatusElement(geminiStatusElem, geminiActionsElem, null, 'gemini', 'Checking...');
         } else if (canUseGemini) {
-            console.debug(userSettingsLogPrefix, "Gemini status elements not found (but permission exists), skipping initial reset.");
+            window.logger.debug(userSettingsLogPrefix, "Gemini status elements not found (but permission exists), skipping initial reset.");
         }
 
 
@@ -228,24 +228,24 @@ function fetchApiKeyStatus() {
             return response.json();
         })
         .then(data => {
-            console.log(userSettingsLogPrefix, "API Key status received:", data);
+            window.logger.info(userSettingsLogPrefix, "API Key status received:", data);
 
             if (canUseOpenAI && openaiStatusElem && openaiActionsElem) {
                 updateStatusElement(openaiStatusElem, openaiActionsElem, data.openai, 'openai');
             } else if (canUseOpenAI) {
-                console.debug(userSettingsLogPrefix, "OpenAI status elements not found (but permission exists), skipping update.");
+                window.logger.debug(userSettingsLogPrefix, "OpenAI status elements not found (but permission exists), skipping update.");
             }
 
             if (canUseAssemblyAI && assemblyaiStatusElem && assemblyaiActionsElem) {
                 updateStatusElement(assemblyaiStatusElem, assemblyaiActionsElem, data.assemblyai, 'assemblyai');
             } else if (canUseAssemblyAI) {
-                 console.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping update.");
+                 window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping update.");
             }
 
             if (canUseGemini && geminiStatusElem && geminiActionsElem) {
                 updateStatusElement(geminiStatusElem, geminiActionsElem, data.gemini, 'gemini');
             } else if (canUseGemini) {
-                console.debug(userSettingsLogPrefix, "Gemini status elements not found (but permission exists), skipping update.");
+                window.logger.debug(userSettingsLogPrefix, "Gemini status elements not found (but permission exists), skipping update.");
             }
 
             window.API_KEY_STATUS = data || {};
@@ -253,13 +253,13 @@ function fetchApiKeyStatus() {
             if (typeof window.updateApiKeyNotificationVisibility === 'function') {
                 window.updateApiKeyNotificationVisibility(data, permissions);
             } else {
-                console.error(userSettingsLogPrefix, "updateApiKeyNotificationVisibility function not found.");
+                window.logger.error(userSettingsLogPrefix, "updateApiKeyNotificationVisibility function not found.");
             }
 
             resolve(data);
         })
         .catch(error => {
-            console.error(userSettingsLogPrefix, 'Error fetching API key status:', error);
+            window.logger.error(userSettingsLogPrefix, 'Error fetching API key status:', error);
             window.showNotification(`Error fetching key status: ${escapeHtml(error.message)}`, 'error', 6000, false);
 
             if (canUseOpenAI && openaiStatusElem && openaiActionsElem) {
@@ -291,7 +291,7 @@ function fetchApiKeyStatus() {
  */
 function updateStatusElement(statusElement, actionsElement, isSet, serviceName, overrideText = null) {
     if (!statusElement || !actionsElement) {
-        console.warn(userSettingsLogPrefix, `Attempted to update non-existent status elements for service: ${serviceName}`);
+        window.logger.warn(userSettingsLogPrefix, `Attempted to update non-existent status elements for service: ${serviceName}`);
         return;
     }
 
@@ -337,7 +337,7 @@ function updateStatusElement(statusElement, actionsElement, isSet, serviceName, 
 function handleApiKeySave(event) {
     event.preventDefault();
     const logPrefix = "[UserSettingsJS:handleApiKeySave]";
-    console.log(logPrefix, "Save key form submitted.");
+    window.logger.info(logPrefix, "Save key form submitted.");
 
     const form = event.target;
     const serviceSelect = document.getElementById('apiKeyServiceSelect');
@@ -386,7 +386,7 @@ function handleApiKeySave(event) {
         return response.json();
     })
     .then(data => {
-        console.log(logPrefix, "API Key save response:", data);
+        window.logger.info(logPrefix, "API Key save response:", data);
         window.showNotification(data.message || 'API Key saved successfully!', 'success', 4000, false);
         keyInput.value = '';
         serviceSelect.value = '';
@@ -399,14 +399,14 @@ function handleApiKeySave(event) {
             window.invalidateReadinessCache(); // Invalidate cache
         }
         if (typeof checkTranscribeButtonState === 'function') {
-            console.log(logPrefix, "Triggering main page UI update after save.");
+            window.logger.info(logPrefix, "Triggering main page UI update after save.");
             checkTranscribeButtonState();
         } else {
-            console.warn(logPrefix, "checkTranscribeButtonState function not found in main.js");
+            window.logger.warn(logPrefix, "checkTranscribeButtonState function not found in main.js");
         }
     })
     .catch(error => {
-        console.error(logPrefix, 'Error saving API key:', error);
+        window.logger.error(logPrefix, 'Error saving API key:', error);
         if (!error.message.includes("fetching key status")) {
             window.showNotification(`Error saving key: ${escapeHtml(error.message)}`, 'error', 6000, false);
         }
@@ -428,10 +428,10 @@ function handleApiKeySave(event) {
 function handleApiKeyDelete(button) {
     const service = button.dataset.service;
     const logPrefix = `[UserSettingsJS:handleApiKeyDelete:${service}]`;
-    console.log(logPrefix, `Delete key requested.`);
+    window.logger.info(logPrefix, `Delete key requested.`);
 
     if (!service) {
-        console.error(logPrefix, "Delete handler called without a service specified on the button.");
+        window.logger.error(logPrefix, "Delete handler called without a service specified on the button.");
         window.showNotification('Could not determine which key to delete.', 'error', 4000, false);
         return;
     }
@@ -442,7 +442,7 @@ function handleApiKeyDelete(button) {
     else if (service === 'gemini') serviceDisplayName = 'Google Gemini';
 
     if (!confirm(`Are you sure you want to delete the API key for ${serviceDisplayName}?`)) {
-        console.log(logPrefix, "Delete cancelled by user.");
+        window.logger.info(logPrefix, "Delete cancelled by user.");
         return;
     }
 
@@ -470,7 +470,7 @@ function handleApiKeyDelete(button) {
         return response.json();
     })
     .then(data => {
-        console.log(logPrefix, `API Key delete response:`, data);
+        window.logger.info(logPrefix, `API Key delete response:`, data);
         window.showNotification(data.message || `API Key for ${serviceDisplayName} deleted.`, 'success', 4000, false);
 
         return fetchApiKeyStatus();
@@ -480,14 +480,14 @@ function handleApiKeyDelete(button) {
             window.invalidateReadinessCache(); // Invalidate cache
         }
         if (typeof checkTranscribeButtonState === 'function') {
-            console.log(logPrefix, "Triggering main page UI update after delete.");
+            window.logger.info(logPrefix, "Triggering main page UI update after delete.");
             checkTranscribeButtonState();
         } else {
-            console.warn(logPrefix, "checkTranscribeButtonState function not found in main.js");
+            window.logger.warn(logPrefix, "checkTranscribeButtonState function not found in main.js");
         }
     })
     .catch(error => {
-        console.error(logPrefix, `Error deleting API key:`, error);
+        window.logger.error(logPrefix, `Error deleting API key:`, error);
         if (!error.message.includes("fetching key status")) {
              window.showNotification(`Error deleting key: ${escapeHtml(error.message)}`, 'error', 6000, false);
         }

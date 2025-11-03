@@ -64,7 +64,7 @@ window.handleSaveTemplateWorkflow = async function() { // MODIFIED: Attached to 
         window.location.href = "/admin/template-workflows";
 
     } catch (error) {
-        console.error(logPrefix, "Error saving template workflow:", error);
+        window.logger.error(logPrefix, "Error saving template workflow:", error);
         window.showNotification(`Error: ${escapeHtml(error.message)}`, 'error', 6000, false);
         saveButton.disabled = false;
         saveButton.innerHTML = originalButtonHtml;
@@ -115,7 +115,7 @@ function handleDeleteUser(userId, username) {
         if (rowToRemove) {
             rowToRemove.remove();
         } else {
-            console.warn(logPrefix, "Row not found in table after deletion, reloading page.");
+            window.logger.warn(logPrefix, "Row not found in table after deletion, reloading page.");
             window.location.reload();
         }
         const tableBody = document.getElementById('usersTableBody');
@@ -124,7 +124,7 @@ function handleDeleteUser(userId, username) {
         }
     })
     .catch(error => {
-        console.error(logPrefix, `Error deleting user:`, error);
+        window.logger.error(logPrefix, `Error deleting user:`, error);
         window.showNotification(`Error deleting user: ${escapeHtml(error.message)}`, 'error', 5000, false);
         if (deleteButton) {
             deleteButton.disabled = false;
@@ -178,7 +178,7 @@ function handleRoleEditClick(editButton) {
         roleSelect.focus();
         window.logger.debug("[AdminJS] Role editing started for user:", roleSelect.dataset.userId);
     } else {
-        console.error("[AdminJS] Could not find role span or select elements within the cell.");
+        window.logger.error("[AdminJS] Could not find role span or select elements within the cell.");
     }
 }
 
@@ -305,7 +305,7 @@ function updateUserRole(userId, newRoleId, roleSelect, roleSpan, originalRoleId)
         roleSpan.classList.remove('hidden');
     })
     .catch(error => {
-        console.error(logPrefix, "Error updating role:", error);
+        window.logger.error(logPrefix, "Error updating role:", error);
         window.showNotification(`Error: ${escapeHtml(error.message)}`, 'error', 5000, false);
         roleSelect.value = originalRoleId;
         roleSelect.classList.add('hidden');
@@ -327,13 +327,13 @@ function updateUserRole(userId, newRoleId, roleSelect, roleSpan, originalRoleId)
 function initializeTabs(tabGroupId) {
     const tabGroup = document.getElementById(tabGroupId);
     if (!tabGroup) {
-        console.warn(`Tab group with ID '${tabGroupId}' not found.`);
+        window.logger.warn(`Tab group with ID '${tabGroupId}' not found.`);
         return;
     }
 
     const tabButtons = Array.from(tabGroup.querySelectorAll('[role="tab"]'));
     if (tabButtons.length === 0) {
-        console.warn(`No tab buttons found in tab group '${tabGroupId}'.`);
+        window.logger.warn(`No tab buttons found in tab group '${tabGroupId}'.`);
         return;
     }
 
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (typeof handleDeleteUser === 'function') {
                     handleDeleteUser(userId, username);
                 } else {
-                    console.error("[AdminJS] handleDeleteUser function is not defined.");
+                    window.logger.error("[AdminJS] handleDeleteUser function is not defined.");
                     alert("Error: Delete functionality is not available.");
                 }
             }

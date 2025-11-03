@@ -23,7 +23,7 @@ function formatDate(isoString) {
         const locale = getUserLocale();
         return new Intl.DateTimeFormat(locale).format(date);
     } catch (e) {
-        console.error("Error formatting date:", e);
+        window.logger.error("Error formatting date:", e);
         return isoString; // Fallback to original string on error
     }
 }
@@ -48,7 +48,7 @@ function formatDateTime(isoString) {
         };
         return new Intl.DateTimeFormat(locale, options).format(date);
     } catch (e) {
-        console.error("Error formatting datetime:", e);
+        window.logger.error("Error formatting datetime:", e);
         return isoString; // Fallback to original string on error
     }
 }

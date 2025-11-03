@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 passwordInput.setAttribute('type', newType);
                 this.textContent = newType === 'password' ? 'visibility' : 'visibility_off';
             });
-            console.debug(logPrefix, `Password toggle initialized for input #${inputId}`);
+            window.logger.debug(logPrefix, `Password toggle initialized for input #${inputId}`);
         } else {
-            if (!passwordInput) console.debug(logPrefix, `Password input element #${inputId} not found.`);
-            if (!toggleIcon) console.debug(logPrefix, `Password toggle icon #${toggleIconId} not found.`);
+            if (!passwordInput) window.logger.debug(logPrefix, `Password input element #${inputId} not found.`);
+            if (!toggleIcon) window.logger.debug(logPrefix, `Password toggle icon #${toggleIconId} not found.`);
         }
     }
 

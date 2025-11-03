@@ -1,7 +1,6 @@
 # app/services/api_clients/transcription/assemblyai.py
 # Client for interacting with the AssemblyAI transcription API.
 
-import logging
 import os
 from typing import Tuple, Optional, Dict, Any, Type
 
@@ -36,7 +35,7 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         super().__init__(api_key, config)
         # Override max_concurrent_chunks for AssemblyAI as it handles this internally
         self.max_concurrent_chunks = 1
-        logging.info(f"[{self._get_api_name()}] Max concurrent chunks set to 1 (handled by SDK).")
+        self.logger.info("Max concurrent chunks set to 1 (handled by SDK).")
 
         api_limits = self.config.get('API_LIMITS', {}).get('assemblyai', {})
         self.SPLIT_THRESHOLD_SECONDS = api_limits.get('duration_s')
@@ -47,7 +46,7 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
             # AssemblyAI has no hard size limit, so we can set it very high
             # to prevent the base client from splitting based on size.
             self.SPLIT_THRESHOLD_BYTES = 1024 * 1024 * 1024 # 1 GB
-        logging.info(f"[{self._get_api_name()}] Limits set - Duration: {self.SPLIT_THRESHOLD_SECONDS}s, Size: {size_mb}MB")
+        self.logger.info("Limits set - Duration: %ss, Size: %sMB", self.SPLIT_THRESHOLD_SECONDS, size_mb)
 
 
     # --- Implementation of Abstract Methods ---
@@ -62,7 +61,7 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
             aai.settings.api_key = self.api_key
             # Store an instance for consistency, though SDK often uses global settings
             self.client = aai.Transcriber()
-            logging.info(f"[{self._get_api_name()}] Client initialized and SDK configured.")
+            self.logger.info("Client initialized and SDK configured.")
         except Exception as e:
             # Let the Base Class __init__ handle raising TranscriptionConfigurationError
             raise ValueError(f"AssemblyAI SDK configuration failed: {e}") from e
@@ -74,8 +73,8 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         ui_lang_msg = ""
 
         if context_prompt:
-             logging.warning(f"[{self._get_api_name()}] Context prompt provided but not directly used by AssemblyAI standard transcription.")
-             # Could potentially use word_boost here if needed in the future
+            self.logger.warning("Context prompt provided but not directly used by AssemblyAI standard transcription.")
+            # Could potentially use word_boost here if needed in the future
 
         if language_code == 'auto':
             config_params['language_detection'] = True
@@ -87,13 +86,13 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
                 log_lang_param_desc = f"'{language_code}'"
                 ui_lang_msg = f"Language set to '{language_code}'."
             except ValueError:
-                 logging.warning(f"[{self._get_api_name()}] Language code '{language_code}' not recognized by AssemblyAI SDK enum. Falling back to auto-detection.")
-                 ui_lang_msg = f"Language code '{language_code}' not recognized by AssemblyAI SDK. Using auto-detection."
-                 config_params['language_detection'] = True
-                 log_lang_param_desc = "'auto' (fallback detection)"
-                 language_code = 'auto' # Update effective code
+                self.logger.warning("Language code '%s' not recognized by AssemblyAI SDK enum. Falling back to auto-detection.", language_code)
+                ui_lang_msg = f"Language code '{language_code}' not recognized by AssemblyAI SDK. Using auto-detection."
+                config_params['language_detection'] = True
+                log_lang_param_desc = "'auto' (fallback detection)"
+                language_code = 'auto' # Update effective code
         else:
-            logging.warning(f"[{self._get_api_name()}] Invalid language code '{language_code}'. Using auto-detection as fallback.")
+            self.logger.warning("Invalid language code '%s'. Using auto-detection as fallback.", language_code)
             ui_lang_msg = f"Invalid language code '{language_code}'. Using auto-detection as fallback."
             config_params['language_detection'] = True
             log_lang_param_desc = "'auto' (fallback detection)"
@@ -101,9 +100,10 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
 
         # Report language choice progress only once per file/chunk set
         if not is_chunk: # AssemblyAI handles splitting internally, only report once
-             if ui_lang_msg: self._report_progress(ui_lang_msg, False)
+            if ui_lang_msg:
+                self._report_progress(ui_lang_msg, False)
 
-        logging.debug(f"[{self._get_api_name()}] Prepared API config params (Lang: {log_lang_param_desc}): {config_params}")
+        self.logger.debug("Prepared API config params (Lang: %s): %s", log_lang_param_desc, config_params)
         # Return the config params, which will be used to create TranscriptionConfig in _call_api
         return config_params
 
@@ -130,12 +130,12 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
 
             self._report_progress(f"Uploading and processing audio with {self._get_api_name()}...")
             transcript = transcriber.transcribe(file_path) # This blocks until completion or error
-            logging.info(f"[{self._get_api_name()}] API request finished. Transcript status: {transcript.status}")
+            self.logger.info("API request finished. Transcript status: %s", transcript.status)
             return transcript # Return the completed Transcript object
 
         except TranscriptError as aai_error:
             error_msg = str(aai_error)
-            logging.error(f"[{self._get_api_name()}] AssemblyAI API Error: {error_msg}", exc_info=True)
+            self.logger.error("AssemblyAI API Error: %s", error_msg, exc_info=True)
             # Attempt to map AssemblyAI errors to our custom exceptions
             if "authorization" in error_msg.lower() or "authentication" in error_msg.lower():
                 raise TranscriptionAuthenticationError(f"AssemblyAI: {error_msg}", provider=self._get_api_name()) from aai_error
@@ -143,10 +143,10 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
             else:
                 raise TranscriptionProcessingError(f"AssemblyAI: {error_msg}", provider=self._get_api_name()) from aai_error
         except FileNotFoundError as fnf:
-             logging.error(f"[{self._get_api_name()}] File not found during API call: {fnf}", exc_info=True)
-             raise fnf # Re-raise FileNotFoundError
+            self.logger.error("File not found during API call: %s", fnf, exc_info=True)
+            raise fnf # Re-raise FileNotFoundError
         except Exception as e:
-            logging.error(f"[{self._get_api_name()}] Unexpected error during API call: {e}", exc_info=True)
+            self.logger.error("Unexpected error during API call: %s", e, exc_info=True)
             # Wrap unexpected errors in our custom exception
             raise TranscriptionProcessingError(f"Unexpected error during AssemblyAI API call: {e}", provider=self._get_api_name()) from e
 
@@ -171,9 +171,9 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         detected_lang_val = getattr(transcript, 'language_code', None)
         if detected_lang_val:
             detected_language = str(detected_lang_val)
-            logging.info(f"[{self._get_api_name()}] Detected language: {detected_language}")
+            self.logger.info("Detected language: %s", detected_language)
         else:
-             logging.info(f"[{self._get_api_name()}] Language code not found in transcript response.")
+            self.logger.info("Language code not found in transcript response.")
 
         return transcription_text or "", detected_language
 
