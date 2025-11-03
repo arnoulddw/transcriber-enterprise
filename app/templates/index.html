@@ -187,10 +187,14 @@
                                             </div>
                                             <p class="meta text-xs text-gray-500">
                                                 {% set api_name = API_NAME_MAP_FRONTEND.get(transcription.api_used, transcription.api_used | capitalize if transcription.api_used else 'Unknown API') %}
-                                                {% set lang_name = supported_languages.get(transcription.detected_language, transcription.detected_language | capitalize if transcription.detected_language else 'N/A') %}
+                                                {% set lang_code = transcription.detected_language.strip() if transcription.detected_language else '' %}
+                                                {% set language_available = lang_code and lang_code | lower not in ['unknown', 'und'] %}
+                                                {% if language_available %}
+                                                    {% set lang_name = supported_languages.get(lang_code, lang_code | capitalize) %}
+                                                {% endif %}
                                                 {% set duration_minutes = transcription.audio_length_minutes %}
                                                 {% set formatted_duration = (duration_minutes | round(method='ceil') | int ~ ' min') if duration_minutes is not none else 'N/A' %}
-                                                {{ api_name | e }} | {{ lang_name | e }} | {{ formatted_duration | e }} | <time datetime="{{ transcription.created_at | datetime_tz }}">{{ transcription.created_at | datetime_tz }}</time>
+                                                {{ api_name | e }}{% if language_available %} | {{ lang_name | e }}{% endif %} | {{ formatted_duration | e }} | <time datetime="{{ transcription.created_at | datetime_tz }}">{{ transcription.created_at | datetime_tz }}</time>
                                                 {% if transcription.status == 'error' %}<span class="text-red-600"> {{ _('(Failed)') }}</span>{% endif %}
                                             </p>
                                         </div>

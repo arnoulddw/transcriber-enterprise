@@ -125,10 +125,25 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
 
 
     const apiName = window.API_NAME_MAP_FRONTEND?.[transcription.api_used] || capitalizeFirstLetter(transcription.api_used || 'Unknown API');
-    const langName = window.SUPPORTED_LANGUAGE_MAP?.[transcription.detected_language] || capitalizeFirstLetter(transcription.detected_language || 'N/A');
+    const detectedLanguage = typeof transcription.detected_language === 'string'
+        ? transcription.detected_language.trim()
+        : '';
+    const normalizedLanguage = detectedLanguage.toLowerCase();
+    const shouldShowLanguage = detectedLanguage
+        && normalizedLanguage !== 'unknown'
+        && normalizedLanguage !== 'und';
+    const langName = shouldShowLanguage
+        ? (window.SUPPORTED_LANGUAGE_MAP?.[detectedLanguage] || capitalizeFirstLetter(detectedLanguage))
+        : null;
     const durationMinutes = transcription.audio_length_minutes;
     const formattedDuration = (durationMinutes !== null && durationMinutes !== undefined) ? `${Math.ceil(durationMinutes)} min` : 'N/A';
     const formattedCreatedAt = typeof window.formatDateTime === 'function' ? window.formatDateTime(transcription.created_at) : transcription.created_at;
+    const metaSegments = [apiName];
+    if (langName) {
+        metaSegments.push(langName);
+    }
+    metaSegments.push(formattedDuration, formattedCreatedAt);
+    const metaText = metaSegments.map(segment => window.escapeHtml(segment)).join(' | ');
 
     const downloadButtonHtml = canDownload ? `
         <button class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Download Transcript">
@@ -175,7 +190,7 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
                             </b>
                         </div>
                         <p class="meta text-xs text-gray-500">
-                            ${window.escapeHtml(apiName)} | ${window.escapeHtml(langName)} | ${window.escapeHtml(formattedDuration)} | ${window.escapeHtml(formattedCreatedAt)}
+                            ${metaText}
                             ${transcription.status === 'error' ? '<span class="text-red-600"> (Failed)</span>' : ''}
                         </p>
                     </div>
