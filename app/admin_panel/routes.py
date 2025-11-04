@@ -204,6 +204,9 @@ def create_role():
             # --- MODIFIED: Include use_api_google_gemini ---
             role_data = {
                 'name': form.name.data, 'description': form.description.data,
+                'default_transcription_model': form.default_transcription_model.data or None,
+                'default_title_generation_model': form.default_title_generation_model.data or None,
+                'default_workflow_model': form.default_workflow_model.data or None,
                 'use_api_assemblyai': form.use_api_assemblyai.data,
                 'use_api_openai_whisper': form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': form.use_api_openai_gpt_4o_transcribe.data,
@@ -272,6 +275,9 @@ def edit_role(role_id):
             role_data = {
                 'name': temp_form.name.data,
                 'description': temp_form.description.data,
+                'default_transcription_model': temp_form.default_transcription_model.data or None,
+                'default_title_generation_model': temp_form.default_title_generation_model.data or None,
+                'default_workflow_model': temp_form.default_workflow_model.data or None,
                 'use_api_assemblyai': temp_form.use_api_assemblyai.data,
                 'use_api_openai_whisper': temp_form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': temp_form.use_api_openai_gpt_4o_transcribe.data,
@@ -318,6 +324,9 @@ def edit_role(role_id):
             # --- MODIFIED: Include use_api_google_gemini ---
             role_data = {
                 'name': form.name.data, 'description': form.description.data,
+                'default_transcription_model': form.default_transcription_model.data or None,
+                'default_title_generation_model': form.default_title_generation_model.data or None,
+                'default_workflow_model': form.default_workflow_model.data or None,
                 'use_api_assemblyai': form.use_api_assemblyai.data,
                 'use_api_openai_whisper': form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': form.use_api_openai_gpt_4o_transcribe.data,

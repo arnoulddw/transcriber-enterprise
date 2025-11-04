@@ -148,9 +148,29 @@ def start_workflow(user_id: int, transcription_id: str, prompt: Optional[str], p
             raise UsageLimitExceededError(reason)
         logger.debug("Workflow usage limits check passed.")
 
-        llm_provider = current_app.config['WORKFLOW_LLM_PROVIDER']
-        llm_model = current_app.config['WORKFLOW_LLM_MODEL']
-        logger.info(f"Using configured workflow LLM provider: {llm_provider} ({llm_model})")
+        role_obj = user.role
+        role_provider_override: Optional[str] = None
+        role_model_override: Optional[str] = None
+        if role_obj:
+            role_model_candidate = getattr(role_obj, 'default_workflow_model', None)
+            if role_model_candidate:
+                candidate_clean = role_model_candidate.strip()
+                if candidate_clean:
+                    resolved_role_provider = llm_service.get_provider_for_model_code(candidate_clean)
+                    if resolved_role_provider:
+                        role_model_override = candidate_clean
+                        role_provider_override = resolved_role_provider
+                    else:
+                        logger.warning(f"Role override workflow model '{candidate_clean}' not recognized; falling back to configured provider.")
+
+        config_provider = current_app.config.get('WORKFLOW_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
+        config_model = current_app.config.get('WORKFLOW_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+        llm_provider = role_provider_override or config_provider
+        llm_model = role_model_override or config_model
+        if role_provider_override:
+            logger.info(f"Using role-level workflow LLM provider override: {llm_provider} ({llm_model})")
+        else:
+            logger.info(f"Using configured workflow LLM provider: {llm_provider} ({llm_model})")
 
         try:
             operation_id = llm_operation_model.create_llm_operation(
@@ -172,7 +192,7 @@ def start_workflow(user_id: int, transcription_id: str, prompt: Optional[str], p
                 target=process_workflow_background,
                 args=(
                     app_instance, user_id, transcription_id, operation_id,
-                    resolved_prompt_text, transcript_text
+                    resolved_prompt_text, transcript_text, llm_provider, llm_model
                 ),
                 daemon=True
             )
@@ -198,7 +218,9 @@ def process_workflow_background(
     transcription_id: str,
     operation_id: int,
     prompt: str,
-    transcript_text: str
+    transcript_text: str,
+    llm_provider: str,
+    llm_model: Optional[str]
 ) -> None:
     """
     The background task that interacts with the LLM API via llm_service.
@@ -219,9 +241,9 @@ def process_workflow_background(
     final_status: str = 'error'
 
     with app.app_context():
-        llm_provider = current_app.config['WORKFLOW_LLM_PROVIDER']
-        llm_model = current_app.config['WORKFLOW_LLM_MODEL']
-        logger.info(f"Background workflow process started using {llm_provider} ({llm_model}).")
+        effective_provider = llm_provider or current_app.config.get('WORKFLOW_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
+        effective_model = llm_model or current_app.config.get('WORKFLOW_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+        logger.info(f"Background workflow process started using {effective_provider} ({effective_model}).")
 
         try:
             update_success = llm_operation_model.update_llm_operation_status(operation_id, status='processing')
@@ -234,8 +256,8 @@ def process_workflow_background(
             max_tokens = current_app.config.get('WORKFLOW_MAX_OUTPUT_TOKENS', 1024)
 
             result_text = llm_service.generate_text_via_llm(
-                provider_name=llm_provider,
-                model=llm_model,
+                provider_name=effective_provider,
+                model=effective_model,
                 user_id=user_id,
                 prompt=combined_input,
                 max_tokens=max_tokens,

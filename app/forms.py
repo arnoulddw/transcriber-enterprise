@@ -253,6 +253,25 @@ class AdminRoleForm(FlaskForm):
         validators=[Length(max=500)] # Optional handled by form processing
     )
 
+    default_transcription_model = SelectField(
+        'Default Transcription Model',
+        validators=[],
+        choices=[],
+        validate_choice=False
+    )
+    default_title_generation_model = SelectField(
+        'Default LLM Model for Title Generations',
+        validators=[],
+        choices=[],
+        validate_choice=False
+    )
+    default_workflow_model = SelectField(
+        'Default LLM Model for Workflows',
+        validators=[],
+        choices=[],
+        validate_choice=False
+    )
+
     # Permissions (Boolean Fields)
     use_api_assemblyai = BooleanField('Use AssemblyAI API')
     use_api_openai_whisper = BooleanField('Use OpenAI Whisper API')
@@ -294,6 +313,57 @@ class AdminRoleForm(FlaskForm):
     def __init__(self, original_name=None, *args, **kwargs):
         super(AdminRoleForm, self).__init__(*args, **kwargs)
         self.original_name = original_name
+
+        placeholder_choice = [('', '-- Use System Default --')]
+
+        # Populate transcription model choices
+        transcription_choices = list(placeholder_choice)
+        try:
+            catalog_models = transcription_catalog_model.get_active_models()
+        except Exception as catalog_err:
+            logging.warning(f"[FORMS] Failed to load transcription models from catalog for admin role form: {catalog_err}", exc_info=True)
+            catalog_models = []
+
+        seen_transcription_codes = set()
+        for model in catalog_models:
+            model_code = (model.get('code') or '').strip()
+            if not model_code or model_code in seen_transcription_codes:
+                continue
+            display_name = model.get('display_name') or model_code
+            transcription_choices.append((model_code, display_name))
+            seen_transcription_codes.add(model_code)
+
+        self._assign_choices(self.default_transcription_model, transcription_choices)
+
+        # Populate LLM model choices (shared for title generation and workflows)
+        llm_choices = list(placeholder_choice)
+        provider_map = current_app.config.get('API_PROVIDER_NAME_MAP', {})
+        llm_providers = current_app.config.get('LLM_PROVIDERS', [])
+        seen_llm_models = set()
+
+        for provider in llm_providers:
+            config_key = f"{provider.upper()}_MODELS"
+            models = current_app.config.get(config_key, [])
+            for raw_model in models:
+                model_code = (raw_model or '').strip()
+                if not model_code or model_code in seen_llm_models:
+                    continue
+                display_name = provider_map.get(model_code, model_code)
+                llm_choices.append((model_code, display_name))
+                seen_llm_models.add(model_code)
+
+        # Assign choices to both LLM-related fields separately to avoid shared list mutations
+        self._assign_choices(self.default_title_generation_model, list(llm_choices))
+        self._assign_choices(self.default_workflow_model, list(llm_choices))
+
+    @staticmethod
+    def _assign_choices(field, choices):
+        current_value = field.data or ''
+        if current_value and not any(value == current_value for value, _ in choices):
+            choices.append((current_value, current_value))
+        field.choices = choices
+        if current_value == '':
+            field.data = ''
 
     def validate_name(self, name_field):
         if get_role_by_name:

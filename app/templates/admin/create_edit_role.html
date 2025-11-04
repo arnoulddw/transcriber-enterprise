@@ -34,6 +34,35 @@
             </div>
         </div>
 
+        {# Default Model Selections #}
+        <div>
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Default Models</h3>
+            <p class="mt-1 text-sm text-gray-500">Choose default providers for users assigned to this role. Leave blank to use system defaults.</p>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="{{ form.default_transcription_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_transcription_model.label.text }}</label>
+                    {{ form.default_transcription_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_transcription_model.errors else ""), id=form.default_transcription_model.id) }}
+                    {% if form.default_transcription_model.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.default_transcription_model.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.default_title_generation_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_title_generation_model.label.text }}</label>
+                    {{ form.default_title_generation_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_title_generation_model.errors else ""), id=form.default_title_generation_model.id) }}
+                    {% if form.default_title_generation_model.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.default_title_generation_model.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.default_workflow_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_workflow_model.label.text }}</label>
+                    {{ form.default_workflow_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_workflow_model.errors else ""), id=form.default_workflow_model.id) }}
+                    {% if form.default_workflow_model.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.default_workflow_model.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
         {# Permissions Section #}
         <div>
             <h3 class="text-lg font-medium leading-6 text-gray-900">Permissions</h3>

@@ -27,6 +27,27 @@ class LlmServiceError(Exception):
     """Custom exception for LLM service errors."""
     pass
 
+
+def get_provider_for_model_code(model_code: Optional[str]) -> Optional[str]:
+    """
+    Resolves the configured LLM provider for a given model code.
+    Returns the provider name in uppercase (matching config conventions) or None if not found.
+    """
+    if not model_code:
+        return None
+    candidate = model_code.strip()
+    if not candidate:
+        return None
+
+    providers = current_app.config.get('LLM_PROVIDERS', [])
+    for provider in providers:
+        config_key = f"{provider.upper()}_MODELS"
+        models = current_app.config.get(config_key, [])
+        for model_entry in models:
+            if candidate == (model_entry or '').strip():
+                return provider.upper()
+    return None
+
 def generate_text_via_llm(
     provider_name: str,
     prompt: str,

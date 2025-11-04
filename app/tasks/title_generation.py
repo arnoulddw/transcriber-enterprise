@@ -40,8 +40,8 @@ from app.utils.title_utils import (
 )
 
 # --- Helper Function for LLM Call ---
-# --- MODIFIED: Add app and user_id parameters, remove api_key ---
-def _call_gemini_for_title(app: Flask, user_id: int, prompt: str, operation_id: int, operation_type: str) -> str:
+# --- MODIFIED: Add provider/model parameters and rename internally ---
+def _call_gemini_for_title(app: Flask, user_id: int, prompt: str, operation_id: int, operation_type: str, provider: str, model_name: Optional[str]) -> str:
 # --- END MODIFIED ---
     """
     Calls the LLM service to generate text using Gemini.
@@ -49,13 +49,13 @@ def _call_gemini_for_title(app: Flask, user_id: int, prompt: str, operation_id: 
     Requires app context to be pushed by the caller if run in a separate thread.
     """
     try:
-        provider_config = app.config.get('TITLE_GENERATION_LLM_PROVIDER', app.config.get('LLM_PROVIDER', 'GEMINI'))
-        provider_name = provider_config.lower()
-        model_name = app.config.get('TITLE_GENERATION_LLM_MODEL')
+        effective_provider = provider or app.config.get('TITLE_GENERATION_LLM_PROVIDER', app.config.get('LLM_PROVIDER', 'GEMINI'))
+        provider_name = effective_provider.lower()
+        effective_model = model_name or app.config.get('TITLE_GENERATION_LLM_MODEL') or app.config.get('LLM_MODEL')
         # --- MODIFIED: Pass user_id to llm_service, remove api_key and config ---
         result = llm_service.generate_text_via_llm(
             provider_name=provider_name,
-            model=model_name,
+            model=effective_model,
             user_id=user_id, # Pass user_id
             prompt=prompt,
             max_tokens=20, # Limit output tokens for a title
@@ -151,6 +151,28 @@ def generate_title_task(app: Flask, transcription_id: str, user_id: int) -> None
                  transcript_text = transcript_text[:max_prompt_chars] + "..."
                  logger.debug(f"{log_prefix} Truncated transcript text for title generation prompt.", extra=log_extra)
 
+            role_obj = user.role
+            role_provider_override: Optional[str] = None
+            role_model_override: Optional[str] = None
+            if role_obj:
+                role_model_candidate = getattr(role_obj, 'default_title_generation_model', None)
+                if role_model_candidate:
+                    candidate_clean = role_model_candidate.strip()
+                    if candidate_clean:
+                        resolved_provider = llm_service.get_provider_for_model_code(candidate_clean)
+                        if resolved_provider:
+                            role_model_override = candidate_clean
+                            role_provider_override = resolved_provider
+                        else:
+                            logger.warning(f"{log_prefix} Role default title model '{candidate_clean}' is not recognized. Falling back to configured provider.", extra=log_extra)
+
+            provider_config = role_provider_override or current_app.config.get('TITLE_GENERATION_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
+            model_name = role_model_override or current_app.config.get('TITLE_GENERATION_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+            if role_provider_override:
+                logger.debug(f"{log_prefix} Using role-level title generation model override '{model_name}' with provider '{provider_config}'.", extra=log_extra)
+            else:
+                logger.debug(f"{log_prefix} Using configured title generation model '{model_name}' with provider '{provider_config}'.", extra=log_extra)
+
             # --- REMOVED: Direct API key fetching from config ---
             # gemini_api_key = app.config.get('GEMINI_API_KEY')
             # if not gemini_api_key:
@@ -178,7 +200,6 @@ Transcription Content:
 
 Generated Title:"""
 
-            provider_config = current_app.config.get('TITLE_GENERATION_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
             operation_id = llm_operation_model.create_llm_operation(
                 user_id=user_id,
                 provider=provider_config,
@@ -197,14 +218,14 @@ Generated Title:"""
             result_container = {}
             exception_container = {}
 
-            def llm_call_wrapper(flask_app: Flask, current_user_id: int, op_id: int, op_type: str):
+            def llm_call_wrapper(flask_app: Flask, current_user_id: int, op_id: int, op_type: str, provider_override: str, model_override: Optional[str]):
                 with flask_app.app_context():
                     try:
-                        result_container['title'] = _call_gemini_for_title(flask_app, current_user_id, prompt, op_id, op_type)
+                        result_container['title'] = _call_gemini_for_title(flask_app, current_user_id, prompt, op_id, op_type, provider_override, model_override)
                     except Exception as e:
                         exception_container['error'] = e
 
-            llm_thread = threading.Thread(target=llm_call_wrapper, args=(app, user_id, operation_id, 'title_generation'))
+            llm_thread = threading.Thread(target=llm_call_wrapper, args=(app, user_id, operation_id, 'title_generation', provider_config, model_name))
             # --- END MODIFIED ---
             llm_thread.start()
             llm_thread.join(timeout=TITLE_GENERATION_TIMEOUT_SECONDS)

@@ -293,6 +293,7 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
 
     permitted_model_codes: List[str] = []
     default_model_code: Optional[str] = None
+    role_preferred_model = (getattr(role, 'default_transcription_model', None) or '').strip()
 
     for model in catalog_models:
         permission_key = model.get('permission_key')
@@ -304,6 +305,13 @@ def _get_default_transcription_model_for_new_user(role: Role) -> Optional[str]:
     if not permitted_model_codes:
         logger.warning(f"[DB:User] New user with role '{role.name}' has no transcription providers permitted.")
         return None
+
+    if role_preferred_model:
+        if role_preferred_model in permitted_model_codes:
+            logger.debug(f"[DB:User] Using role-level default transcription model '{role_preferred_model}' for new user with role '{role.name}'.")
+            return role_preferred_model
+        else:
+            logger.warning(f"[DB:User] Role '{role.name}' default transcription model '{role_preferred_model}' is not permitted. Falling back to catalog defaults.")
 
     if default_model_code and default_model_code in permitted_model_codes:
         logger.debug(f"[DB:User] Setting default model for new user to catalog default: '{default_model_code}'")
