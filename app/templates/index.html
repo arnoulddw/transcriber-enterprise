@@ -294,7 +294,7 @@
 
             {# Pagination #}
             {% if pagination %}
-            <div class="mt-6 border-t border-gray-200 pt-4">
+            <div class="mt-6 border-t border-gray-200 pt-4 pagination-container">
                 <div class="flex flex-col items-center"> {# Centering container for pagination and text #}
                     <nav class="relative z-0 inline-flex flex-wrap justify-center rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         <a href="{{ url_for('main.index', page=pagination.current_page - 1) if pagination.has_prev else '#' }}"
