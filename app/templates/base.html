@@ -16,7 +16,7 @@
 </head>
 <body class="bg-body-bg text-default-text flex flex-col min-h-screen font-sans">
     {# Notification container for dynamic messages #}
-    <div id="notification-container" class="fixed top-16 left-1/2 transform -translate-x-1/2 w-11/12 max-w-md z-[100] flex flex-col items-center gap-2.5 pointer-events-none"></div>
+    <div id="notification-container" class="fixed inset-x-0 bottom-6 px-4 safe-area-bottom sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:transform sm:top-16 sm:px-0 w-full sm:w-11/12 sm:max-w-md z-[100] flex flex-col items-center gap-2.5 pointer-events-none"></div>
 
     <header>
         <nav class="bg-primary text-white shadow-md">
@@ -546,6 +546,8 @@
             window.i18n = {
                 readMore: "{{ _(' Read More') }}",
                 readLess: "{{ _(' Read Less') }}",
+                undo: "{{ _('Undo') }}",
+                restoring: "{{ _('Restoring...') }}",
                 yourSavedWorkflows: "{{ _('Your Saved Workflows') }}",
                 systemDefined: "{{ _('System defined - ') }}",
                 startWorkflow: "{{ _('Start Workflow') }}",

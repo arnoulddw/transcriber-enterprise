@@ -46,6 +46,11 @@ These are processed by PostCSS with the Tailwind plugin.
 
 /* Admin Responsive Table Styles (migrated from admin.css) */
 @layer utilities {
+    /* Utility to offset fixed bottom elements by device safe-area insets */
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
     /* Apply these styles for screens smaller than Tailwind's 'sm' breakpoint (typically < 640px) */
     @media (max-width: calc(theme('screens.sm') - 1px)) {
         .data-table thead {

@@ -38,6 +38,7 @@ from app.initialization import (
     run_initialization_sequence
 )
 from app.logging_config import setup_logging
+from app.cli import register_cli_commands
 # Import MySQL error class for specific handling if needed later
 from mysql.connector import Error as MySQLError
 
@@ -561,5 +562,6 @@ def create_app(config_class=Config) -> Flask:
 
     # --- MODIFIED: REMOVED old locale selector definition ---
 
+    register_cli_commands(app)
     logging.info("[SYSTEM] Application initialization complete.")
     return app

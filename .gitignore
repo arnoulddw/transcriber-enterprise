@@ -60,6 +60,7 @@ runtime/
 runtime_test/
 !runtime_test/.gitkeep
 flask.out
+migrations/
 
 
 # Coverage reports

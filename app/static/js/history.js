@@ -76,7 +76,18 @@ function hasMeaningfulContent(value) {
 }
 
 const deletedTranscriptionUndoData = new Map();
-const UNDO_NOTIFICATION_DURATION_MS = 6000;
+const UNDO_NOTIFICATION_BASE_DURATION_MS = 6000;
+const UNDO_NOTIFICATION_TOUCH_EXTRA_MS = 4000;
+const UNDO_NOTIFICATION_DURATION_MS = (() => {
+    try {
+        if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+            return UNDO_NOTIFICATION_BASE_DURATION_MS + UNDO_NOTIFICATION_TOUCH_EXTRA_MS;
+        }
+    } catch (error) {
+        historyLogger.debug("Unable to evaluate pointer media query for undo duration.", error);
+    }
+    return UNDO_NOTIFICATION_BASE_DURATION_MS;
+})();
 
 function updateHistoryEmptyState() {
     const historyList = document.getElementById('transcriptionHistory');
@@ -581,7 +592,8 @@ function deleteTranscription(transcriptionId, transcriptionItemElement) {
             updateHistoryEmptyState();
         });
 
-        const message = `${window.escapeHtml(data.message || 'Transcription deleted.')}&nbsp;<button class="undo-delete-action underline font-medium ml-1 focus:outline-none">${window.i18n?.undo || 'Undo'}</button>`;
+        const undoButtonHtml = `<button type="button" class="undo-delete-action inline-flex items-center px-3 py-1 ml-3 rounded-md border border-current text-current text-sm font-semibold bg-white/10 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-current transition-colors">${window.i18n?.undo || 'Undo'}</button>`;
+        const message = `${window.escapeHtml(data.message || 'Transcription deleted.')} ${undoButtonHtml}`;
         const notification = window.showNotification(message, 'success', UNDO_NOTIFICATION_DURATION_MS, false);
         undoData.notification = notification;
 

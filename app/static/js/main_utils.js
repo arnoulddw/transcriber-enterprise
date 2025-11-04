@@ -149,7 +149,7 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
     }
 
     // Base Tailwind classes for all notifications
-    notificationDiv.className = 'w-full max-w-full p-3 rounded-md shadow-lg flex items-center text-sm transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
+    notificationDiv.className = 'w-full max-w-full px-4 py-3 rounded-lg shadow-lg flex items-start sm:items-center gap-3 text-sm transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
 
     // Type-specific Tailwind classes and icons
     let bgColorClass, textColorClass, iconName, iconColorClass;
@@ -190,7 +190,7 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
 
     // Message content element
     const messageElement = document.createElement('span');
-    messageElement.className = 'flex-grow';
+    messageElement.className = 'flex-grow leading-snug';
     messageElement.innerHTML = message; // Allow HTML in message
 
     notificationDiv.appendChild(iconElement);
