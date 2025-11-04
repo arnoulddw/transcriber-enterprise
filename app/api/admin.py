@@ -2,7 +2,7 @@
 # Defines the Blueprint for administration-related API endpoints.
 
 import logging
-from flask import Blueprint, request, jsonify, current_app, Response, stream_with_context
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import current_user # To identify the admin making the request
 
 # Import decorators and services

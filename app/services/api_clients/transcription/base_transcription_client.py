@@ -195,7 +195,7 @@ class BaseTranscriptionClient(ABC):
         self.logger.debug("Upload handled directly during transcription call.")
         return file_path # Return path or an ID if uploaded
 
-    def split_audio(self, file_path: str, output_dir: str) -> List[str]:
+    def split_audio(self, file_path: str, _output_dir: str) -> List[str]:
         """(Optional) Splits audio using file_service."""
         # This logic is currently handled within _split_and_transcribe
         self.logger.debug("Audio splitting handled by internal transcribe logic.")

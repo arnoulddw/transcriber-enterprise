@@ -7,7 +7,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail # <<< ADDED
-from flask_babel import Babel, Locale
+from flask_babel import Babel
 
 # Custom Babel class to force American-style number formatting
 

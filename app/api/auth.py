@@ -10,7 +10,7 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 # Removed: from werkzeug.urls import url_parse
 # Add this if needed later for redirect validation within this blueprint:
-from urllib.parse import urlparse, urljoin # <<< ADDED urljoin
+from urllib.parse import urlparse
 # --- NEW: Import gettext for translation ---
 from flask_babel import gettext as _
 
