@@ -16,6 +16,7 @@ from app.models import role as role_model
 from app.models import llm_operation as llm_operation_model
 from app.models import user_prompt as user_prompt_model
 from app.models import template_prompt as template_prompt_model
+from app.models import llm_catalog as llm_catalog_model
 from app.models.user import User  # For type hinting
 
 from app.services import llm_service
@@ -163,10 +164,23 @@ def start_workflow(user_id: int, transcription_id: str, prompt: Optional[str], p
                     else:
                         logger.warning(f"Role override workflow model '{candidate_clean}' not recognized; falling back to configured provider.")
 
-        config_provider = current_app.config.get('WORKFLOW_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
-        config_model = current_app.config.get('WORKFLOW_LLM_MODEL') or current_app.config.get('LLM_MODEL')
-        llm_provider = role_provider_override or config_provider
+        catalog_default_model: Optional[str] = None
+        try:
+            catalog_default_model = llm_catalog_model.get_default_workflow_model_code()
+        except Exception as catalog_err:
+            logger.warning(f"Failed to resolve default workflow model from catalog: {catalog_err}")
+
+        fallback_model = current_app.config.get('WORKFLOW_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+        config_model = catalog_default_model or fallback_model
         llm_model = role_model_override or config_model
+
+        provider_candidate = role_provider_override
+        if not provider_candidate and llm_model:
+            provider_candidate = llm_service.get_provider_for_model_code(llm_model)
+        if not provider_candidate:
+            provider_candidate = current_app.config.get('WORKFLOW_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
+        llm_provider = provider_candidate
+
         if role_provider_override:
             logger.info(f"Using role-level workflow LLM provider override: {llm_provider} ({llm_model})")
         else:

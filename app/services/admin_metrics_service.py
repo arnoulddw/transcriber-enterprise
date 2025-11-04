@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from flask import current_app # To access config and app context
 
@@ -11,6 +11,7 @@ from flask import current_app # To access config and app context
 from app.models import user_utils
 from app.models import transcription_utils
 from app.models import transcription as transcription_model
+from app.models import llm_catalog as llm_catalog_model
 
 # Import MySQL error class for potential specific checks if needed
 from mysql.connector import Error as MySQLError
@@ -35,6 +36,27 @@ def _safe_division(numerator: float, denominator: float, default: float = 0.0) -
     if denominator == 0:
         return default
     return numerator / denominator
+
+
+def _get_supported_llm_models() -> List[str]:
+    """
+    Returns the list of active LLM model codes from the catalog.
+    Falls back to configured defaults if the catalog is unavailable or empty.
+    """
+    try:
+        catalog_models = llm_catalog_model.get_active_models()
+    except Exception as catalog_err:
+        logging.warning(f"[AdminMetrics] Failed to load LLM models from catalog: {catalog_err}", exc_info=True)
+        catalog_models = []
+
+    codes = [model["code"] for model in catalog_models if model.get("code")]
+    if codes:
+        return codes
+
+    fallback = current_app.config.get('LLM_MODEL')
+    if fallback:
+        return [fallback]
+    return []
 
 # --- Dashboard Metrics ---
 def get_admin_dashboard_metrics() -> Dict[str, Any]:
@@ -133,7 +155,7 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
     }
     time_periods = _get_time_periods()
     supported_apis = ['gpt-4o-transcribe', 'whisper', 'assemblyai']
-    supported_workflow_models = [current_app.config.get('LLM_MODEL', 'gemini-2.0-flash')]
+    supported_workflow_models = _get_supported_llm_models()
     # Define relevant statuses for volume/duration metrics
     relevant_statuses_for_volume = ('finished', 'cancelled')
 
@@ -270,7 +292,7 @@ def get_performance_error_metrics() -> Dict[str, Any]:
     }
     time_periods = _get_time_periods()
     supported_apis = ['gpt-4o-transcribe', 'whisper', 'assemblyai']
-    supported_workflow_models = [current_app.config.get('LLM_MODEL', 'gemini-2.0-flash')]
+    supported_workflow_models = _get_supported_llm_models()
 
     try:
         with current_app.app_context():

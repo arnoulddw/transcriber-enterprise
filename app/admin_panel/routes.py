@@ -16,6 +16,7 @@ from app.forms import AdminRoleForm, AdminTemplateWorkflowForm # Import the new 
 from app.models import role as role_model
 from app.models import template_prompt as template_prompt_model
 from app.models import transcription_catalog as transcription_catalog_model
+from app.models import llm_catalog as llm_catalog_model
 
 # --- Helper Functions ---
 def _get_common_admin_context():
@@ -472,27 +473,23 @@ def costs():
         
         # --- FINAL CORRECTED LOGIC ---
         # Create a nested structure: { 'Provider Display Name': { 'model_id': 'model_display_name' } }
-        llm_providers = {k: v for k, v in current_app.config['API_PROVIDER_NAME_MAP'].items() if k in current_app.config['LLM_PROVIDERS']}
-        
-        title_generation_models = {}
-        workflow_models = {}
+        try:
+            llm_grouped_models = llm_catalog_model.get_models_grouped_by_provider()
+        except Exception as catalog_err:
+            logging.warning(f"{log_prefix} Failed to load LLM models from catalog: {catalog_err}", exc_info=True)
+            llm_grouped_models = {}
 
-        for provider_key, provider_name in llm_providers.items():
-            title_generation_models[provider_name] = {}
-            workflow_models[provider_name] = {}
-            if provider_key == 'GEMINI':
-                models = current_app.config.get('GEMINI_MODELS', [])
-                for model_id in models:
-                    title_generation_models[provider_name][model_id] = model_id
-                    workflow_models[provider_name][model_id] = model_id
-            elif provider_key == 'OPENAI':
-                models = current_app.config.get('OPENAI_MODELS', [])
-                for model_id in models:
-                    title_generation_models[provider_name][model_id] = model_id
-                    workflow_models[provider_name][model_id] = model_id
+        title_generation_models = {provider: dict(models) for provider, models in llm_grouped_models.items()}
+        workflow_models = {provider: dict(models) for provider, models in llm_grouped_models.items()}
 
-        active_title_generation_model = current_app.config.get('TITLE_GENERATION_LLM_MODEL')
-        active_workflow_model = current_app.config.get('WORKFLOW_LLM_MODEL')
+        active_title_generation_model = (
+            llm_catalog_model.get_default_title_generation_model_code()
+            or current_app.config.get('TITLE_GENERATION_LLM_MODEL')
+        )
+        active_workflow_model = (
+            llm_catalog_model.get_default_workflow_model_code()
+            or current_app.config.get('WORKFLOW_LLM_MODEL')
+        )
         # --- END FINAL CORRECTED LOGIC ---
 
         return render_template('admin/costs.html',

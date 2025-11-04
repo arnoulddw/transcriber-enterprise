@@ -12,6 +12,7 @@ from flask_login import current_user
 from flask import current_app
 
 from app.models import transcription_catalog as transcription_catalog_model
+from app.models import llm_catalog as llm_catalog_model
 try:
     from .models.user import get_user_by_username, get_user_by_email
     from .models.role import get_role_by_name
@@ -337,20 +338,23 @@ class AdminRoleForm(FlaskForm):
 
         # Populate LLM model choices (shared for title generation and workflows)
         llm_choices = list(placeholder_choice)
-        provider_map = current_app.config.get('API_PROVIDER_NAME_MAP', {})
-        llm_providers = current_app.config.get('LLM_PROVIDERS', [])
         seen_llm_models = set()
+        try:
+            catalog_llm_models = llm_catalog_model.get_active_models()
+        except Exception as catalog_err:
+            logging.warning(f"[FORMS] Failed to load LLM models from catalog for admin role form: {catalog_err}", exc_info=True)
+            catalog_llm_models = []
 
-        for provider in llm_providers:
-            config_key = f"{provider.upper()}_MODELS"
-            models = current_app.config.get(config_key, [])
-            for raw_model in models:
-                model_code = (raw_model or '').strip()
-                if not model_code or model_code in seen_llm_models:
-                    continue
-                display_name = provider_map.get(model_code, model_code)
-                llm_choices.append((model_code, display_name))
-                seen_llm_models.add(model_code)
+        for model in catalog_llm_models:
+            model_code = (model.get('code') or '').strip()
+            if not model_code or model_code in seen_llm_models:
+                continue
+            permission_key = model.get('permission_key')
+            if permission_key and current_user.is_authenticated and not current_user.has_permission(permission_key):
+                continue
+            display_name = model.get('display_name') or model_code
+            llm_choices.append((model_code, display_name))
+            seen_llm_models.add(model_code)
 
         # Assign choices to both LLM-related fields separately to avoid shared list mutations
         self._assign_choices(self.default_title_generation_model, list(llm_choices))

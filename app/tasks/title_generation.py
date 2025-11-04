@@ -11,6 +11,7 @@ from typing import Optional
 from app.models import user as user_model
 from app.models import transcription as transcription_model
 from app.models import llm_operation as llm_operation_model # Keep for potential future logging
+from app.models import llm_catalog as llm_catalog_model
 from app.models.user import User # For type hinting
 
 # Import services
@@ -166,8 +167,20 @@ def generate_title_task(app: Flask, transcription_id: str, user_id: int) -> None
                         else:
                             logger.warning(f"{log_prefix} Role default title model '{candidate_clean}' is not recognized. Falling back to configured provider.", extra=log_extra)
 
-            provider_config = role_provider_override or current_app.config.get('TITLE_GENERATION_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
-            model_name = role_model_override or current_app.config.get('TITLE_GENERATION_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+            catalog_default_model: Optional[str] = None
+            try:
+                catalog_default_model = llm_catalog_model.get_default_title_generation_model_code()
+            except Exception as catalog_err:
+                logger.warning(f"{log_prefix} Failed to resolve default title generation model from catalog: {catalog_err}", exc_info=True, extra=log_extra)
+
+            fallback_model = current_app.config.get('TITLE_GENERATION_LLM_MODEL') or current_app.config.get('LLM_MODEL')
+            model_name = role_model_override or catalog_default_model or fallback_model
+
+            provider_config = role_provider_override
+            if not provider_config and model_name:
+                provider_config = llm_service.get_provider_for_model_code(model_name)
+            if not provider_config:
+                provider_config = current_app.config.get('TITLE_GENERATION_LLM_PROVIDER', current_app.config.get('LLM_PROVIDER', 'GEMINI'))
             if role_provider_override:
                 logger.debug(f"{log_prefix} Using role-level title generation model override '{model_name}' with provider '{provider_config}'.", extra=log_extra)
             else:

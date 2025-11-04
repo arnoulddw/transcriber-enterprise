@@ -17,6 +17,7 @@ from app.models import template_prompt as template_prompt_model
 from app.models import llm_operation as llm_operation_model
 from app.models import pricing as pricing_model
 from app.models import transcription_catalog as transcription_catalog_model
+from app.models import llm_catalog as llm_catalog_model
 # --- END ADDED ---
 from app.services import auth_service
 from app.services.auth_service import AuthServiceError # Import specific exception
@@ -84,6 +85,8 @@ def initialize_database_schema(create_roles: bool = True) -> None:
         pricing_model.init_db_command()
         logger.debug(f"{log_prefix} Initializing transcription catalog tables...")
         transcription_catalog_model.init_db_command()
+        logger.debug(f"{log_prefix} Initializing LLM catalog table...")
+        llm_catalog_model.init_db_command()
         logger.debug(f"{log_prefix} Initializing 'user_usage' table...")
         role_model.init_user_usage_table()
         logger.info(f"{log_prefix} Database schema initialization complete.")

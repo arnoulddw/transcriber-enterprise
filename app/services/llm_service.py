@@ -1,3 +1,5 @@
+import logging
+
 # app/services/llm_service.py
 # Handles business logic related to Large Language Model (LLM) interactions.
 
@@ -17,6 +19,7 @@ from app.services import user_service # Added import
 # --- MODIFIED: Import user_model for fetching user object ---
 from app.models import user as user_model
 from app.models import llm_operation as llm_operation_model
+from app.models import llm_catalog as llm_catalog_model
 from app.services.pricing_service import get_price as get_pricing_service_price, PricingServiceError
 # --- END MODIFIED ---
  
@@ -38,6 +41,13 @@ def get_provider_for_model_code(model_code: Optional[str]) -> Optional[str]:
     candidate = model_code.strip()
     if not candidate:
         return None
+
+    try:
+        model_entry = llm_catalog_model.get_model_by_code(candidate)
+        if model_entry and model_entry.get("provider"):
+            return str(model_entry["provider"]).upper()
+    except Exception as catalog_err:
+        logging.warning(f"[LLM Service] Failed to resolve provider from LLM catalog for model '{candidate}': {catalog_err}", exc_info=True)
 
     providers = current_app.config.get('LLM_PROVIDERS', [])
     for provider in providers:
