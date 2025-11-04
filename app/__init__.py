@@ -220,13 +220,20 @@ def create_app(config_class=Config) -> Flask:
     def get_locale_selector():
         # This selector should prioritize the user's explicit choice for UI language.
         # 1. Get language from user's profile if available
-        if g.user and g.user.is_authenticated and g.user.language:
+        if hasattr(g, 'user') and g.user and g.user.is_authenticated and g.user.language:
             return g.user.language
         # 2. Otherwise, get language from session
-        if 'language' in session:
-            return session.get('language')
+        try:
+            if 'language' in session:
+                return session.get('language')
+        except RuntimeError:
+            # Fallback for CLI commands or background tasks
+            pass
         # 3. Otherwise, get language from browser's accept languages (for anonymous users)
-        return request.accept_languages.best_match(current_app.config['SUPPORTED_LANGUAGES'])
+        try:
+            return request.accept_languages.best_match(current_app.config['SUPPORTED_LANGUAGES'])
+        except RuntimeError:
+            return current_app.config['SUPPORTED_LANGUAGES'][0]
 
     def get_timezone_selector():
         if g.user and g.user.is_authenticated and g.user.timezone:

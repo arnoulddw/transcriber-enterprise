@@ -20,6 +20,11 @@ These are processed by PostCSS with the Tailwind plugin.
         @apply bg-blue-700;
     }
 }
+@layer components {
+    .toast-container {
+        @apply fixed inset-x-0 bottom-6 px-4 safe-area-bottom w-full z-[100] flex flex-col items-center gap-2.5 pointer-events-none;
+    }
+}
     .btn-save {
         @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
     }
@@ -52,6 +57,12 @@ These are processed by PostCSS with the Tailwind plugin.
     }
 
     /* Apply these styles for screens smaller than Tailwind's 'sm' breakpoint (typically < 640px) */
+    @media (pointer: fine) {
+        .toast-container {
+            @apply inset-x-auto left-1/2 right-auto bottom-auto top-16 transform -translate-x-1/2 px-0 w-11/12 max-w-md;
+        }
+    }
+
     @media (max-width: calc(theme('screens.sm') - 1px)) {
         .data-table thead {
             @apply hidden; /* Table headers are hidden on small screens */
