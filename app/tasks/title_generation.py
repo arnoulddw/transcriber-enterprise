@@ -32,6 +32,13 @@ from limits import parse # Import the parse function from the limits library
 TITLE_GENERATION_RATE_LIMIT = "10 per minute" # Example rate limit
 TITLE_GENERATION_TIMEOUT_SECONDS = 30 # Timeout for the LLM call
 
+# Utils
+from app.utils.title_utils import (
+    TITLE_MAX_WORDS,
+    clean_generated_title,
+    enforce_word_limit,
+)
+
 # --- Helper Function for LLM Call ---
 # --- MODIFIED: Add app and user_id parameters, remove api_key ---
 def _call_gemini_for_title(app: Flask, user_id: int, prompt: str, operation_id: int, operation_type: str) -> str:
@@ -217,19 +224,42 @@ Generated Title:"""
 
             if generated_title is not None:
                 duration = time.time() - start_time
-                title_words = generated_title.split()
-                if generated_title and len(title_words) <= 5:
-                    if transcription_model.set_generated_title(transcription_id, generated_title):
+                cleaned_title = clean_generated_title(generated_title)
+                if cleaned_title:
+                    final_title = enforce_word_limit(cleaned_title)
+                    if final_title != cleaned_title:
+                        logger.info(
+                            f"{log_prefix} Adjusted generated title to comply with word limit.",
+                            extra={**log_extra, "duration_ms": int(duration * 1000), "original_title": cleaned_title, "adjusted_title": final_title}
+                        )
+                else:
+                    final_title = cleaned_title
+
+                final_word_count = len(final_title.split())
+
+                if final_title and final_word_count <= TITLE_MAX_WORDS:
+                    if transcription_model.set_generated_title(transcription_id, final_title):
                         final_status = 'success'
-                        llm_operation_model.update_llm_operation_status(operation_id, 'finished', result=generated_title)
-                        logger.info(f"{log_prefix} Title generation successful. Title: '{generated_title}'", extra={**log_extra, "duration_ms": int(duration * 1000), "success": True})
+                        llm_operation_model.update_llm_operation_status(operation_id, 'finished', result=final_title)
+                        logger.info(f"{log_prefix} Title generation successful. Title: '{final_title}'", extra={**log_extra, "duration_ms": int(duration * 1000), "success": True})
                     else:
                         error_reason = "db_update_failed"
                         logger.error(f"{log_prefix} Generated title was valid, but failed to save to DB.", extra={**log_extra, "duration_ms": int(duration * 1000), "success": False, "reason": error_reason})
                         final_status = 'failed'
                 else:
                     error_reason = "invalid_format"
-                    logger.warning(f"{log_prefix} Generated title failed validation (empty or >5 words). Title: '{generated_title}'", extra={**log_extra, "duration_ms": int(duration * 1000), "success": False, "reason": error_reason})
+                    logger.warning(
+                        f"{log_prefix} Generated title failed validation (empty or exceeds word limit).",
+                        extra={
+                            **log_extra,
+                            "duration_ms": int(duration * 1000),
+                            "success": False,
+                            "reason": error_reason,
+                            "raw_title": generated_title,
+                            "cleaned_title": cleaned_title,
+                            "final_title": final_title
+                        }
+                    )
                     final_status = 'failed'
                     llm_operation_model.update_llm_operation_status(operation_id, 'error', error="Generated title failed validation")
                     transcription_model.update_title_generation_status(transcription_id, 'failed')
