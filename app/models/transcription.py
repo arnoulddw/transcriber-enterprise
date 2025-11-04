@@ -631,6 +631,36 @@ def delete_transcription(transcription_id: str, user_id: int) -> bool:
         # The cursor is managed by the application context, so we don't close it here.
         pass
 
+def restore_transcription(transcription_id: str, user_id: int) -> bool:
+    """
+    Restores a previously soft-deleted transcription by resetting the hidden flags.
+    Returns True when the record was restored, False otherwise.
+    """
+    logger = get_logger(__name__, job_id=transcription_id, user_id=user_id, component="DB:Restore")
+    sql = """
+        UPDATE transcriptions
+        SET is_hidden_from_user = FALSE,
+            hidden_date = NULL,
+            hidden_reason = NULL
+        WHERE id = %s AND user_id = %s AND is_hidden_from_user = TRUE
+        """
+    cursor = get_cursor()
+    try:
+        cursor.execute(sql, (transcription_id, user_id))
+        get_db().commit()
+        if cursor.rowcount > 0:
+            logger.info("Restored soft-deleted transcription record for user.")
+            return True
+        logger.warning("Restore failed: transcription not found, not owned, or already visible.")
+        return False
+    except MySQLError as err:
+        logger.error(f"Error restoring transcription: {err}", exc_info=True)
+        get_db().rollback()
+        return False
+    finally:
+        # The cursor is managed by the application context, so we don't close it here.
+        pass
+
 def clear_transcriptions(user_id: int) -> int:
     """
     Soft-deletes ALL visible transcription records for a specific user.

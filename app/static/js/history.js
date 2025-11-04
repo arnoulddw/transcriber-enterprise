@@ -75,6 +75,153 @@ function hasMeaningfulContent(value) {
     return true;
 }
 
+const deletedTranscriptionUndoData = new Map();
+const UNDO_NOTIFICATION_DURATION_MS = 6000;
+
+function updateHistoryEmptyState() {
+    const historyList = document.getElementById('transcriptionHistory');
+    if (!historyList) { return; }
+
+    const hasVisibleItems = Boolean(historyList.querySelector('li[data-transcription-id]'));
+    let placeholder = document.getElementById('history-placeholder');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    if (!hasVisibleItems) {
+        const emptyText = (window.i18n && (window.i18n.noTranscriptionsFound || window.i18n.noTranscriptions)) || 'No transcriptions found.';
+        if (!placeholder) {
+            placeholder = document.createElement('li');
+            placeholder.id = 'history-placeholder';
+            placeholder.className = 'py-4 text-center text-gray-500';
+            placeholder.textContent = emptyText;
+            historyList.appendChild(placeholder);
+        } else {
+            placeholder.style.display = '';
+            placeholder.textContent = emptyText;
+        }
+        if (clearAllBtn) { clearAllBtn.style.display = 'none'; }
+    } else {
+        if (placeholder) { placeholder.remove(); }
+        if (clearAllBtn) { clearAllBtn.style.display = ''; }
+    }
+}
+
+function animateHistoryItemRemoval(itemElement, onComplete) {
+    if (!itemElement) { if (typeof onComplete === 'function') onComplete(); return; }
+
+    const computedStyle = window.getComputedStyle(itemElement);
+    const marginTop = parseFloat(computedStyle.marginTop) || 0;
+    const marginBottom = parseFloat(computedStyle.marginBottom) || 0;
+    const totalHeight = itemElement.offsetHeight + marginTop + marginBottom;
+
+    itemElement.style.boxSizing = 'border-box';
+    itemElement.style.transition = 'opacity 250ms ease, transform 250ms ease, max-height 250ms ease, margin 250ms ease, padding 250ms ease';
+    itemElement.style.maxHeight = `${totalHeight}px`;
+    itemElement.style.overflow = 'hidden';
+
+    requestAnimationFrame(() => {
+        itemElement.style.opacity = '0';
+        itemElement.style.transform = 'translateX(-12px)';
+        itemElement.style.maxHeight = '0';
+        itemElement.style.marginTop = '0';
+        itemElement.style.marginBottom = '0';
+        itemElement.style.paddingTop = '0';
+        itemElement.style.paddingBottom = '0';
+    });
+
+    setTimeout(() => {
+        if (typeof onComplete === 'function') { onComplete(); }
+    }, 280);
+}
+
+function handleUndoRestore(transcriptionId, undoData, notification, undoButton, logPrefix) {
+    if (!undoData || !undoData.undoActive || undoData.undoInFlight) {
+        window.logger.debug(logPrefix, "Undo not available or already in progress.");
+        return;
+    }
+
+    undoData.undoInFlight = true;
+    if (undoButton) {
+        undoButton.disabled = true;
+        undoButton.classList.add('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
+        undoButton.textContent = window.i18n?.restoring || 'Restoring...';
+    }
+
+    fetch(`/api/transcriptions/${transcriptionId}/restore`, { method: 'POST', headers: { 'X-CSRFToken': window.csrfToken } })
+    .then(response => {
+        if (!response.ok) {
+            return response.json()
+                .catch(() => ({ error: `HTTP error! Status: ${response.status}` }))
+                .then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        const historyList = undoData.parent || document.getElementById('transcriptionHistory');
+        if (!historyList) {
+            window.logger.error(logPrefix, "History list element missing during undo restore.");
+        } else if (undoData.clone) {
+            const placeholder = document.getElementById('history-placeholder');
+            if (placeholder) { placeholder.remove(); }
+
+            let anchor = null;
+            if (undoData.nextSiblingId) {
+                anchor = historyList.querySelector(`li[data-transcription-id="${undoData.nextSiblingId}"]`);
+            }
+
+            if (anchor) {
+                historyList.insertBefore(undoData.clone, anchor);
+            } else {
+                historyList.appendChild(undoData.clone);
+            }
+
+            requestAnimationFrame(() => {
+                undoData.clone.style.opacity = '0';
+                undoData.clone.style.transform = 'translateY(8px)';
+                undoData.clone.style.transition = 'opacity 250ms ease, transform 250ms ease';
+                requestAnimationFrame(() => {
+                    undoData.clone.style.opacity = '1';
+                    undoData.clone.style.transform = 'translateY(0)';
+                });
+            });
+        }
+
+        updateHistoryEmptyState();
+
+        if (undoData.shouldRestoreTitlePolling) {
+            idsToPollForTitle.add(transcriptionId);
+            if (typeof titlePollAttempts[transcriptionId] === 'undefined') {
+                titlePollAttempts[transcriptionId] = 0;
+            }
+            startTitlePolling();
+        }
+
+        undoData.undoActive = false;
+        if (undoData.expiryTimer) { clearTimeout(undoData.expiryTimer); }
+        deletedTranscriptionUndoData.delete(transcriptionId);
+
+        if (notification) {
+            const messageEl = notification.querySelector('span.flex-grow');
+            if (messageEl) {
+                messageEl.textContent = data.message || 'Transcription restored.';
+            }
+            const undoAction = notification.querySelector('.undo-delete-action');
+            if (undoAction) { undoAction.remove(); }
+        }
+
+        window.logger.info(logPrefix, "Undo restore completed.");
+    })
+    .catch(error => {
+        undoData.undoInFlight = false;
+        if (undoButton) {
+            undoButton.disabled = false;
+            undoButton.classList.remove('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
+            undoButton.textContent = window.i18n?.undo || 'Undo';
+        }
+        window.logger.error(logPrefix, 'Error restoring transcription during undo:', error);
+        window.showNotification(`Error restoring transcription: ${window.escapeHtml(error?.message || 'Unknown error')}`, 'error', 5000, false);
+    });
+}
+
 /**
  * Adds a single transcription item to the history list UI.
  * Handles prepending, removing duplicates, and initializing UI elements.
@@ -370,20 +517,117 @@ function handleClearAll() {
 window.handleClearAll = handleClearAll; 
 
 function deleteTranscription(transcriptionId, transcriptionItemElement) {
-    const logPrefix = `[HistoryJS:deleteTranscription:${transcriptionId}]`; window.logger.debug(logPrefix, "Delete requested.");
+    const logPrefix = `[HistoryJS:deleteTranscription:${transcriptionId}]`;
+    window.logger.debug(logPrefix, "Delete requested.");
+
+    if (!transcriptionItemElement) {
+        window.logger.error(logPrefix, "No list item element provided for deletion.");
+        return;
+    }
+
+    const historyList = transcriptionItemElement.parentElement;
+    const nextSibling = transcriptionItemElement.nextElementSibling;
+    const nextSiblingId = nextSibling && nextSibling.dataset ? nextSibling.dataset.transcriptionId || null : null;
+    const shouldRestoreTitlePolling = transcriptionItemElement.dataset.pollTitle === 'true' || transcriptionItemElement.dataset.initialPollTitle === 'true';
+
+    const listItemClone = transcriptionItemElement.cloneNode(true);
+    if (listItemClone) {
+        listItemClone.removeAttribute('style');
+    }
+
+    const deleteButton = transcriptionItemElement.querySelector('.delete-btn');
+    let originalDeleteIcon = null;
+    if (deleteButton) {
+        deleteButton.disabled = true;
+        deleteButton.setAttribute('aria-disabled', 'true');
+        deleteButton.classList.add('opacity-60', 'pointer-events-none', 'cursor-not-allowed');
+        originalDeleteIcon = deleteButton.querySelector('.material-icons');
+        if (originalDeleteIcon) {
+            originalDeleteIcon.dataset.originalIcon = originalDeleteIcon.textContent;
+            originalDeleteIcon.textContent = 'hourglass_top';
+            originalDeleteIcon.classList.add('animate-spin');
+        }
+    }
+
     fetch(`/api/transcriptions/${transcriptionId}`, { method: 'DELETE', headers: { 'X-CSRFToken': window.csrfToken } })
-    .then(response => { if (!response.ok) { return response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` })).then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); }); } return response.json(); })
-    .then(data => {
-        window.showNotification(data.message || 'Transcription deleted.', 'success', 4000, false);
-        window.logger.info(logPrefix, "Deletion successful via API.");
-        window.location.reload(); 
+    .then(response => {
+        if (!response.ok) {
+            return response.json()
+                .catch(() => ({ error: `HTTP error! Status: ${response.status}` }))
+                .then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); });
+        }
+        return response.json();
     })
-    .catch(error => { 
-        window.logger.error(historyLogPrefix, 'Error deleting transcription:', error); 
-        window.showNotification(`Error deleting: ${window.escapeHtml(error.message)}`, 'error', 5000, false);
+    .then(data => {
+        window.logger.info(logPrefix, "Deletion successful via API.");
+        idsToPollForTitle.delete(transcriptionId);
+        delete titlePollAttempts[transcriptionId];
+
+        const undoData = {
+            clone: listItemClone,
+            parent: historyList,
+            nextSiblingId,
+            shouldRestoreTitlePolling,
+            undoActive: true,
+            undoInFlight: false,
+            notification: null,
+            expiryTimer: null
+        };
+
+        deletedTranscriptionUndoData.set(transcriptionId, undoData);
+
+        animateHistoryItemRemoval(transcriptionItemElement, () => {
+            transcriptionItemElement.remove();
+            updateHistoryEmptyState();
+        });
+
+        const message = `${window.escapeHtml(data.message || 'Transcription deleted.')}&nbsp;<button class="undo-delete-action underline font-medium ml-1 focus:outline-none">${window.i18n?.undo || 'Undo'}</button>`;
+        const notification = window.showNotification(message, 'success', UNDO_NOTIFICATION_DURATION_MS, false);
+        undoData.notification = notification;
+
+        if (notification) {
+            const undoButton = notification.querySelector('.undo-delete-action');
+            if (undoButton) {
+                undoButton.addEventListener('click', event => {
+                    event.preventDefault();
+                    handleUndoRestore(transcriptionId, undoData, notification, undoButton, logPrefix);
+                });
+                undoData.expiryTimer = setTimeout(() => {
+                    if (undoButton) {
+                        undoButton.disabled = true;
+                        undoButton.classList.add('pointer-events-none', 'opacity-60', 'cursor-not-allowed');
+                    }
+                    undoData.undoActive = false;
+                    deletedTranscriptionUndoData.delete(transcriptionId);
+                }, UNDO_NOTIFICATION_DURATION_MS + 400);
+            } else {
+                undoData.undoActive = false;
+                deletedTranscriptionUndoData.delete(transcriptionId);
+            }
+        } else {
+            undoData.undoActive = false;
+            deletedTranscriptionUndoData.delete(transcriptionId);
+            window.logger.warn(logPrefix, "Notification container missing; undo not available.");
+        }
+    })
+    .catch(error => {
+        window.logger.error(historyLogPrefix, 'Error deleting transcription:', error);
+        window.showNotification(`Error deleting: ${window.escapeHtml(error?.message || 'Unknown error')}`, 'error', 5000, false);
+        if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.removeAttribute('aria-disabled');
+            deleteButton.classList.remove('opacity-60', 'pointer-events-none', 'cursor-not-allowed');
+            if (originalDeleteIcon && originalDeleteIcon.dataset.originalIcon) {
+                originalDeleteIcon.textContent = originalDeleteIcon.dataset.originalIcon;
+                delete originalDeleteIcon.dataset.originalIcon;
+            }
+            if (originalDeleteIcon) {
+                originalDeleteIcon.classList.remove('animate-spin');
+            }
+        }
     });
 }
-window.deleteTranscription = deleteTranscription; 
+window.deleteTranscription = deleteTranscription;
 
 function capitalizeFirstLetter(string) { if (!string || typeof string !== 'string') return string || ''; return string.charAt(0).toUpperCase() + string.slice(1); }
 window.capitalizeFirstLetter = capitalizeFirstLetter; 
@@ -503,6 +747,7 @@ document.addEventListener('DOMContentLoaded', function() {
     else { window.logger.debug(historyLogPrefix, "Clear All button not found on page load."); }
 
     const historyList = document.getElementById('transcriptionHistory');
+    updateHistoryEmptyState();
     if (historyList) {
         historyList.addEventListener('click', function(event) {
             const copyBtn = event.target.closest('.transcript-panel .copy-btn');

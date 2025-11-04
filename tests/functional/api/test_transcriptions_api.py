@@ -124,6 +124,52 @@ def test_delete_transcription_not_found(logged_in_client_with_permissions):
     assert response.status_code == 404
 
 
+def test_restore_transcription_success(app, logged_in_client_with_permissions):
+    with app.app_context():
+        user = get_user_by_username("testuser_permissions")
+    job_id = _create_transcription(app, user.id)
+
+    delete_response = logged_in_client_with_permissions.delete(
+        f"/api/transcriptions/{job_id}"
+    )
+    assert delete_response.status_code == 200
+
+    restore_response = logged_in_client_with_permissions.post(
+        f"/api/transcriptions/{job_id}/restore"
+    )
+    assert restore_response.status_code == 200
+
+    with app.app_context():
+        job = transcription_model.get_transcription_by_id(job_id, user.id)
+        assert job is not None
+        assert job["is_hidden_from_user"] is False
+        assert job["hidden_reason"] is None
+
+
+def test_restore_transcription_already_visible(app, logged_in_client_with_permissions):
+    with app.app_context():
+        user = get_user_by_username("testuser_permissions")
+    job_id = _create_transcription(app, user.id)
+
+    response = logged_in_client_with_permissions.post(
+        f"/api/transcriptions/{job_id}/restore"
+    )
+
+    assert response.status_code == 200
+
+    with app.app_context():
+        job = transcription_model.get_transcription_by_id(job_id, user.id)
+        assert job is not None
+        assert job["is_hidden_from_user"] is False
+
+
+def test_restore_transcription_not_found(logged_in_client_with_permissions):
+    response = logged_in_client_with_permissions.post(
+        "/api/transcriptions/missing/restore"
+    )
+    assert response.status_code == 404
+
+
 def test_clear_transcriptions(app, logged_in_client_with_permissions):
     with app.app_context():
         user = get_user_by_username("testuser_permissions")

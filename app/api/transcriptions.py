@@ -451,6 +451,38 @@ def delete_transcription(transcription_id):
         logging.exception(f"{log_prefix} Error deleting transcription:")
         return jsonify({'error': 'Failed to delete transcription due to an internal error.'}), 500
 
+@transcriptions_bp.route('/transcriptions/<transcription_id>/restore', methods=['POST'])
+@login_required
+def restore_transcription(transcription_id):
+    """
+    API endpoint to restore a previously deleted transcription owned by the user.
+    """
+    user_id = current_user.id
+    short_job_id = transcription_id[:8] if transcription_id else 'invalid'
+    log_prefix = f"[API:Restore:JOB:{short_job_id}:User:{user_id}]"
+    logging.debug(f"{log_prefix} /transcriptions/restore request received.")
+
+    try:
+        restored = transcription_model.restore_transcription(transcription_id, user_id)
+        if restored:
+            logging.info(f"{log_prefix} Transcription restored successfully.")
+            return jsonify({'message': 'Transcription restored.'}), 200
+
+        existing_job = transcription_model.get_transcription_by_id(transcription_id, user_id)
+        if existing_job and not existing_job.get('is_hidden_from_user'):
+            logging.info(f"{log_prefix} Restore skipped: transcription already visible.")
+            return jsonify({'message': 'Transcription already active.'}), 200
+
+        if existing_job is None:
+            logging.warning(f"{log_prefix} Restore failed: transcription not found or not owned.")
+            return jsonify({'error': 'Transcription not found.'}), 404
+
+        logging.warning(f"{log_prefix} Restore failed: transcription not eligible for restoration.")
+        return jsonify({'error': 'Transcription could not be restored.'}), 409
+    except Exception as e:
+        logging.exception(f"{log_prefix} Error restoring transcription:")
+        return jsonify({'error': 'Failed to restore transcription due to an internal error.'}), 500
+
 @transcriptions_bp.route('/transcriptions/clear', methods=['DELETE'])
 @login_required
 def clear_transcriptions():
