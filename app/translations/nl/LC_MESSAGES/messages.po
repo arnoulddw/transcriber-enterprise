@@ -8,15 +8,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-11-08 16:59+0100\n"
+"POT-Creation-Date: 2025-11-08 17:33+0100\n"
 "PO-Revision-Date: 2025-06-10 23:54+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: nl\n"
 "Language-Team: nl <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
 
 #: app/__init__.py:360
@@ -26,10 +26,6 @@ msgstr "Dienst tijdelijk niet beschikbaar. Initialisatie is bezig."
 #: app/__init__.py:371 app/__init__.py:538
 msgid "Authentication required."
 msgstr "Authenticatie vereist."
-
-#: app/__init__.py:374
-msgid "Please log in to access this page."
-msgstr "Log in om deze pagina te bekijken."
 
 #: app/__init__.py:510
 msgid "Not Found"
@@ -43,29 +39,25 @@ msgstr "Interne Serverfout"
 msgid "Forbidden"
 msgstr "Verboden Toegang"
 
-#: app/__init__.py:531
-msgid "You do not have permission to access this page."
-msgstr "U heeft geen toestemming om deze pagina te bekijken."
-
 #: app/__init__.py:538
 msgid "Unauthorized"
 msgstr "Ongeautoriseerd"
 
-#: app/__init__.py:539
-msgid "Authentication required to access this page."
-msgstr "Authenticatie is vereist om deze pagina te bekijken."
-
-#: app/__init__.py:548
+#: app/__init__.py:546
 #, python-format
-msgid "Too many requests: %(description)s. Please try again later."
-msgstr "Te veel aanvragen: %(description)s. Probeer het later opnieuw."
+msgid "Too many requests. Please wait a moment and try again."
+msgstr "Too many requests. Please wait a moment and try again."
 
-#: app/__init__.py:562
+#: app/__init__.py:549 app/api/llm.py:31 app/api/transcriptions.py:43
+#: app/api/workflows.py:39
+msgid "Details"
+msgstr "Details"
+
+#: app/__init__.py:566
 #, python-format
 msgid "File is too large. The maximum allowed file size is %(size)sMB."
 msgstr ""
-"Bestand is te groot. De maximaal toegestane bestandsgrootte is %(size)s "
-"MB."
+"Bestand is te groot. De maximaal toegestane bestandsgrootte is %(size)s MB."
 
 #: app/config.py:80
 msgid "Automatic Detection"
@@ -311,79 +303,6 @@ msgstr "Labelkleur"
 msgid "Save Workflow Template"
 msgstr "Workflow Label"
 
-#: app/api/auth.py:74
-msgid "Logged in successfully"
-msgstr "Succesvol ingelogd."
-
-#: app/api/auth.py:102
-msgid "Invalid username or password."
-msgstr "Ongeldige gebruikersnaam of wachtwoord."
-
-#: app/api/auth.py:108
-msgid "An unexpected error occurred during login. Please try again."
-msgstr ""
-"Er is een onverwachte fout opgetreden tijdens het inloggen. Probeer het "
-"opnieuw."
-
-#: app/api/auth.py:121
-msgid "User registration is disabled in single-user mode."
-msgstr "Gebruikersregistratie is uitgeschakeld in de modus voor één gebruiker."
-
-#: app/api/auth.py:152
-#, python-format
-msgid "Account created for %(username)s! You can now log in."
-msgstr "Account voor %(username)s aangemaakt! U kunt nu inloggen."
-
-#: app/api/auth.py:156
-msgid "Registration failed. Please try again."
-msgstr "Registratie mislukt. Probeer het opnieuw."
-
-#: app/api/auth.py:166
-msgid "An unexpected error occurred during registration. Please try again."
-msgstr ""
-"Er is een onverwachte fout opgetreden tijdens de registratie. Probeer het"
-" opnieuw."
-
-#: app/api/auth.py:183
-msgid "You have been logged out successfully."
-msgstr "U bent succesvol uitgelogd."
-
-#: app/api/auth.py:219
-msgid ""
-"If an account with that email exists, a password reset link has been "
-"sent. Please check your inbox and spam folder if you don't see it within "
-"a few minutes."
-msgstr ""
-"Als er een account met dat e-mailadres bestaat, is er een link voor het "
-"opnieuw instellen van het wachtwoord verzonden. Controleer uw inbox en "
-"spammap als u deze niet binnen enkele minuten ziet."
-
-#: app/api/auth.py:224
-msgid "An error occurred while processing your request. Please try again."
-msgstr ""
-"Er is een fout opgetreden bij het verwerken van uw verzoek. Probeer het "
-"opnieuw."
-
-#: app/api/auth.py:244
-msgid "The password reset link is invalid or has expired."
-msgstr ""
-"De link voor het opnieuw instellen van het wachtwoord is ongeldig of "
-"verlopen."
-
-#: app/api/auth.py:257
-msgid "Your password has been reset successfully. You can now log in."
-msgstr "Uw wachtwoord is succesvol opnieuw ingesteld. U kunt nu inloggen."
-
-#: app/api/auth.py:261
-msgid "Password reset failed. Please try again."
-msgstr "Het opnieuw instellen van het wachtwoord is mislukt. Probeer het opnieuw."
-
-#: app/api/auth.py:264
-msgid "An error occurred while resetting your password. Please try again."
-msgstr ""
-"Er is een fout opgetreden bij het opnieuw instellen van uw wachtwoord. "
-"Probeer het opnieuw."
-
 #: app/api/auth.py:283
 msgid "Already logged in."
 msgstr "Al ingelogd."
@@ -412,6 +331,267 @@ msgstr "Succesvol ingelogd."
 msgid "An unexpected server error occurred."
 msgstr "Er is een onverwachte serverfout opgetreden."
 
+#: app/api/llm.py:52
+msgid "Please include a prompt before requesting AI text generation."
+msgstr "Please include a prompt before requesting AI text generation."
+
+#: app/api/llm.py:95
+msgid ""
+"We could not start the AI request because the configuration or input is "
+"invalid."
+msgstr ""
+"We could not start the AI request because the configuration or input is "
+"invalid."
+
+#: app/api/llm.py:98
+msgid ""
+"The AI provider temporarily rate-limited this request. Please wait a moment "
+"and try again."
+msgstr ""
+"The AI provider temporarily rate-limited this request. Please wait a moment "
+"and try again."
+
+#: app/api/llm.py:101
+msgid ""
+"The AI provider blocked this request because of its safety filters. Please "
+"adjust your prompt and try again."
+msgstr ""
+"The AI provider blocked this request because of its safety filters. Please "
+"adjust your prompt and try again."
+
+#: app/api/llm.py:104
+msgid ""
+"The AI provider could not complete this request. Please try again later."
+msgstr ""
+"The AI provider could not complete this request. Please try again later."
+
+#: app/api/llm.py:107
+msgid ""
+"We encountered an unexpected error while generating text. Please try again."
+msgstr ""
+"We encountered an unexpected error while generating text. Please try again."
+
+#: app/api/llm.py:130
+msgid "You do not have access to this AI operation."
+msgstr "You do not have access to this AI operation."
+
+#: app/api/llm.py:133
+msgid "We could not find that AI operation."
+msgstr "We could not find that AI operation."
+
+#: app/api/llm.py:153
+msgid ""
+"We encountered an internal error while fetching the AI operation status. "
+"Please try again."
+msgstr ""
+"We encountered an internal error while fetching the AI operation status. "
+"Please try again."
+
+#: app/api/transcriptions.py:91
+msgid "We did not receive an audio file in your request."
+msgstr "We did not receive an audio file in your request."
+
+#: app/api/transcriptions.py:95
+msgid "Please choose a file before starting the transcription."
+msgstr "Please choose a file before starting the transcription."
+
+#: app/api/transcriptions.py:98
+msgid "This file type is not supported for transcription."
+msgstr "This file type is not supported for transcription."
+
+#: app/api/transcriptions.py:126
+#, python-format
+msgid "The file exceeds the size limit of %(size)sMB."
+msgstr "The file exceeds the size limit of %(size)sMB."
+
+#: app/api/transcriptions.py:142
+msgid "We could not save or process the uploaded file. Please try again."
+msgstr "We could not save or process the uploaded file. Please try again."
+
+#: app/api/transcriptions.py:210 app/api/transcriptions.py:214
+msgid "We could not initialize the transcription job. Please try again."
+msgstr "We could not initialize the transcription job. Please try again."
+
+#: app/api/transcriptions.py:241
+msgid "Transcription job started successfully."
+msgstr "Transcription job started successfully."
+
+#: app/api/transcriptions.py:255
+msgid ""
+"We could not start the transcription because one of the inputs was invalid."
+msgstr ""
+"We could not start the transcription because one of the inputs was invalid."
+
+#: app/api/transcriptions.py:257
+msgid ""
+"We could not start the transcription because of a configuration or "
+"permission issue."
+msgstr ""
+"We could not start the transcription because of a configuration or "
+"permission issue."
+
+#: app/api/transcriptions.py:267
+msgid ""
+"We could not start the transcription job due to an internal error. Please "
+"try again."
+msgstr ""
+"We could not start the transcription job due to an internal error. Please "
+"try again."
+
+#: app/api/transcriptions.py:293 app/api/transcriptions.py:384
+#: app/api/transcriptions.py:585 app/api/transcriptions.py:636
+#, fuzzy
+msgid "You do not have access to this transcription job."
+msgstr "U heeft geen toestemming om deze pagina te bekijken."
+
+#: app/api/transcriptions.py:296 app/api/transcriptions.py:387
+#: app/api/transcriptions.py:588 app/api/transcriptions.py:639
+#, fuzzy
+msgid "We could not find that transcription job."
+msgstr "Nog geen voltooide transcripties."
+
+#: app/api/transcriptions.py:309
+msgid "Error: Invalid progress log format."
+msgstr "Error: Invalid progress log format."
+
+#: app/api/transcriptions.py:331
+msgid "LLM/Workflow status must be polled separately."
+msgstr "LLM/Workflow status must be polled separately."
+
+#: app/api/transcriptions.py:363
+msgid ""
+"We encountered an internal error while fetching job progress. Please try "
+"again."
+msgstr ""
+"We encountered an internal error while fetching job progress. Please try "
+"again."
+
+#: app/api/transcriptions.py:392
+#, python-format
+msgid ""
+"This transcription cannot be cancelled because it is in %(status)s status."
+msgstr ""
+"This transcription cannot be cancelled because it is in %(status)s status."
+
+#: app/api/transcriptions.py:395
+msgid "Cancellation requested by user."
+msgstr "Cancellation requested by user."
+
+#: app/api/transcriptions.py:398
+msgid "Transcription cancellation requested."
+msgstr "Transcription cancellation requested."
+
+#: app/api/transcriptions.py:402
+msgid ""
+"We encountered an internal error while requesting cancellation. Please try "
+"again."
+msgstr ""
+"We encountered an internal error while requesting cancellation. Please try "
+"again."
+
+#: app/api/transcriptions.py:427
+msgid "We could not retrieve your transcription history. Please try again."
+msgstr "We could not retrieve your transcription history. Please try again."
+
+#: app/api/transcriptions.py:454
+msgid "Transcription deleted successfully."
+msgstr "Transcription deleted successfully."
+
+#: app/api/transcriptions.py:459
+msgid "You do not have permission to delete this transcription."
+msgstr "You do not have permission to delete this transcription."
+
+#: app/api/transcriptions.py:462 app/api/transcriptions.py:491
+#: app/api/transcriptions.py:553
+#, fuzzy
+msgid "We could not find that transcription."
+msgstr "Nog geen voltooide transcripties."
+
+#: app/api/transcriptions.py:465
+msgid ""
+"We could not delete the transcription because of an internal error. Please "
+"try again."
+msgstr ""
+"We could not delete the transcription because of an internal error. Please "
+"try again."
+
+#: app/api/transcriptions.py:482
+msgid "Transcription restored."
+msgstr "Transcription restored."
+
+#: app/api/transcriptions.py:487
+msgid "Transcription already active."
+msgstr "Transcription already active."
+
+#: app/api/transcriptions.py:494
+msgid "This transcription cannot be restored."
+msgstr "This transcription cannot be restored."
+
+#: app/api/transcriptions.py:497
+msgid ""
+"We could not restore the transcription because of an internal error. Please "
+"try again."
+msgstr ""
+"We could not restore the transcription because of an internal error. Please "
+"try again."
+
+#: app/api/transcriptions.py:524
+#, python-format
+msgid "All %(count)s transcriptions were cleared successfully."
+msgstr "All %(count)s transcriptions were cleared successfully."
+
+#: app/api/transcriptions.py:527
+msgid ""
+"We could not clear your transcriptions because of an internal error. Please "
+"try again."
+msgstr ""
+"We could not clear your transcriptions because of an internal error. Please "
+"try again."
+
+#: app/api/transcriptions.py:542
+msgid "You do not have permission to download transcripts."
+msgstr "You do not have permission to download transcripts."
+
+#: app/api/transcriptions.py:548
+msgid "Download logged successfully."
+msgstr "Download logged successfully."
+
+#: app/api/transcriptions.py:556
+msgid "You do not have permission to access this transcription."
+msgstr "You do not have permission to access this transcription."
+
+#: app/api/transcriptions.py:559
+msgid "You can only download completed transcriptions."
+msgstr "You can only download completed transcriptions."
+
+#: app/api/transcriptions.py:562
+msgid "We could not log this download. Please try again."
+msgstr "We could not log this download. Please try again."
+
+#: app/api/transcriptions.py:565
+msgid ""
+"We could not log the download because of an internal error. Please try "
+"again."
+msgstr ""
+"We could not log the download because of an internal error. Please try "
+"again."
+
+#: app/api/transcriptions.py:615
+msgid ""
+"We encountered an internal error while fetching the title status. Please try"
+" again."
+msgstr ""
+"We encountered an internal error while fetching the title status. Please try"
+" again."
+
+#: app/api/transcriptions.py:660
+msgid ""
+"We encountered an internal error while fetching workflow details. Please try"
+" again."
+msgstr ""
+"We encountered an internal error while fetching workflow details. Please try"
+" again."
+
 #: app/api/user_settings.py:92
 msgid "Failed to retrieve user readiness status."
 msgstr "Kon de status van de gebruiker niet ophalen."
@@ -427,7 +607,8 @@ msgstr "API-sleutel voor %(service)s succesvol opgeslagen."
 
 #: app/api/user_settings.py:139
 msgid "An unexpected error occurred while saving the API key."
-msgstr "Er is een onverwachte fout opgetreden bij het opslaan van de API-sleutel."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het opslaan van de API-sleutel."
 
 #: app/api/user_settings.py:143 app/api/user_settings.py:238
 #: app/api/user_settings.py:276
@@ -459,13 +640,15 @@ msgstr "Profiel succesvol bijgewerkt."
 
 #: app/api/user_settings.py:234
 msgid "An unexpected error occurred while updating the profile."
-msgstr "Er is een onverwachte fout opgetreden bij het bijwerken van het profiel."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het bijwerken van het profiel."
 
 #: app/api/user_settings.py:251
-msgid "Password change is not available for accounts signed in via Google/OAuth."
+msgid ""
+"Password change is not available for accounts signed in via Google/OAuth."
 msgstr ""
-"Wachtwoord wijzigen is niet beschikbaar voor accounts die zijn ingelogd "
-"via Google/OAuth."
+"Wachtwoord wijzigen is niet beschikbaar voor accounts die zijn ingelogd via "
+"Google/OAuth."
 
 #: app/api/user_settings.py:262
 msgid "Password changed successfully."
@@ -473,7 +656,8 @@ msgstr "Wachtwoord succesvol gewijzigd."
 
 #: app/api/user_settings.py:272
 msgid "An unexpected error occurred while changing the password."
-msgstr "Er is een onverwachte fout opgetreden bij het wijzigen van het wachtwoord."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het wijzigen van het wachtwoord."
 
 #: app/api/user_settings.py:307
 msgid "Failed to retrieve user prompts."
@@ -505,7 +689,8 @@ msgstr "Bijwerken van Prompt mislukt (controleer eigendom of logs)."
 
 #: app/api/user_settings.py:377
 msgid "An unexpected error occurred while updating the prompt."
-msgstr "Er is een onverwachte fout opgetreden bij het bijwerken van de Prompt."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het bijwerken van de Prompt."
 
 #: app/api/user_settings.py:388
 msgid "Prompt deleted successfully."
@@ -517,7 +702,138 @@ msgstr "Verwijderen van Prompt mislukt (controleer eigendom of logs)."
 
 #: app/api/user_settings.py:399
 msgid "An unexpected error occurred while deleting the prompt."
-msgstr "Er is een onverwachte fout opgetreden bij het verwijderen van de Prompt."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het verwijderen van de Prompt."
+
+#: app/api/workflows.py:60
+msgid "Please include a workflow prompt before submitting."
+msgstr "Please include a workflow prompt before submitting."
+
+#: app/api/workflows.py:81
+msgid "Workflow started successfully."
+msgstr "Workflow started successfully."
+
+#: app/api/workflows.py:87
+msgid "You do not have permission to run workflows."
+msgstr "You do not have permission to run workflows."
+
+#: app/api/workflows.py:90
+msgid "You have reached your workflow usage limit. Please try again later."
+msgstr "You have reached your workflow usage limit. Please try again later."
+
+#: app/api/workflows.py:93 app/api/workflows.py:176
+msgid ""
+"We could not find that transcription or you no longer have access to it."
+msgstr ""
+"We could not find that transcription or you no longer have access to it."
+
+#: app/api/workflows.py:96
+msgid ""
+"The workflow prompt needs attention before it can run. Please review it and "
+"try again."
+msgstr ""
+"The workflow prompt needs attention before it can run. Please review it and "
+"try again."
+
+#: app/api/workflows.py:99
+msgid ""
+"A workflow is already running for this transcription. Please wait for it to "
+"finish."
+msgstr ""
+"A workflow is already running for this transcription. Please wait for it to "
+"finish."
+
+#: app/api/workflows.py:103
+msgid ""
+"The AI provider temporarily rate-limited this workflow. Please wait a moment"
+" and try again."
+msgstr ""
+"The AI provider temporarily rate-limited this workflow. Please wait a moment"
+" and try again."
+
+#: app/api/workflows.py:106
+msgid ""
+"The AI provider blocked this workflow because of its safety filters. Please "
+"adjust your prompt and try again."
+msgstr ""
+"The AI provider blocked this workflow because of its safety filters. Please "
+"adjust your prompt and try again."
+
+#: app/api/workflows.py:110
+msgid "We were unable to run this workflow. Please try again."
+msgstr "We were unable to run this workflow. Please try again."
+
+#: app/api/workflows.py:113
+msgid ""
+"We hit an unexpected error while starting the workflow. Please try again."
+msgstr ""
+"We hit an unexpected error while starting the workflow. Please try again."
+
+#: app/api/workflows.py:133
+msgid "Please include the updated workflow result in your request."
+msgstr "Please include the updated workflow result in your request."
+
+#: app/api/workflows.py:143
+msgid "Workflow result updated successfully."
+msgstr "Workflow result updated successfully."
+
+#: app/api/workflows.py:147
+msgid "We could not find that workflow operation."
+msgstr "We could not find that workflow operation."
+
+#: app/api/workflows.py:153
+msgid "We could not update this workflow result. Please try again."
+msgstr "We could not update this workflow result. Please try again."
+
+#: app/api/workflows.py:156
+msgid ""
+"We hit an unexpected error while editing the workflow result. Please try "
+"again."
+msgstr ""
+"We hit an unexpected error while editing the workflow result. Please try "
+"again."
+
+#: app/api/workflows.py:173
+msgid "Workflow result deleted successfully."
+msgstr "Workflow result deleted successfully."
+
+#: app/api/workflows.py:179
+msgid "We were unable to delete the workflow result. Please try again."
+msgstr "We were unable to delete the workflow result. Please try again."
+
+#: app/api/workflows.py:182
+msgid ""
+"We hit an unexpected error while deleting the workflow result. Please try "
+"again."
+msgstr ""
+"We hit an unexpected error while deleting the workflow result. Please try "
+"again."
+
+#: app/core/decorators.py:112
+msgid "User not authenticated or role not assigned."
+msgstr ""
+
+#: app/core/decorators.py:115
+msgid "Server configuration error checking usage limits."
+msgstr ""
+
+#: app/core/decorators.py:118 app/core/decorators.py:148
+msgid "Usage limits check passed."
+msgstr ""
+
+#: app/core/decorators.py:126 app/core/decorators.py:128
+#: app/core/decorators.py:130 app/core/decorators.py:133
+#: app/core/decorators.py:135 app/core/decorators.py:137
+#: app/core/decorators.py:141 app/core/decorators.py:143
+#: app/core/decorators.py:145
+msgid "You have reached your fair use limit."
+msgstr ""
+
+#: app/core/decorators.py:152
+#, fuzzy
+msgid "An error occurred while checking usage limits."
+msgstr ""
+"Er is een onverwachte fout opgetreden bij het verwijderen van de Prompt."
 
 #: app/templates/base.html:9 app/templates/base.html:39
 #: app/templates/index.html:5
@@ -807,12 +1123,13 @@ msgid ""
 "Sorry, you do not have permission to access this page or perform this "
 "action."
 msgstr ""
-"Sorry, u heeft geen toestemming om deze pagina te bekijken of deze actie "
-"uit te voeren."
+"Sorry, u heeft geen toestemming om deze pagina te bekijken of deze actie uit"
+" te voeren."
 
 #: app/templates/errors/403.html:12
 msgid "If you believe this is an error, please contact the administrator."
-msgstr "Als u denkt dat dit een fout is, neem dan contact op met de beheerder."
+msgstr ""
+"Als u denkt dat dit een fout is, neem dan contact op met de beheerder."
 
 #: app/templates/errors/403.html:15 app/templates/errors/404.html:15
 #: app/templates/errors/500.html:19
@@ -853,13 +1170,13 @@ msgstr ""
 
 #: app/templates/layout/modals/api_key_modal.html:24
 msgid ""
-"Enter your personal API keys for the transcription and workflow services."
-" These keys are stored securely and used only for your transcription "
+"Enter your personal API keys for the transcription and workflow services. "
+"These keys are stored securely and used only for your transcription "
 "requests."
 msgstr ""
 "Voer uw persoonlijke API-sleutels in voor de transcriptie- en Workflow-"
-"diensten. Deze sleutels worden veilig opgeslagen en alleen gebruikt voor "
-"uw transcriptie-aanvragen."
+"diensten. Deze sleutels worden veilig opgeslagen en alleen gebruikt voor uw "
+"transcriptie-aanvragen."
 
 #: app/templates/layout/modals/api_key_modal.html:25
 msgid "You can get your keys here:"
@@ -940,7 +1257,8 @@ msgstr "hier"
 
 #: app/templates/layout/modals/workflow_modal.html:31
 msgid "Select a Workflow or Enter a Custom Prompt Below"
-msgstr "Selecteer een Workflow of voer hieronder een gepersonaliseerde Prompt in"
+msgstr ""
+"Selecteer een Workflow of voer hieronder een gepersonaliseerde Prompt in"
 
 #: app/templates/layout/modals/workflow_modal.html:35
 msgid "Custom Workflow Prompt"
@@ -948,7 +1266,8 @@ msgstr "Gepersonaliseerde Workflow Prompt"
 
 #: app/templates/layout/modals/workflow_modal.html:38
 msgid "Enter your custom workflow prompt here (max 120 words)..."
-msgstr "Voer hier uw gepersonaliseerde Workflow Prompt in (max 120 woorden)..."
+msgstr ""
+"Voer hier uw gepersonaliseerde Workflow Prompt in (max 120 woorden)..."
 
 #: app/templates/layout/modals/workflow_modal.html:51
 msgid "Submit Workflow"
@@ -982,14 +1301,11 @@ msgstr "Systeemgedefinieerd - "
 #~ msgstr "Wachtwoord vergeten"
 
 #~ msgid ""
-#~ "Enter your registered email address "
-#~ "below, and we'll send you a link"
-#~ " to reset your password."
+#~ "Enter your registered email address below, and we'll send you a link to "
+#~ "reset your password."
 #~ msgstr ""
-#~ "Voer hieronder uw geregistreerde e-mailadres"
-#~ " in, en we sturen u een link"
-#~ " om uw wachtwoord opnieuw in te "
-#~ "stellen."
+#~ "Voer hieronder uw geregistreerde e-mailadres in, en we sturen u een link om "
+#~ "uw wachtwoord opnieuw in te stellen."
 
 #~ msgid "Send Reset Link"
 #~ msgstr "Verstuur herstellink"
@@ -1011,3 +1327,47 @@ msgstr "Systeemgedefinieerd - "
 
 #~ msgid "Already have an account?"
 #~ msgstr "Heeft u al een account?"
+
+#~ msgid "Please log in to access this page."
+#~ msgstr "Log in om deze pagina te bekijken."
+
+#~ msgid "Authentication required to access this page."
+#~ msgstr "Authenticatie is vereist om deze pagina te bekijken."
+
+#~ msgid "Invalid username or password."
+#~ msgstr "Ongeldige gebruikersnaam of wachtwoord."
+
+#~ msgid "User registration is disabled in single-user mode."
+#~ msgstr ""
+#~ "Gebruikersregistratie is uitgeschakeld in de modus voor één gebruiker."
+
+#~ msgid "Account created for %(username)s! You can now log in."
+#~ msgstr "Account voor %(username)s aangemaakt! U kunt nu inloggen."
+
+#~ msgid "Registration failed. Please try again."
+#~ msgstr "Registratie mislukt. Probeer het opnieuw."
+
+#~ msgid "You have been logged out successfully."
+#~ msgstr "U bent succesvol uitgelogd."
+
+#~ msgid ""
+#~ "If an account with that email exists, a password reset link has been sent. "
+#~ "Please check your inbox and spam folder if you don't see it within a few "
+#~ "minutes."
+#~ msgstr ""
+#~ "Als er een account met dat e-mailadres bestaat, is er een link voor het "
+#~ "opnieuw instellen van het wachtwoord verzonden. Controleer uw inbox en "
+#~ "spammap als u deze niet binnen enkele minuten ziet."
+
+#~ msgid "An error occurred while processing your request. Please try again."
+#~ msgstr ""
+#~ "Er is een fout opgetreden bij het verwerken van uw verzoek. Probeer het "
+#~ "opnieuw."
+
+#~ msgid "The password reset link is invalid or has expired."
+#~ msgstr ""
+#~ "De link voor het opnieuw instellen van het wachtwoord is ongeldig of "
+#~ "verlopen."
+
+#~ msgid "Your password has been reset successfully. You can now log in."
+#~ msgstr "Uw wachtwoord is succesvol opnieuw ingesteld. U kunt nu inloggen."

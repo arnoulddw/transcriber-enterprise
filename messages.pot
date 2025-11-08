@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-11-08 16:59+0100\n"
+"POT-Creation-Date: 2025-11-08 17:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,10 +25,6 @@ msgstr ""
 msgid "Authentication required."
 msgstr ""
 
-#: app/__init__.py:374
-msgid "Please log in to access this page."
-msgstr ""
-
 #: app/__init__.py:510
 msgid "Not Found"
 msgstr ""
@@ -41,24 +37,20 @@ msgstr ""
 msgid "Forbidden"
 msgstr ""
 
-#: app/__init__.py:531
-msgid "You do not have permission to access this page."
-msgstr ""
-
 #: app/__init__.py:538
 msgid "Unauthorized"
 msgstr ""
 
-#: app/__init__.py:539
-msgid "Authentication required to access this page."
+#: app/__init__.py:546
+msgid "Too many requests. Please wait a moment and try again."
 msgstr ""
 
-#: app/__init__.py:548
-#, python-format
-msgid "Too many requests: %(description)s. Please try again later."
+#: app/__init__.py:549 app/api/llm.py:31 app/api/transcriptions.py:43
+#: app/api/workflows.py:39
+msgid "Details"
 msgstr ""
 
-#: app/__init__.py:562
+#: app/__init__.py:566
 #, python-format
 msgid "File is too large. The maximum allowed file size is %(size)sMB."
 msgstr ""
@@ -291,66 +283,6 @@ msgstr ""
 msgid "Save Workflow Template"
 msgstr ""
 
-#: app/api/auth.py:74
-msgid "Logged in successfully"
-msgstr ""
-
-#: app/api/auth.py:102
-msgid "Invalid username or password."
-msgstr ""
-
-#: app/api/auth.py:108
-msgid "An unexpected error occurred during login. Please try again."
-msgstr ""
-
-#: app/api/auth.py:121
-msgid "User registration is disabled in single-user mode."
-msgstr ""
-
-#: app/api/auth.py:152
-#, python-format
-msgid "Account created for %(username)s! You can now log in."
-msgstr ""
-
-#: app/api/auth.py:156
-msgid "Registration failed. Please try again."
-msgstr ""
-
-#: app/api/auth.py:166
-msgid "An unexpected error occurred during registration. Please try again."
-msgstr ""
-
-#: app/api/auth.py:183
-msgid "You have been logged out successfully."
-msgstr ""
-
-#: app/api/auth.py:219
-msgid ""
-"If an account with that email exists, a password reset link has been "
-"sent. Please check your inbox and spam folder if you don't see it within "
-"a few minutes."
-msgstr ""
-
-#: app/api/auth.py:224
-msgid "An error occurred while processing your request. Please try again."
-msgstr ""
-
-#: app/api/auth.py:244
-msgid "The password reset link is invalid or has expired."
-msgstr ""
-
-#: app/api/auth.py:257
-msgid "Your password has been reset successfully. You can now log in."
-msgstr ""
-
-#: app/api/auth.py:261
-msgid "Password reset failed. Please try again."
-msgstr ""
-
-#: app/api/auth.py:264
-msgid "An error occurred while resetting your password. Please try again."
-msgstr ""
-
 #: app/api/auth.py:283
 msgid "Already logged in."
 msgstr ""
@@ -377,6 +309,232 @@ msgstr ""
 
 #: app/api/auth.py:345
 msgid "An unexpected server error occurred."
+msgstr ""
+
+#: app/api/llm.py:52
+msgid "Please include a prompt before requesting AI text generation."
+msgstr ""
+
+#: app/api/llm.py:95
+msgid ""
+"We could not start the AI request because the configuration or input is "
+"invalid."
+msgstr ""
+
+#: app/api/llm.py:98
+msgid ""
+"The AI provider temporarily rate-limited this request. Please wait a "
+"moment and try again."
+msgstr ""
+
+#: app/api/llm.py:101
+msgid ""
+"The AI provider blocked this request because of its safety filters. "
+"Please adjust your prompt and try again."
+msgstr ""
+
+#: app/api/llm.py:104
+msgid "The AI provider could not complete this request. Please try again later."
+msgstr ""
+
+#: app/api/llm.py:107
+msgid ""
+"We encountered an unexpected error while generating text. Please try "
+"again."
+msgstr ""
+
+#: app/api/llm.py:130
+msgid "You do not have access to this AI operation."
+msgstr ""
+
+#: app/api/llm.py:133
+msgid "We could not find that AI operation."
+msgstr ""
+
+#: app/api/llm.py:153
+msgid ""
+"We encountered an internal error while fetching the AI operation status. "
+"Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:91
+msgid "We did not receive an audio file in your request."
+msgstr ""
+
+#: app/api/transcriptions.py:95
+msgid "Please choose a file before starting the transcription."
+msgstr ""
+
+#: app/api/transcriptions.py:98
+msgid "This file type is not supported for transcription."
+msgstr ""
+
+#: app/api/transcriptions.py:126
+#, python-format
+msgid "The file exceeds the size limit of %(size)sMB."
+msgstr ""
+
+#: app/api/transcriptions.py:142
+msgid "We could not save or process the uploaded file. Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:210 app/api/transcriptions.py:214
+msgid "We could not initialize the transcription job. Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:241
+msgid "Transcription job started successfully."
+msgstr ""
+
+#: app/api/transcriptions.py:255
+msgid ""
+"We could not start the transcription because one of the inputs was "
+"invalid."
+msgstr ""
+
+#: app/api/transcriptions.py:257
+msgid ""
+"We could not start the transcription because of a configuration or "
+"permission issue."
+msgstr ""
+
+#: app/api/transcriptions.py:267
+msgid ""
+"We could not start the transcription job due to an internal error. Please"
+" try again."
+msgstr ""
+
+#: app/api/transcriptions.py:293 app/api/transcriptions.py:384
+#: app/api/transcriptions.py:585 app/api/transcriptions.py:636
+msgid "You do not have access to this transcription job."
+msgstr ""
+
+#: app/api/transcriptions.py:296 app/api/transcriptions.py:387
+#: app/api/transcriptions.py:588 app/api/transcriptions.py:639
+msgid "We could not find that transcription job."
+msgstr ""
+
+#: app/api/transcriptions.py:309
+msgid "Error: Invalid progress log format."
+msgstr ""
+
+#: app/api/transcriptions.py:331
+msgid "LLM/Workflow status must be polled separately."
+msgstr ""
+
+#: app/api/transcriptions.py:363
+msgid ""
+"We encountered an internal error while fetching job progress. Please try "
+"again."
+msgstr ""
+
+#: app/api/transcriptions.py:392
+#, python-format
+msgid "This transcription cannot be cancelled because it is in %(status)s status."
+msgstr ""
+
+#: app/api/transcriptions.py:395
+msgid "Cancellation requested by user."
+msgstr ""
+
+#: app/api/transcriptions.py:398
+msgid "Transcription cancellation requested."
+msgstr ""
+
+#: app/api/transcriptions.py:402
+msgid ""
+"We encountered an internal error while requesting cancellation. Please "
+"try again."
+msgstr ""
+
+#: app/api/transcriptions.py:427
+msgid "We could not retrieve your transcription history. Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:454
+msgid "Transcription deleted successfully."
+msgstr ""
+
+#: app/api/transcriptions.py:459
+msgid "You do not have permission to delete this transcription."
+msgstr ""
+
+#: app/api/transcriptions.py:462 app/api/transcriptions.py:491
+#: app/api/transcriptions.py:553
+msgid "We could not find that transcription."
+msgstr ""
+
+#: app/api/transcriptions.py:465
+msgid ""
+"We could not delete the transcription because of an internal error. "
+"Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:482
+msgid "Transcription restored."
+msgstr ""
+
+#: app/api/transcriptions.py:487
+msgid "Transcription already active."
+msgstr ""
+
+#: app/api/transcriptions.py:494
+msgid "This transcription cannot be restored."
+msgstr ""
+
+#: app/api/transcriptions.py:497
+msgid ""
+"We could not restore the transcription because of an internal error. "
+"Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:524
+#, python-format
+msgid "All %(count)s transcriptions were cleared successfully."
+msgstr ""
+
+#: app/api/transcriptions.py:527
+msgid ""
+"We could not clear your transcriptions because of an internal error. "
+"Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:542
+msgid "You do not have permission to download transcripts."
+msgstr ""
+
+#: app/api/transcriptions.py:548
+msgid "Download logged successfully."
+msgstr ""
+
+#: app/api/transcriptions.py:556
+msgid "You do not have permission to access this transcription."
+msgstr ""
+
+#: app/api/transcriptions.py:559
+msgid "You can only download completed transcriptions."
+msgstr ""
+
+#: app/api/transcriptions.py:562
+msgid "We could not log this download. Please try again."
+msgstr ""
+
+#: app/api/transcriptions.py:565
+msgid ""
+"We could not log the download because of an internal error. Please try "
+"again."
+msgstr ""
+
+#: app/api/transcriptions.py:615
+msgid ""
+"We encountered an internal error while fetching the title status. Please "
+"try again."
+msgstr ""
+
+#: app/api/transcriptions.py:660
+msgid ""
+"We encountered an internal error while fetching workflow details. Please "
+"try again."
 msgstr ""
 
 #: app/api/user_settings.py:92
@@ -480,6 +638,118 @@ msgstr ""
 
 #: app/api/user_settings.py:399
 msgid "An unexpected error occurred while deleting the prompt."
+msgstr ""
+
+#: app/api/workflows.py:60
+msgid "Please include a workflow prompt before submitting."
+msgstr ""
+
+#: app/api/workflows.py:81
+msgid "Workflow started successfully."
+msgstr ""
+
+#: app/api/workflows.py:87
+msgid "You do not have permission to run workflows."
+msgstr ""
+
+#: app/api/workflows.py:90
+msgid "You have reached your workflow usage limit. Please try again later."
+msgstr ""
+
+#: app/api/workflows.py:93 app/api/workflows.py:176
+msgid "We could not find that transcription or you no longer have access to it."
+msgstr ""
+
+#: app/api/workflows.py:96
+msgid ""
+"The workflow prompt needs attention before it can run. Please review it "
+"and try again."
+msgstr ""
+
+#: app/api/workflows.py:99
+msgid ""
+"A workflow is already running for this transcription. Please wait for it "
+"to finish."
+msgstr ""
+
+#: app/api/workflows.py:103
+msgid ""
+"The AI provider temporarily rate-limited this workflow. Please wait a "
+"moment and try again."
+msgstr ""
+
+#: app/api/workflows.py:106
+msgid ""
+"The AI provider blocked this workflow because of its safety filters. "
+"Please adjust your prompt and try again."
+msgstr ""
+
+#: app/api/workflows.py:110
+msgid "We were unable to run this workflow. Please try again."
+msgstr ""
+
+#: app/api/workflows.py:113
+msgid "We hit an unexpected error while starting the workflow. Please try again."
+msgstr ""
+
+#: app/api/workflows.py:133
+msgid "Please include the updated workflow result in your request."
+msgstr ""
+
+#: app/api/workflows.py:143
+msgid "Workflow result updated successfully."
+msgstr ""
+
+#: app/api/workflows.py:147
+msgid "We could not find that workflow operation."
+msgstr ""
+
+#: app/api/workflows.py:153
+msgid "We could not update this workflow result. Please try again."
+msgstr ""
+
+#: app/api/workflows.py:156
+msgid ""
+"We hit an unexpected error while editing the workflow result. Please try "
+"again."
+msgstr ""
+
+#: app/api/workflows.py:173
+msgid "Workflow result deleted successfully."
+msgstr ""
+
+#: app/api/workflows.py:179
+msgid "We were unable to delete the workflow result. Please try again."
+msgstr ""
+
+#: app/api/workflows.py:182
+msgid ""
+"We hit an unexpected error while deleting the workflow result. Please try"
+" again."
+msgstr ""
+
+#: app/core/decorators.py:112
+msgid "User not authenticated or role not assigned."
+msgstr ""
+
+#: app/core/decorators.py:115
+msgid "Server configuration error checking usage limits."
+msgstr ""
+
+#: app/core/decorators.py:118 app/core/decorators.py:148
+msgid "Usage limits check passed."
+msgstr ""
+
+#: app/core/decorators.py:126 app/core/decorators.py:128
+#: app/core/decorators.py:130 app/core/decorators.py:133
+#: app/core/decorators.py:135 app/core/decorators.py:137
+#: app/core/decorators.py:141 app/core/decorators.py:143
+#: app/core/decorators.py:145
+msgid "You have reached your fair use limit."
+msgstr ""
+
+#: app/core/decorators.py:152
+msgid "An error occurred while checking usage limits."
 msgstr ""
 
 #: app/templates/base.html:9 app/templates/base.html:39

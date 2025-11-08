@@ -7,7 +7,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail # <<< ADDED
-from flask_babel import Babel
+from flask_babel import Babel, lazy_gettext as _l
 
 # Custom Babel class to force American-style number formatting
 
@@ -18,7 +18,7 @@ bcrypt = Bcrypt()
 login_manager = LoginManager()
 # Configure login view and messages (can also be done in __init__.py during init_app)
 login_manager.login_view = 'auth.login' # Blueprint name 'auth', route name 'login'
-login_manager.login_message = "Please log in to access this page."
+login_manager.login_message = _l("Please log in to access this page.")
 login_manager.login_message_category = "info" # Flash message category
 
 # CSRFProtect for Cross-Site Request Forgery protection

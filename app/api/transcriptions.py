@@ -7,6 +7,7 @@ import threading
 import logging
 import json
 from flask import Blueprint, request, jsonify, current_app
+from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
@@ -33,6 +34,14 @@ from typing import Optional
 
 # Define the Blueprint
 transcriptions_bp = Blueprint('transcriptions', __name__, url_prefix='/api')
+
+
+def _compose_error_message(base_message: str, details: Optional[str] = None) -> str:
+    """Return a translated error message with optional diagnostic details."""
+    details_text = str(details or "").strip()
+    if details_text:
+        return f"{base_message} {_('Details')}: {details_text}"
+    return base_message
 
 # --- Transcription Job Endpoints ---
 
@@ -79,14 +88,14 @@ def transcribe_audio():
 
     if 'audio_file' not in request.files:
         logging.error(f"{log_prefix} No 'audio_file' part in the request.")
-        return jsonify({'error': 'No audio file part in the request.'}), 400
+        return jsonify({'error': _('We did not receive an audio file in your request.')}), 400
     file = request.files['audio_file']
     if file.filename == '':
         logging.error(f"{log_prefix} No file selected for upload.")
-        return jsonify({'error': 'No selected file.'}), 400
+        return jsonify({'error': _('Please choose a file before starting the transcription.')}), 400
     if not file_service.allowed_file(file.filename):
         logging.error(f"{log_prefix} File type not allowed: {file.filename}")
-        return jsonify({'error': 'File type not allowed.'}), 400
+        return jsonify({'error': _('This file type is not supported for transcription.')}), 400
 
     original_filename = secure_filename(file.filename)
     job_id = str(uuid.uuid4())
@@ -114,7 +123,7 @@ def transcribe_audio():
         if file_size_mb > max_size_mb:
              logging.warning(f"{job_log_prefix} File size {file_size_mb:.2f}MB exceeds limit {max_size_mb}MB.")
              file_service.remove_files([temp_filename])
-             return jsonify({'error': f'File exceeds size limit ({max_size_mb}MB)', 'code': 'SIZE_LIMIT_EXCEEDED'}), 413
+             return jsonify({'error': _('The file exceeds the size limit of %(size)sMB.', size=max_size_mb), 'code': 'SIZE_LIMIT_EXCEEDED'}), 413
 
         try:
             # Use the memory-efficient ffprobe method to get duration
@@ -130,7 +139,7 @@ def transcribe_audio():
         logging.exception(f"{job_log_prefix} Failed during file save or metadata extraction: {e}")
         if os.path.exists(temp_filename):
             file_service.remove_files([temp_filename])
-        return jsonify({'error': 'Failed to save or process uploaded file.'}), 500
+        return jsonify({'error': _('We could not save or process the uploaded file. Please try again.')}), 500
 
     try:
         language_code = request.form.get('language_code', default_language_code)
@@ -198,11 +207,11 @@ def transcribe_audio():
         except MySQLError as db_create_err:
             logging.error(f"{job_log_prefix} Failed to create initial job record in DB: {db_create_err}", exc_info=True)
             file_service.remove_files([temp_filename])
-            return jsonify({'error': 'Failed to initialize transcription job.'}), 500
+            return jsonify({'error': _('We could not initialize the transcription job. Please try again.')}), 500
         except Exception as db_create_err:
             logging.error(f"{job_log_prefix} Unexpected error creating initial job record in DB: {db_create_err}", exc_info=True)
             file_service.remove_files([temp_filename])
-            return jsonify({'error': 'Failed to initialize transcription job.'}), 500
+            return jsonify({'error': _('We could not initialize the transcription job. Please try again.')}), 500
 
         app_instance = current_app._get_current_object()
 
@@ -229,7 +238,7 @@ def transcribe_audio():
 
         return jsonify({
             'job_id': job_id,
-            'message': 'Transcription job started successfully.',
+            'message': _('Transcription job started successfully.'),
             'audio_length_minutes': audio_length_minutes
         }), 202
 
@@ -242,7 +251,11 @@ def transcribe_audio():
          except Exception as db_err:
              logging.error(f"{job_log_prefix} Failed to set error status after initialization failure: {db_err}")
          status_code = 403 if isinstance(e, (PermissionError, MissingApiKeyError)) else 400
-         return jsonify({'error': str(e)}), status_code
+         if isinstance(e, ValueError):
+             base_message = _('We could not start the transcription because one of the inputs was invalid.')
+         else:
+             base_message = _('We could not start the transcription because of a configuration or permission issue.')
+         return jsonify({'error': _compose_error_message(base_message, str(e))}), status_code
     except Exception as e:
         logging.exception(f"{job_log_prefix} Error initiating transcription job: {e}")
         file_service.remove_files([temp_filename])
@@ -251,7 +264,7 @@ def transcribe_audio():
                  transcription_model.set_job_error(job_id, f"Initialization failed: {str(e)}")
         except Exception as db_err:
              logging.error(f"{job_log_prefix} Failed to set error status after initialization failure: {db_err}")
-        return jsonify({'error': 'Failed to start transcription job due to an internal error.'}), 500
+        return jsonify({'error': _('We could not start the transcription job due to an internal error. Please try again.')}), 500
 
 
 @transcriptions_bp.route('/progress/<job_id>', methods=['GET'])
@@ -277,10 +290,10 @@ def get_progress(job_id):
             unowned_job = transcription_model.get_transcription_by_id(job_id)
             if unowned_job:
                 logging.warning(f"{log_prefix} Access denied: Job exists but is not owned by user.")
-                return jsonify({'error': 'Access denied to this job.'}), 403
+                return jsonify({'error': _('You do not have access to this transcription job.')}), 403
             else:
                 logging.warning(f"{log_prefix} Job not found.")
-                return jsonify({'error': 'Job not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription job.')}), 404
 
         status = job_data.get('status', 'unknown')
         is_finished = status in ('finished', 'error', 'cancelled')
@@ -293,7 +306,7 @@ def get_progress(job_id):
             progress_log = raw_log
         elif raw_log:
             logging.warning(f"{log_prefix} Progress log from DB is not a list. Type: {type(raw_log)}. Content: {raw_log}")
-            progress_log = ["Error: Invalid progress log format."]
+            progress_log = [str(_('Error: Invalid progress log format.'))]
 
         should_poll_title = False
         if status == 'finished':
@@ -315,7 +328,7 @@ def get_progress(job_id):
             'api_used': job_data.get('api_used', 'unknown'),
             'filename': job_data.get('filename', 'unknown'),
             'should_poll_title': should_poll_title,
-            '_llm_status_note': 'LLM/Workflow status must be polled separately.'
+            '_llm_status_note': str(_('LLM/Workflow status must be polled separately.'))
         }
 
         if is_finished and not is_error and not is_cancelled:
@@ -347,7 +360,7 @@ def get_progress(job_id):
 
     except Exception as e:
         logging.exception(f"{log_prefix} Unexpected error fetching progress:")
-        return jsonify({'error': 'Internal server error fetching job progress.'}), 500
+        return jsonify({'error': _('We encountered an internal error while fetching job progress. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcribe/<job_id>', methods=['DELETE'])
 @login_required
@@ -368,25 +381,25 @@ def cancel_transcription(job_id):
             unowned_job = transcription_model.get_transcription_by_id(job_id)
             if unowned_job:
                 logging.warning(f"{log_prefix} Access denied: Job exists but is not owned by user.")
-                return jsonify({'error': 'Access denied to this job.'}), 403
+                return jsonify({'error': _('You do not have access to this transcription job.')}), 403
             else:
                 logging.warning(f"{log_prefix} Job not found.")
-                return jsonify({'error': 'Job not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription job.')}), 404
 
         current_status = job_data.get('status')
         if current_status not in ['pending', 'processing']:
             logging.warning(f"{log_prefix} Cannot cancel job with status '{current_status}'.")
-            return jsonify({'error': f'Job cannot be cancelled (status: {current_status}).'}), 400
+            return jsonify({'error': _('This transcription cannot be cancelled because it is in %(status)s status.', status=current_status)}), 400
 
         transcription_model.update_job_status(job_id, 'cancelling')
-        transcription_model.update_job_progress(job_id, "Cancellation requested by user.")
+        transcription_model.update_job_progress(job_id, str(_('Cancellation requested by user.')))
 
         logging.info(f"{log_prefix} Job status updated to 'cancelling'. Background thread will terminate.")
-        return jsonify({'message': 'Transcription cancellation requested.'}), 200
+        return jsonify({'message': _('Transcription cancellation requested.')}), 200
 
     except Exception as e:
         logging.exception(f"{log_prefix} Unexpected error requesting cancellation:")
-        return jsonify({'error': 'Internal server error requesting cancellation.'}), 500
+        return jsonify({'error': _('We encountered an internal error while requesting cancellation. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions', methods=['GET'])
 @login_required
@@ -411,7 +424,7 @@ def get_transcriptions():
         return jsonify(transcriptions), 200
     except Exception as e:
         logging.exception(f"{log_prefix} Error fetching transcription history:")
-        return jsonify({'error': 'Failed to retrieve transcription history.'}), 500
+        return jsonify({'error': _('We could not retrieve your transcription history. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>', methods=['DELETE'])
 @login_required
@@ -438,18 +451,18 @@ def delete_transcription(transcription_id):
         success = transcription_model.delete_transcription(transcription_id, user_id)
         if success:
             logging.info(f"{log_prefix} Transcription soft-deleted successfully.")
-            return jsonify({'message': 'Transcription deleted successfully'}), 200
+            return jsonify({'message': _('Transcription deleted successfully.')}), 200
         else:
             exists_check = transcription_model.get_transcription_by_id(transcription_id)
             if exists_check:
                 logging.warning(f"{log_prefix} Delete failed due to ownership mismatch.")
-                return jsonify({'error': 'Forbidden: You do not own this transcription.'}), 403
+                return jsonify({'error': _('You do not have permission to delete this transcription.')}), 403
             else:
                 logging.warning(f"{log_prefix} Delete failed: Transcription not found.")
-                return jsonify({'error': 'Transcription not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription.')}), 404
     except Exception as e:
         logging.exception(f"{log_prefix} Error deleting transcription:")
-        return jsonify({'error': 'Failed to delete transcription due to an internal error.'}), 500
+        return jsonify({'error': _('We could not delete the transcription because of an internal error. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>/restore', methods=['POST'])
 @login_required
@@ -466,22 +479,22 @@ def restore_transcription(transcription_id):
         restored = transcription_model.restore_transcription(transcription_id, user_id)
         if restored:
             logging.info(f"{log_prefix} Transcription restored successfully.")
-            return jsonify({'message': 'Transcription restored.'}), 200
+            return jsonify({'message': _('Transcription restored.')}), 200
 
         existing_job = transcription_model.get_transcription_by_id(transcription_id, user_id)
         if existing_job and not existing_job.get('is_hidden_from_user'):
             logging.info(f"{log_prefix} Restore skipped: transcription already visible.")
-            return jsonify({'message': 'Transcription already active.'}), 200
+            return jsonify({'message': _('Transcription already active.')}), 200
 
         if existing_job is None:
             logging.warning(f"{log_prefix} Restore failed: transcription not found or not owned.")
-            return jsonify({'error': 'Transcription not found.'}), 404
+            return jsonify({'error': _('We could not find that transcription.')}), 404
 
         logging.warning(f"{log_prefix} Restore failed: transcription not eligible for restoration.")
-        return jsonify({'error': 'Transcription could not be restored.'}), 409
+        return jsonify({'error': _('This transcription cannot be restored.')}), 409
     except Exception as e:
         logging.exception(f"{log_prefix} Error restoring transcription:")
-        return jsonify({'error': 'Failed to restore transcription due to an internal error.'}), 500
+        return jsonify({'error': _('We could not restore the transcription because of an internal error. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/clear', methods=['DELETE'])
 @login_required
@@ -508,10 +521,10 @@ def clear_transcriptions():
 
         deleted_count = transcription_model.clear_transcriptions(user_id)
         logging.info(f"{log_prefix} {deleted_count} transcriptions soft-deleted successfully.")
-        return jsonify({'message': f'All {deleted_count} transcriptions cleared successfully.'}), 200
+        return jsonify({'message': _('All %(count)s transcriptions were cleared successfully.', count=deleted_count)}), 200
     except Exception as e:
         logging.exception(f"{log_prefix} Error clearing all transcriptions:")
-        return jsonify({'error': 'Failed to clear all transcriptions due to an internal error.'}), 500
+        return jsonify({'error': _('We could not clear your transcriptions because of an internal error. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>/log_download', methods=['POST'])
 @login_required
@@ -526,30 +539,30 @@ def log_download(transcription_id):
 
     if not check_permission(current_user, 'allow_download_transcript'):
         logging.warning(f"{log_prefix} Download log failed: User lacks 'allow_download_transcript' permission.")
-        return jsonify({'error': 'Permission denied to download transcripts.'}), 403
+        return jsonify({'error': _('You do not have permission to download transcripts.')}), 403
 
     try:
         success = transcription_model.mark_transcription_as_downloaded(transcription_id, user_id)
         if success:
             logging.info(f"{log_prefix} Download logged successfully.")
-            return jsonify({'message': 'Download logged successfully'}), 200
+            return jsonify({'message': _('Download logged successfully.')}), 200
         else:
             job_data = transcription_model.get_transcription_by_id(transcription_id)
             if not job_data:
                 logging.warning(f"{log_prefix} Download log failed: Job not found.")
-                return jsonify({'error': 'Transcription not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription.')}), 404
             elif job_data.get('user_id') != user_id:
                 logging.warning(f"{log_prefix} Download log failed: Ownership mismatch.")
-                return jsonify({'error': 'Forbidden: You do not own this transcription.'}), 403
+                return jsonify({'error': _('You do not have permission to access this transcription.')}), 403
             elif job_data.get('status') != 'finished':
                 logging.warning(f"{log_prefix} Download log failed: Job status is '{job_data.get('status')}'.")
-                return jsonify({'error': 'Cannot log download for a non-finished job.'}), 400
+                return jsonify({'error': _('You can only download completed transcriptions.')}), 400
             else:
                 logging.warning(f"{log_prefix} Download log failed for unknown reason (model returned False).")
-                return jsonify({'error': 'Failed to log download.'}), 500
+                return jsonify({'error': _('We could not log this download. Please try again.')}), 500
     except Exception as e:
         logging.exception(f"{log_prefix} Error logging download:")
-        return jsonify({'error': 'Failed to log download due to an internal error.'}), 500
+        return jsonify({'error': _('We could not log the download because of an internal error. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>/title', methods=['GET'])
 @login_required
@@ -569,10 +582,10 @@ def get_title_status(transcription_id):
             unowned_job = transcription_model.get_transcription_by_id(transcription_id)
             if unowned_job:
                 logging.warning(f"{log_prefix} Access denied: Job exists but is not owned by user.")
-                return jsonify({'error': 'Access denied to this job.'}), 403
+                return jsonify({'error': _('You do not have access to this transcription job.')}), 403
             else:
                 logging.warning(f"{log_prefix} Job not found.")
-                return jsonify({'error': 'Job not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription job.')}), 404
 
         title_status = job_data.get('title_generation_status', 'pending')
         generated_title = job_data.get('generated_title')
@@ -599,7 +612,7 @@ def get_title_status(transcription_id):
 
     except Exception as e:
         logging.exception(f"{log_prefix} Unexpected error fetching title status:")
-        return jsonify({'error': 'Internal server error fetching title status.'}), 500
+        return jsonify({'error': _('We encountered an internal error while fetching the title status. Please try again.')}), 500
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>/workflow-details', methods=['GET'])
 @login_required
@@ -620,10 +633,10 @@ def get_workflow_details_for_transcription(transcription_id: str):
             unowned_job = transcription_model.get_transcription_by_id(transcription_id)
             if unowned_job:
                 logging.warning(f"{log_prefix} Access denied: Job exists but is not owned by user.")
-                return jsonify({'error': 'Access denied to this job.'}), 403
+                return jsonify({'error': _('You do not have access to this transcription job.')}), 403
             else:
                 logging.warning(f"{log_prefix} Job not found.")
-                return jsonify({'error': 'Job not found.'}), 404
+                return jsonify({'error': _('We could not find that transcription job.')}), 404
 
         response_data = {
             'transcription_id': transcription_id,
@@ -644,4 +657,4 @@ def get_workflow_details_for_transcription(transcription_id: str):
 
     except Exception as e:
         logging.exception(f"{log_prefix} Unexpected error fetching workflow details:")
-        return jsonify({'error': 'Internal server error fetching workflow details.'}), 500
+        return jsonify({'error': _('We encountered an internal error while fetching workflow details. Please try again.')}), 500

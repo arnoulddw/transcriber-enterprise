@@ -5,6 +5,7 @@ import logging
 from functools import wraps
 from typing import Callable, Any, Tuple, Optional
 from flask import abort, g, current_app # g for request context storage, current_app for context needs
+from flask_babel import gettext as _
 
 # Import Flask-Login proxy for current user
 from flask_login import current_user
@@ -108,13 +109,13 @@ def check_usage_limits(user: Optional[User], cost_to_add: float = 0.0, minutes_t
         A tuple: (allowed: bool, reason: str).
     """
     if not user or not user.is_authenticated or not user.role:
-        return False, "User not authenticated or role not assigned."
+        return False, _("User not authenticated or role not assigned.")
     if usage_service is None:
         logging.error("[CORE:Decorators] Cannot check usage limits: usage_service not available.")
-        return False, "Server configuration error checking usage limits."
+        return False, _("Server configuration error checking usage limits.")
 
     role = user.role
-    reason = "Usage limits checked, within bounds."
+    reason = _("Usage limits check passed.")
     log_prefix = f"[AUTH:UsageCheck:User:{user.id}]"
 
     try:
@@ -122,30 +123,30 @@ def check_usage_limits(user: Optional[User], cost_to_add: float = 0.0, minutes_t
 
         # --- Check Limits (only if limit > 0, meaning it's enforced) ---
         if role.limit_daily_cost > 0 and (usage_stats['daily']['cost'] + cost_to_add) > role.limit_daily_cost:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
         if role.limit_weekly_cost > 0 and (usage_stats['weekly']['cost'] + cost_to_add) > role.limit_weekly_cost:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
         if role.limit_monthly_cost > 0 and (usage_stats['monthly']['cost'] + cost_to_add) > role.limit_monthly_cost:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
 
         if role.limit_daily_minutes > 0 and (usage_stats['daily']['minutes'] + minutes_to_add) > role.limit_daily_minutes:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
         if role.limit_weekly_minutes > 0 and (usage_stats['weekly']['minutes'] + minutes_to_add) > role.limit_weekly_minutes:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
         if role.limit_monthly_minutes > 0 and (usage_stats['monthly']['minutes'] + minutes_to_add) > role.limit_monthly_minutes:
-            return False, "You've reached your fair use limit"
+            return False, _("You have reached your fair use limit.")
 
         if is_workflow:
             if role.limit_daily_workflows > 0 and (usage_stats['daily']['workflows'] + 1) > role.limit_daily_workflows:
-                return False, "You've reached your fair use limit"
+                return False, _("You have reached your fair use limit.")
             if role.limit_weekly_workflows > 0 and (usage_stats['weekly']['workflows'] + 1) > role.limit_weekly_workflows:
-                return False, "You've reached your fair use limit"
+                return False, _("You have reached your fair use limit.")
             if role.limit_monthly_workflows > 0 and (usage_stats['monthly']['workflows'] + 1) > role.limit_monthly_workflows:
-                return False, "You've reached your fair use limit"
+                return False, _("You have reached your fair use limit.")
 
         logging.debug(f"{log_prefix} Usage limits check passed.")
-        return True, "Usage limits check passed."
+        return True, _("Usage limits check passed.")
 
     except Exception as e:
          logging.error(f"{log_prefix} Error checking usage limits: {e}", exc_info=True)
-         return False, "Error checking usage limits."
+         return False, _("An error occurred while checking usage limits.")

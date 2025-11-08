@@ -4,6 +4,7 @@
 import logging
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
+from flask_babel import gettext as _
 # --- ADDED: Import Optional ---
 from typing import Optional
 # --- END ADDED ---
@@ -30,6 +31,14 @@ from app.extensions import limiter
 # Define the Blueprint
 workflows_bp = Blueprint('workflows', __name__, url_prefix='/api')
 
+
+def _compose_error_message(base_message: str, details: Optional[str] = None) -> str:
+    """Return a translated error message with optional diagnostic details."""
+    details_text = str(details or "").strip()
+    if details_text:
+        return f"{base_message} {_('Details')}: {details_text}"
+    return base_message
+
 # --- Workflow Execution Endpoints ---
 
 @workflows_bp.route('/transcriptions/<transcription_id>/workflow', methods=['POST'])
@@ -48,7 +57,7 @@ def run_workflow(transcription_id: str):
 
     if not data or 'prompt' not in data:
         logging.warning(f"{log_prefix} Invalid request: Missing 'prompt' in JSON payload.")
-        return jsonify({'error': 'Missing prompt in request body.'}), 400
+        return jsonify({'error': _('Please include a workflow prompt before submitting.')}), 400
 
     prompt = data['prompt']
     # --- ADDED: Get optional prompt_id ---
@@ -69,36 +78,39 @@ def run_workflow(transcription_id: str):
         logging.info(f"{log_prefix} Workflow initiation successful.")
         # --- MODIFIED: Return operation_id in response ---
         return jsonify({
-            'message': 'Workflow started successfully.',
+            'message': _('Workflow started successfully.'),
             'operation_id': operation_id
         }), 202 # Accepted
         # --- END MODIFIED ---
     except PermissionDeniedError as e:
         logging.warning(f"{log_prefix} Workflow start failed: {e}")
-        return jsonify({'error': str(e)}), 403
+        return jsonify({'error': _compose_error_message(_('You do not have permission to run workflows.'), str(e))}), 403
     except UsageLimitExceededError as e:
         logging.warning(f"{log_prefix} Workflow start failed: {e}")
-        return jsonify({'error': str(e), 'code': 'WORKFLOW_LIMIT_EXCEEDED'}), 403
+        return jsonify({'error': _compose_error_message(_('You have reached your workflow usage limit. Please try again later.'), str(e)), 'code': 'WORKFLOW_LIMIT_EXCEEDED'}), 403
     except TranscriptionNotFoundError as e:
         logging.warning(f"{log_prefix} Workflow start failed: {e}")
-        return jsonify({'error': str(e)}), 404
-    except (InvalidPromptError, WorkflowInProgressError) as e:
+        return jsonify({'error': _compose_error_message(_('We could not find that transcription or you no longer have access to it.'), str(e))}), 404
+    except InvalidPromptError as e:
         logging.warning(f"{log_prefix} Workflow start failed: {e}")
-        return jsonify({'error': str(e)}), 400 # Bad Request
+        return jsonify({'error': _compose_error_message(_('The workflow prompt needs attention before it can run. Please review it and try again.'), str(e))}), 400
+    except WorkflowInProgressError as e:
+        logging.warning(f"{log_prefix} Workflow start failed: {e}")
+        return jsonify({'error': _compose_error_message(_('A workflow is already running for this transcription. Please wait for it to finish.'), str(e))}), 400
     # --- ADDED: Catch specific LLM errors ---
     except LlmRateLimitError as e:
         logging.warning(f"{log_prefix} Workflow start failed due to LLM Rate Limit: {e}")
-        return jsonify({'error': str(e)}), 429 # Too Many Requests
+        return jsonify({'error': _compose_error_message(_('The AI provider temporarily rate-limited this workflow. Please wait a moment and try again.'), str(e))}), 429 # Too Many Requests
     except LlmSafetyError as e:
         logging.warning(f"{log_prefix} Workflow start failed due to LLM Safety Filter: {e}")
-        return jsonify({'error': str(e)}), 400 # Bad Request
+        return jsonify({'error': _compose_error_message(_('The AI provider blocked this workflow because of its safety filters. Please adjust your prompt and try again.'), str(e))}), 400 # Bad Request
     # --- END ADDED ---
     except (WorkflowError, LlmApiError) as e: # Catch generic workflow and LLM API errors
         logging.error(f"{log_prefix} Workflow start failed: {e}", exc_info=True)
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': _compose_error_message(_('We were unable to run this workflow. Please try again.'), str(e))}), 500
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error starting workflow: {e}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred while starting the workflow.'}), 500
+        return jsonify({'error': _('We hit an unexpected error while starting the workflow. Please try again.')}), 500
 
 # --- MODIFIED: Changed route to target operation_id ---
 @workflows_bp.route('/workflows/operations/<int:operation_id>', methods=['PUT'])
@@ -118,7 +130,7 @@ def edit_workflow(operation_id: int):
 
     if not data or 'result' not in data:
         logging.warning(f"{log_prefix} Invalid request: Missing 'result' in JSON payload.")
-        return jsonify({'error': 'Missing result in request body.'}), 400
+        return jsonify({'error': _('Please include the updated workflow result in your request.')}), 400
 
     new_result = data['result']
 
@@ -128,20 +140,20 @@ def edit_workflow(operation_id: int):
         workflow_service.edit_workflow_result(user_id, operation_id, new_result)
         # --- END MODIFIED ---
         logging.info(f"{log_prefix} Workflow result edit successful.")
-        return jsonify({'message': 'Workflow result updated successfully.'}), 200
+        return jsonify({'message': _('Workflow result updated successfully.')}), 200
     # --- MODIFIED: Catch OperationNotFoundError ---
     except OperationNotFoundError as e:
         logging.warning(f"{log_prefix} Workflow edit failed: {e}")
-        return jsonify({'error': str(e)}), 404
+        return jsonify({'error': _compose_error_message(_('We could not find that workflow operation.'), str(e))}), 404
     # --- END MODIFIED ---
     except WorkflowError as e: # Catches DB errors or other issues like permission
         logging.error(f"{log_prefix} Workflow edit failed: {e}", exc_info=True)
         # Determine status code based on error message content
         status_code = 403 if "permission issue" in str(e).lower() else 500
-        return jsonify({'error': str(e)}), status_code
+        return jsonify({'error': _compose_error_message(_('We could not update this workflow result. Please try again.'), str(e))}), status_code
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error editing workflow result: {e}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred while editing the workflow result.'}), 500
+        return jsonify({'error': _('We hit an unexpected error while editing the workflow result. Please try again.')}), 500
 
 # --- delete_workflow remains unchanged, still targets transcription_id ---
 @workflows_bp.route('/transcriptions/<transcription_id>/workflow', methods=['DELETE'])
@@ -158,13 +170,13 @@ def delete_workflow(transcription_id: str):
         logging.debug(f"{log_prefix} Received request to delete workflow result(s).")
         workflow_service.delete_workflow_result(user_id, transcription_id)
         logging.info(f"{log_prefix} Workflow result delete successful.")
-        return jsonify({'message': 'Workflow result deleted successfully.'}), 200
+        return jsonify({'message': _('Workflow result deleted successfully.')}), 200
     except TranscriptionNotFoundError as e: # Service raises this if transcription not found/owned
         logging.warning(f"{log_prefix} Workflow delete failed: {e}")
-        return jsonify({'error': str(e)}), 404
+        return jsonify({'error': _compose_error_message(_('We could not find that transcription or you no longer have access to it.'), str(e))}), 404
     except WorkflowError as e: # Catches DB errors
         logging.error(f"{log_prefix} Workflow delete failed: {e}", exc_info=True)
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': _compose_error_message(_('We were unable to delete the workflow result. Please try again.'), str(e))}), 500
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error deleting workflow result: {e}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred while deleting the workflow result.'}), 500
+        return jsonify({'error': _('We hit an unexpected error while deleting the workflow result. Please try again.')}), 500

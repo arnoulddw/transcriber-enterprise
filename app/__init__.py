@@ -543,7 +543,11 @@ def create_app(config_class=Config) -> Flask:
         g.user = current_user if current_user.is_authenticated else None
         logging.warning(f"Rate limit exceeded: {e.description} for {request.remote_addr} at {request.path}")
         if request.path.startswith('/api/'):
-            return jsonify(error=f"Rate limit exceeded: {e.description}"), 429
+            api_error_message = _('Too many requests. Please wait a moment and try again.')
+            description_text = (e.description or "").strip()
+            if description_text:
+                api_error_message = f"{api_error_message} {_('Details')}: {description_text}"
+            return jsonify({'error': api_error_message, 'code': 'RATE_LIMIT_EXCEEDED'}), 429
         else:
             flash(_l("Too many requests: %(description)s. Please try again later.", description=e.description), "warning")
             referrer = request.referrer; target_url = url_for('main.index')

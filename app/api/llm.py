@@ -2,8 +2,10 @@
 # Defines the Blueprint for direct LLM interaction endpoints.
 
 import logging
+from typing import Optional
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
+from flask_babel import gettext as _
 
 # Import services and exceptions
 from app.services import llm_service, user_service
@@ -20,6 +22,14 @@ from app.extensions import limiter
 
 # Define the Blueprint
 llm_bp = Blueprint('llm', __name__, url_prefix='/api/llm')
+
+
+def _compose_error_message(base_message: str, details: Optional[str] = None) -> str:
+    """Return a translated error message with optional diagnostic details."""
+    details_text = str(details or "").strip()
+    if details_text:
+        return f"{base_message} {_('Details')}: {details_text}"
+    return base_message
 
 # --- Direct LLM Interaction Endpoints (Example) ---
 
@@ -39,7 +49,7 @@ def generate_llm_text():
 
     if not data or 'prompt' not in data:
         logging.warning(f"{log_prefix} Invalid request: Missing 'prompt' in JSON payload.")
-        return jsonify({'error': 'Missing prompt in request body.'}), 400
+        return jsonify({'error': _('Please include a prompt before requesting AI text generation.')}), 400
 
     prompt = data['prompt']
     # Use user's default or system default LLM provider
@@ -82,19 +92,19 @@ def generate_llm_text():
 
     except (LlmConfigurationError, ValueError) as e: # Config/Input errors
         logging.warning(f"{log_prefix} Configuration or Value error: {e}")
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': _compose_error_message(_('We could not start the AI request because the configuration or input is invalid.'), str(e))}), 400
     except LlmRateLimitError as e:
         logging.warning(f"{log_prefix} LLM Rate Limit error: {e}")
-        return jsonify({'error': str(e)}), 429
+        return jsonify({'error': _compose_error_message(_('The AI provider temporarily rate-limited this request. Please wait a moment and try again.'), str(e))}), 429
     except LlmSafetyError as e:
         logging.warning(f"{log_prefix} LLM Safety error: {e}")
-        return jsonify({'error': str(e)}), 400 # Bad Request for safety
+        return jsonify({'error': _compose_error_message(_('The AI provider blocked this request because of its safety filters. Please adjust your prompt and try again.'), str(e))}), 400 # Bad Request for safety
     except (LlmApiError, LlmServiceError) as e: # API/Service errors
         logging.error(f"{log_prefix} LLM generation failed: {e}", exc_info=True)
-        return jsonify({'error': str(e)}), 500 # Internal Server Error or specific code from error
+        return jsonify({'error': _compose_error_message(_('The AI provider could not complete this request. Please try again later.'), str(e))}), 500 # Internal Server Error or specific code from error
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error during LLM generation: {e}", exc_info=True)
-        return jsonify({'error': 'An unexpected error occurred during text generation.'}), 500
+        return jsonify({'error': _('We encountered an unexpected error while generating text. Please try again.')}), 500
 
 # --- ADDED: LLM Operation Status Endpoint ---
 @llm_bp.route('/operations/<int:operation_id>/status', methods=['GET'])
@@ -117,10 +127,10 @@ def get_llm_operation_status(operation_id: int):
             unowned_op = llm_operation_model.get_llm_operation_by_id(operation_id)
             if unowned_op:
                 logging.warning(f"{log_prefix} Access denied: Operation exists but is not owned by user.")
-                return jsonify({'error': 'Access denied to this operation.'}), 403
+                return jsonify({'error': _('You do not have access to this AI operation.')}), 403
             else:
                 logging.warning(f"{log_prefix} LLM operation not found.")
-                return jsonify({'error': 'LLM operation not found.'}), 404
+                return jsonify({'error': _('We could not find that AI operation.')}), 404
 
         # Prepare response
         response_data = {
@@ -140,7 +150,7 @@ def get_llm_operation_status(operation_id: int):
 
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error fetching LLM operation status: {e}", exc_info=True)
-        return jsonify({'error': 'Internal server error fetching operation status.'}), 500
+        return jsonify({'error': _('We encountered an internal error while fetching the AI operation status. Please try again.')}), 500
 # --- END ADDED ---
 
 # Add other endpoints like /chat, /embedding as needed

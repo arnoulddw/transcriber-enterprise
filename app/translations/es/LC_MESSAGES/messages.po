@@ -8,15 +8,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-11-08 16:59+0100\n"
+"POT-Creation-Date: 2025-11-08 17:33+0100\n"
 "PO-Revision-Date: 2025-06-09 15:45+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: es\n"
 "Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
 
 #: app/__init__.py:360
@@ -26,10 +26,6 @@ msgstr "Servicio temporalmente no disponible. Inicialización en curso."
 #: app/__init__.py:371 app/__init__.py:538
 msgid "Authentication required."
 msgstr "Se requiere autenticación."
-
-#: app/__init__.py:374
-msgid "Please log in to access this page."
-msgstr "Por favor, inicie sesión para acceder a esta página."
 
 #: app/__init__.py:510
 msgid "Not Found"
@@ -43,31 +39,26 @@ msgstr "Error interno del servidor"
 msgid "Forbidden"
 msgstr "Acceso prohibido"
 
-#: app/__init__.py:531
-msgid "You do not have permission to access this page."
-msgstr "No tiene permiso para acceder a esta página."
-
 #: app/__init__.py:538
 msgid "Unauthorized"
 msgstr "No autorizado"
 
-#: app/__init__.py:539
-msgid "Authentication required to access this page."
-msgstr "Se requiere autenticación para acceder a esta página."
-
-#: app/__init__.py:548
+#: app/__init__.py:546
 #, python-format
-msgid "Too many requests: %(description)s. Please try again later."
-msgstr ""
-"Demasiadas solicitudes: %(description)s. Por favor, inténtelo de nuevo "
-"más tarde."
+msgid "Too many requests. Please wait a moment and try again."
+msgstr "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo."
 
-#: app/__init__.py:562
+#: app/__init__.py:549 app/api/llm.py:31 app/api/transcriptions.py:43
+#: app/api/workflows.py:39
+msgid "Details"
+msgstr "Detalles"
+
+#: app/__init__.py:566
 #, python-format
 msgid "File is too large. The maximum allowed file size is %(size)sMB."
 msgstr ""
-"El archivo es demasiado grande. El tamaño máximo permitido es de %(size)s"
-" MB."
+"El archivo es demasiado grande. El tamaño máximo permitido es de %(size)s "
+"MB."
 
 #: app/config.py:80
 msgid "Automatic Detection"
@@ -313,75 +304,6 @@ msgstr "Color de la etiqueta"
 msgid "Save Workflow Template"
 msgstr "Etiqueta del Workflow"
 
-#: app/api/auth.py:74
-msgid "Logged in successfully"
-msgstr "Inicio de sesión exitoso."
-
-#: app/api/auth.py:102
-msgid "Invalid username or password."
-msgstr "Nombre de usuario o contraseña incorrectos."
-
-#: app/api/auth.py:108
-msgid "An unexpected error occurred during login. Please try again."
-msgstr ""
-"Ocurrió un error inesperado durante el inicio de sesión. Por favor, "
-"inténtelo de nuevo."
-
-#: app/api/auth.py:121
-msgid "User registration is disabled in single-user mode."
-msgstr "El registro de usuarios está deshabilitado en el modo de usuario único."
-
-#: app/api/auth.py:152
-#, python-format
-msgid "Account created for %(username)s! You can now log in."
-msgstr "¡Cuenta creada para %(username)s! Ya puede iniciar sesión."
-
-#: app/api/auth.py:156
-msgid "Registration failed. Please try again."
-msgstr "El registro ha fallado. Por favor, inténtelo de nuevo."
-
-#: app/api/auth.py:166
-msgid "An unexpected error occurred during registration. Please try again."
-msgstr ""
-"Ocurrió un error inesperado durante el registro. Por favor, inténtelo de "
-"nuevo."
-
-#: app/api/auth.py:183
-msgid "You have been logged out successfully."
-msgstr "Ha cerrado la sesión correctamente."
-
-#: app/api/auth.py:219
-msgid ""
-"If an account with that email exists, a password reset link has been "
-"sent. Please check your inbox and spam folder if you don't see it within "
-"a few minutes."
-msgstr ""
-"Si existe una cuenta con ese correo electrónico, se ha enviado un enlace "
-"para restablecer la contraseña. Por favor, revise su bandeja de entrada y"
-" su carpeta de spam si no lo ve en unos minutos."
-
-#: app/api/auth.py:224
-msgid "An error occurred while processing your request. Please try again."
-msgstr "Ocurrió un error al procesar su solicitud. Por favor, inténtelo de nuevo."
-
-#: app/api/auth.py:244
-msgid "The password reset link is invalid or has expired."
-msgstr "El enlace para restablecer la contraseña no es válido o ha expirado."
-
-#: app/api/auth.py:257
-msgid "Your password has been reset successfully. You can now log in."
-msgstr "Su contraseña se ha restablecido correctamente. Ya puede iniciar sesión."
-
-#: app/api/auth.py:261
-msgid "Password reset failed. Please try again."
-msgstr "No se pudo restablecer la contraseña. Por favor, inténtelo de nuevo."
-
-#: app/api/auth.py:264
-msgid "An error occurred while resetting your password. Please try again."
-msgstr ""
-"Ocurrió un error al restablecer su contraseña. Por favor, inténtelo de "
-"nuevo."
-
 #: app/api/auth.py:283
 msgid "Already logged in."
 msgstr "Ya ha iniciado sesión."
@@ -409,6 +331,266 @@ msgstr "Inicio de sesión exitoso."
 #: app/api/auth.py:345
 msgid "An unexpected server error occurred."
 msgstr "Ocurrió un error inesperado en el servidor."
+
+#: app/api/llm.py:52
+msgid "Please include a prompt before requesting AI text generation."
+msgstr "Incluye un prompt antes de solicitar la generación de texto."
+
+#: app/api/llm.py:95
+msgid ""
+"We could not start the AI request because the configuration or input is "
+"invalid."
+msgstr ""
+"No pudimos iniciar la solicitud de IA porque la configuración o la entrada "
+"es inválida."
+
+#: app/api/llm.py:98
+msgid ""
+"The AI provider temporarily rate-limited this request. Please wait a moment "
+"and try again."
+msgstr ""
+"El proveedor de IA limitó temporalmente esta solicitud. Espera un momento e "
+"inténtalo de nuevo."
+
+#: app/api/llm.py:101
+msgid ""
+"The AI provider blocked this request because of its safety filters. Please "
+"adjust your prompt and try again."
+msgstr ""
+"El proveedor de IA bloqueó esta solicitud por sus filtros de seguridad. "
+"Ajusta tu prompt e inténtalo de nuevo."
+
+#: app/api/llm.py:104
+msgid ""
+"The AI provider could not complete this request. Please try again later."
+msgstr ""
+"El proveedor de IA no pudo completar esta solicitud. Inténtalo más tarde."
+
+#: app/api/llm.py:107
+msgid ""
+"We encountered an unexpected error while generating text. Please try again."
+msgstr "Ocurrió un error inesperado al generar el texto. Inténtalo de nuevo."
+
+#: app/api/llm.py:130
+msgid "You do not have access to this AI operation."
+msgstr "No tienes acceso a esta operación de IA."
+
+#: app/api/llm.py:133
+msgid "We could not find that AI operation."
+msgstr "No pudimos encontrar esa operación de IA."
+
+#: app/api/llm.py:153
+msgid ""
+"We encountered an internal error while fetching the AI operation status. "
+"Please try again."
+msgstr ""
+"Se produjo un error interno al obtener el estado de la operación de IA. "
+"Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:91
+msgid "We did not receive an audio file in your request."
+msgstr "No recibimos un archivo de audio en tu solicitud."
+
+#: app/api/transcriptions.py:95
+msgid "Please choose a file before starting the transcription."
+msgstr "Elige un archivo antes de iniciar la transcripción."
+
+#: app/api/transcriptions.py:98
+msgid "This file type is not supported for transcription."
+msgstr "Este tipo de archivo no es compatible con la transcripción."
+
+#: app/api/transcriptions.py:126
+#, python-format
+msgid "The file exceeds the size limit of %(size)sMB."
+msgstr "El archivo supera el límite de %(size)s MB."
+
+#: app/api/transcriptions.py:142
+msgid "We could not save or process the uploaded file. Please try again."
+msgstr "No pudimos guardar o procesar el archivo cargado. Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:210 app/api/transcriptions.py:214
+msgid "We could not initialize the transcription job. Please try again."
+msgstr "No pudimos iniciar el trabajo de transcripción. Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:241
+msgid "Transcription job started successfully."
+msgstr "El trabajo de transcripción se inició correctamente."
+
+#: app/api/transcriptions.py:255
+msgid ""
+"We could not start the transcription because one of the inputs was invalid."
+msgstr ""
+"No pudimos iniciar la transcripción porque alguna entrada era inválida."
+
+#: app/api/transcriptions.py:257
+msgid ""
+"We could not start the transcription because of a configuration or "
+"permission issue."
+msgstr ""
+"No pudimos iniciar la transcripción debido a un problema de configuración o "
+"permisos."
+
+#: app/api/transcriptions.py:267
+msgid ""
+"We could not start the transcription job due to an internal error. Please "
+"try again."
+msgstr ""
+"No pudimos iniciar el trabajo de transcripción debido a un error interno. "
+"Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:293 app/api/transcriptions.py:384
+#: app/api/transcriptions.py:585 app/api/transcriptions.py:636
+#, fuzzy
+msgid "You do not have access to this transcription job."
+msgstr "No tiene permiso para acceder a esta página."
+
+#: app/api/transcriptions.py:296 app/api/transcriptions.py:387
+#: app/api/transcriptions.py:588 app/api/transcriptions.py:639
+#, fuzzy
+msgid "We could not find that transcription job."
+msgstr "Aún no hay transcripciones completadas."
+
+#: app/api/transcriptions.py:309
+msgid "Error: Invalid progress log format."
+msgstr "Error: formato de registro de progreso inválido."
+
+#: app/api/transcriptions.py:331
+msgid "LLM/Workflow status must be polled separately."
+msgstr "El estado del LLM/flujo debe consultarse por separado."
+
+#: app/api/transcriptions.py:363
+msgid ""
+"We encountered an internal error while fetching job progress. Please try "
+"again."
+msgstr ""
+"Se produjo un error interno al obtener el progreso del trabajo. Inténtalo de"
+" nuevo."
+
+#: app/api/transcriptions.py:392
+#, python-format
+msgid ""
+"This transcription cannot be cancelled because it is in %(status)s status."
+msgstr ""
+"Esta transcripción no se puede cancelar porque está en estado %(status)s."
+
+#: app/api/transcriptions.py:395
+msgid "Cancellation requested by user."
+msgstr "Cancelación solicitada por el usuario."
+
+#: app/api/transcriptions.py:398
+msgid "Transcription cancellation requested."
+msgstr "Se solicitó la cancelación de la transcripción."
+
+#: app/api/transcriptions.py:402
+msgid ""
+"We encountered an internal error while requesting cancellation. Please try "
+"again."
+msgstr ""
+"Se produjo un error interno al solicitar la cancelación. Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:427
+msgid "We could not retrieve your transcription history. Please try again."
+msgstr ""
+"No pudimos recuperar tu historial de transcripciones. Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:454
+msgid "Transcription deleted successfully."
+msgstr "La transcripción se eliminó correctamente."
+
+#: app/api/transcriptions.py:459
+msgid "You do not have permission to delete this transcription."
+msgstr "No tienes permiso para eliminar esta transcripción."
+
+#: app/api/transcriptions.py:462 app/api/transcriptions.py:491
+#: app/api/transcriptions.py:553
+#, fuzzy
+msgid "We could not find that transcription."
+msgstr "Aún no hay transcripciones completadas."
+
+#: app/api/transcriptions.py:465
+msgid ""
+"We could not delete the transcription because of an internal error. Please "
+"try again."
+msgstr ""
+"No pudimos eliminar la transcripción debido a un error interno. Inténtalo de"
+" nuevo."
+
+#: app/api/transcriptions.py:482
+msgid "Transcription restored."
+msgstr "La transcripción fue restaurada."
+
+#: app/api/transcriptions.py:487
+msgid "Transcription already active."
+msgstr "La transcripción ya está activa."
+
+#: app/api/transcriptions.py:494
+msgid "This transcription cannot be restored."
+msgstr "Esta transcripción no se puede restaurar."
+
+#: app/api/transcriptions.py:497
+msgid ""
+"We could not restore the transcription because of an internal error. Please "
+"try again."
+msgstr ""
+"No pudimos restaurar la transcripción debido a un error interno. Inténtalo "
+"de nuevo."
+
+#: app/api/transcriptions.py:524
+#, python-format
+msgid "All %(count)s transcriptions were cleared successfully."
+msgstr "Se eliminaron correctamente las %(count)s transcripciones."
+
+#: app/api/transcriptions.py:527
+msgid ""
+"We could not clear your transcriptions because of an internal error. Please "
+"try again."
+msgstr ""
+"No pudimos limpiar tus transcripciones debido a un error interno. Inténtalo "
+"de nuevo."
+
+#: app/api/transcriptions.py:542
+msgid "You do not have permission to download transcripts."
+msgstr "No tienes permiso para descargar transcripciones."
+
+#: app/api/transcriptions.py:548
+msgid "Download logged successfully."
+msgstr "La descarga se registró correctamente."
+
+#: app/api/transcriptions.py:556
+msgid "You do not have permission to access this transcription."
+msgstr "No tienes permiso para acceder a esta transcripción."
+
+#: app/api/transcriptions.py:559
+msgid "You can only download completed transcriptions."
+msgstr "Solo puedes descargar transcripciones completadas."
+
+#: app/api/transcriptions.py:562
+msgid "We could not log this download. Please try again."
+msgstr "No pudimos registrar esta descarga. Inténtalo de nuevo."
+
+#: app/api/transcriptions.py:565
+msgid ""
+"We could not log the download because of an internal error. Please try "
+"again."
+msgstr ""
+"No pudimos registrar la descarga debido a un error interno. Inténtalo de "
+"nuevo."
+
+#: app/api/transcriptions.py:615
+msgid ""
+"We encountered an internal error while fetching the title status. Please try"
+" again."
+msgstr ""
+"Se produjo un error interno al obtener el estado del título. Inténtalo de "
+"nuevo."
+
+#: app/api/transcriptions.py:660
+msgid ""
+"We encountered an internal error while fetching workflow details. Please try"
+" again."
+msgstr ""
+"Se produjo un error interno al obtener los detalles del flujo. Inténtalo de "
+"nuevo."
 
 #: app/api/user_settings.py:92
 msgid "Failed to retrieve user readiness status."
@@ -458,7 +640,8 @@ msgid "An unexpected error occurred while updating the profile."
 msgstr "Ocurrió un error inesperado al actualizar el perfil."
 
 #: app/api/user_settings.py:251
-msgid "Password change is not available for accounts signed in via Google/OAuth."
+msgid ""
+"Password change is not available for accounts signed in via Google/OAuth."
 msgstr ""
 "El cambio de contraseña no está disponible para cuentas iniciadas con "
 "Google/OAuth."
@@ -497,7 +680,8 @@ msgstr "Prompt actualizada correctamente."
 
 #: app/api/user_settings.py:368
 msgid "Failed to update prompt (check ownership or logs)."
-msgstr "No se pudo actualizar la Prompt (verifique la propiedad o los registros)."
+msgstr ""
+"No se pudo actualizar la Prompt (verifique la propiedad o los registros)."
 
 #: app/api/user_settings.py:377
 msgid "An unexpected error occurred while updating the prompt."
@@ -509,10 +693,144 @@ msgstr "Prompt eliminada correctamente."
 
 #: app/api/user_settings.py:390
 msgid "Failed to delete prompt (check ownership or logs)."
-msgstr "No se pudo eliminar la Prompt (verifique la propiedad o los registros)."
+msgstr ""
+"No se pudo eliminar la Prompt (verifique la propiedad o los registros)."
 
 #: app/api/user_settings.py:399
 msgid "An unexpected error occurred while deleting the prompt."
+msgstr "Ocurrió un error inesperado al eliminar la Prompt."
+
+#: app/api/workflows.py:60
+msgid "Please include a workflow prompt before submitting."
+msgstr "Incluye un prompt de flujo de trabajo antes de enviar."
+
+#: app/api/workflows.py:81
+msgid "Workflow started successfully."
+msgstr "El flujo de trabajo se inició correctamente."
+
+#: app/api/workflows.py:87
+msgid "You do not have permission to run workflows."
+msgstr "No tienes permiso para ejecutar flujos de trabajo."
+
+#: app/api/workflows.py:90
+msgid "You have reached your workflow usage limit. Please try again later."
+msgstr "Has alcanzado tu límite de flujos de trabajo. Inténtalo más tarde."
+
+#: app/api/workflows.py:93 app/api/workflows.py:176
+msgid ""
+"We could not find that transcription or you no longer have access to it."
+msgstr "No pudimos encontrar esa transcripción o ya no tienes acceso a ella."
+
+#: app/api/workflows.py:96
+msgid ""
+"The workflow prompt needs attention before it can run. Please review it and "
+"try again."
+msgstr ""
+"El prompt del flujo de trabajo necesita ajustes antes de ejecutarse. "
+"Revísalo e inténtalo de nuevo."
+
+#: app/api/workflows.py:99
+msgid ""
+"A workflow is already running for this transcription. Please wait for it to "
+"finish."
+msgstr ""
+"Ya hay un flujo de trabajo en ejecución para esta transcripción. Espera a "
+"que termine."
+
+#: app/api/workflows.py:103
+msgid ""
+"The AI provider temporarily rate-limited this workflow. Please wait a moment"
+" and try again."
+msgstr ""
+"El proveedor de IA aplicó temporalmente un límite a este flujo. Espera un "
+"momento e inténtalo de nuevo."
+
+#: app/api/workflows.py:106
+msgid ""
+"The AI provider blocked this workflow because of its safety filters. Please "
+"adjust your prompt and try again."
+msgstr ""
+"El proveedor de IA bloqueó este flujo por sus filtros de seguridad. Ajusta "
+"tu prompt e inténtalo de nuevo."
+
+#: app/api/workflows.py:110
+msgid "We were unable to run this workflow. Please try again."
+msgstr "No pudimos ejecutar este flujo de trabajo. Inténtalo de nuevo."
+
+#: app/api/workflows.py:113
+msgid ""
+"We hit an unexpected error while starting the workflow. Please try again."
+msgstr ""
+"Encontramos un error inesperado al iniciar el flujo de trabajo. Inténtalo de"
+" nuevo."
+
+#: app/api/workflows.py:133
+msgid "Please include the updated workflow result in your request."
+msgstr ""
+"Incluye el resultado actualizado del flujo de trabajo en tu solicitud."
+
+#: app/api/workflows.py:143
+msgid "Workflow result updated successfully."
+msgstr "El resultado del flujo de trabajo se actualizó correctamente."
+
+#: app/api/workflows.py:147
+msgid "We could not find that workflow operation."
+msgstr "No pudimos encontrar esa operación de flujo de trabajo."
+
+#: app/api/workflows.py:153
+msgid "We could not update this workflow result. Please try again."
+msgstr ""
+"No pudimos actualizar este resultado del flujo de trabajo. Inténtalo de "
+"nuevo."
+
+#: app/api/workflows.py:156
+msgid ""
+"We hit an unexpected error while editing the workflow result. Please try "
+"again."
+msgstr ""
+"Encontramos un error inesperado al editar el resultado del flujo. Inténtalo "
+"de nuevo."
+
+#: app/api/workflows.py:173
+msgid "Workflow result deleted successfully."
+msgstr "El resultado del flujo de trabajo se eliminó correctamente."
+
+#: app/api/workflows.py:179
+msgid "We were unable to delete the workflow result. Please try again."
+msgstr ""
+"No pudimos eliminar el resultado del flujo de trabajo. Inténtalo de nuevo."
+
+#: app/api/workflows.py:182
+msgid ""
+"We hit an unexpected error while deleting the workflow result. Please try "
+"again."
+msgstr ""
+"Encontramos un error inesperado al eliminar el resultado del flujo. "
+"Inténtalo de nuevo."
+
+#: app/core/decorators.py:112
+msgid "User not authenticated or role not assigned."
+msgstr ""
+
+#: app/core/decorators.py:115
+msgid "Server configuration error checking usage limits."
+msgstr ""
+
+#: app/core/decorators.py:118 app/core/decorators.py:148
+msgid "Usage limits check passed."
+msgstr ""
+
+#: app/core/decorators.py:126 app/core/decorators.py:128
+#: app/core/decorators.py:130 app/core/decorators.py:133
+#: app/core/decorators.py:135 app/core/decorators.py:137
+#: app/core/decorators.py:141 app/core/decorators.py:143
+#: app/core/decorators.py:145
+msgid "You have reached your fair use limit."
+msgstr ""
+
+#: app/core/decorators.py:152
+#, fuzzy
+msgid "An error occurred while checking usage limits."
 msgstr "Ocurrió un error inesperado al eliminar la Prompt."
 
 #: app/templates/base.html:9 app/templates/base.html:39
@@ -807,7 +1125,8 @@ msgstr ""
 
 #: app/templates/errors/403.html:12
 msgid "If you believe this is an error, please contact the administrator."
-msgstr "Si cree que esto es un error, por favor, contacte con el administrador."
+msgstr ""
+"Si cree que esto es un error, por favor, contacte con el administrador."
 
 #: app/templates/errors/403.html:15 app/templates/errors/404.html:15
 #: app/templates/errors/500.html:19
@@ -848,13 +1167,13 @@ msgstr ""
 
 #: app/templates/layout/modals/api_key_modal.html:24
 msgid ""
-"Enter your personal API keys for the transcription and workflow services."
-" These keys are stored securely and used only for your transcription "
+"Enter your personal API keys for the transcription and workflow services. "
+"These keys are stored securely and used only for your transcription "
 "requests."
 msgstr ""
-"Introduzca sus claves de API personales para los servicios de "
-"transcripción y Workflows. Estas claves se almacenan de forma segura y se"
-" utilizan únicamente para sus solicitudes de transcripción."
+"Introduzca sus claves de API personales para los servicios de transcripción "
+"y Workflows. Estas claves se almacenan de forma segura y se utilizan "
+"únicamente para sus solicitudes de transcripción."
 
 #: app/templates/layout/modals/api_key_modal.html:25
 msgid "You can get your keys here:"
@@ -943,7 +1262,8 @@ msgstr "Prompt de Workflow personalizada"
 
 #: app/templates/layout/modals/workflow_modal.html:38
 msgid "Enter your custom workflow prompt here (max 120 words)..."
-msgstr "Introduzca aquí su Prompt de Workflow personalizada (máx. 120 palabras)..."
+msgstr ""
+"Introduzca aquí su Prompt de Workflow personalizada (máx. 120 palabras)..."
 
 #: app/templates/layout/modals/workflow_modal.html:51
 msgid "Submit Workflow"
@@ -977,14 +1297,11 @@ msgstr "Workflow integrado - "
 #~ msgstr "Restablecer su contraseña"
 
 #~ msgid ""
-#~ "Enter your registered email address "
-#~ "below, and we'll send you a link"
-#~ " to reset your password."
+#~ "Enter your registered email address below, and we'll send you a link to "
+#~ "reset your password."
 #~ msgstr ""
-#~ "Introduzca la dirección de correo "
-#~ "electrónico con la que se registró "
-#~ "y le enviaremos un enlace para "
-#~ "restablecer su contraseña."
+#~ "Introduzca la dirección de correo electrónico con la que se registró y le "
+#~ "enviaremos un enlace para restablecer su contraseña."
 
 #~ msgid "Send Reset Link"
 #~ msgstr "Enviar enlace de restablecimiento"
@@ -1006,3 +1323,45 @@ msgstr "Workflow integrado - "
 
 #~ msgid "Already have an account?"
 #~ msgstr "¿Ya tiene una cuenta?"
+
+#~ msgid "Please log in to access this page."
+#~ msgstr "Por favor, inicie sesión para acceder a esta página."
+
+#~ msgid "Authentication required to access this page."
+#~ msgstr "Se requiere autenticación para acceder a esta página."
+
+#~ msgid "Invalid username or password."
+#~ msgstr "Nombre de usuario o contraseña incorrectos."
+
+#~ msgid "User registration is disabled in single-user mode."
+#~ msgstr ""
+#~ "El registro de usuarios está deshabilitado en el modo de usuario único."
+
+#~ msgid "Account created for %(username)s! You can now log in."
+#~ msgstr "¡Cuenta creada para %(username)s! Ya puede iniciar sesión."
+
+#~ msgid "Registration failed. Please try again."
+#~ msgstr "El registro ha fallado. Por favor, inténtelo de nuevo."
+
+#~ msgid "You have been logged out successfully."
+#~ msgstr "Ha cerrado la sesión correctamente."
+
+#~ msgid ""
+#~ "If an account with that email exists, a password reset link has been sent. "
+#~ "Please check your inbox and spam folder if you don't see it within a few "
+#~ "minutes."
+#~ msgstr ""
+#~ "Si existe una cuenta con ese correo electrónico, se ha enviado un enlace "
+#~ "para restablecer la contraseña. Por favor, revise su bandeja de entrada y su"
+#~ " carpeta de spam si no lo ve en unos minutos."
+
+#~ msgid "An error occurred while processing your request. Please try again."
+#~ msgstr ""
+#~ "Ocurrió un error al procesar su solicitud. Por favor, inténtelo de nuevo."
+
+#~ msgid "The password reset link is invalid or has expired."
+#~ msgstr "El enlace para restablecer la contraseña no es válido o ha expirado."
+
+#~ msgid "Your password has been reset successfully. You can now log in."
+#~ msgstr ""
+#~ "Su contraseña se ha restablecido correctamente. Ya puede iniciar sesión."
