@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-12 16:58+0200\n"
+"POT-Creation-Date: 2025-11-08 16:59+0100\n"
 "PO-Revision-Date: 2025-06-11 14:39+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,542 +18,533 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app/__init__.py:341
+#: app/__init__.py:360
 msgid "Service temporarily unavailable. Initialization in progress."
 msgstr ""
 
-#: app/__init__.py:352 app/__init__.py:485
+#: app/__init__.py:371 app/__init__.py:538
 msgid "Authentication required."
 msgstr ""
 
-#: app/__init__.py:355
+#: app/__init__.py:374
 msgid "Please log in to access this page."
 msgstr ""
 
-#: app/__init__.py:457
+#: app/__init__.py:510
 msgid "Not Found"
 msgstr ""
 
-#: app/__init__.py:470 app/templates/errors/500.html:5
+#: app/__init__.py:523 app/templates/errors/500.html:5
 msgid "Internal Server Error"
 msgstr ""
 
-#: app/__init__.py:477 app/templates/errors/403.html:5
+#: app/__init__.py:530 app/templates/errors/403.html:5
 msgid "Forbidden"
 msgstr ""
 
-#: app/__init__.py:478
+#: app/__init__.py:531
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: app/__init__.py:485
+#: app/__init__.py:538
 msgid "Unauthorized"
 msgstr ""
 
-#: app/__init__.py:486
+#: app/__init__.py:539
 msgid "Authentication required to access this page."
 msgstr ""
 
-#: app/__init__.py:495
+#: app/__init__.py:548
 #, python-format
 msgid "Too many requests: %(description)s. Please try again later."
 msgstr ""
 
-#: app/__init__.py:509
+#: app/__init__.py:562
 #, python-format
 msgid "File is too large. The maximum allowed file size is %(size)sMB."
 msgstr ""
 
-#: app/config.py:77
+#: app/config.py:80
 msgid "Automatic Detection"
 msgstr ""
 
-#: app/config.py:78
+#: app/config.py:81
 msgid "English"
 msgstr ""
 
-#: app/config.py:79
+#: app/config.py:82
 msgid "Dutch"
 msgstr ""
 
-#: app/config.py:80
+#: app/config.py:83
 msgid "French"
 msgstr ""
 
-#: app/config.py:81
+#: app/config.py:84
 msgid "Spanish"
 msgstr ""
 
-#: app/api/auth.py:101
+#: app/forms.py:29 app/forms.py:62 app/forms.py:124
+#: app/templates/layout/modals/profile_modal.html:26
+msgid "Username"
+msgstr ""
+
+#: app/forms.py:36 app/forms.py:96
+#: app/templates/layout/modals/profile_modal.html:32
+msgid "Email"
+msgstr ""
+
+#: app/forms.py:43 app/forms.py:66
+msgid "Password"
+msgstr ""
+
+#: app/forms.py:50
+msgid "Confirm Password"
+msgstr ""
+
+#: app/forms.py:56 app/templates/base.html:82 app/templates/base.html:165
+msgid "Register"
+msgstr ""
+
+#: app/forms.py:69
+msgid "Remember Me"
+msgstr ""
+
+#: app/forms.py:70 app/templates/base.html:79 app/templates/base.html:162
+msgid "Login"
+msgstr ""
+
+#: app/forms.py:75 app/templates/layout/modals/api_key_modal.html:34
+msgid "API Service"
+msgstr ""
+
+#: app/forms.py:85 app/templates/layout/modals/api_key_modal.html:43
+msgid "API Key"
+msgstr ""
+
+#: app/forms.py:91
+msgid "Save API Key"
+msgstr ""
+
+#: app/forms.py:102
+msgid "Send Reset Link"
+msgstr ""
+
+#: app/forms.py:106 app/forms.py:229
+#: app/templates/layout/modals/profile_modal.html:121
+msgid "New Password"
+msgstr ""
+
+#: app/forms.py:113 app/forms.py:236
+#: app/templates/layout/modals/profile_modal.html:132
+msgid "Confirm New Password"
+msgstr ""
+
+#: app/forms.py:119 app/templates/reset_password.html:47
+msgid "Reset Password"
+msgstr ""
+
+#: app/forms.py:131
+msgid "Email Address"
+msgstr ""
+
+#: app/forms.py:137 app/templates/layout/modals/profile_modal.html:38
+msgid "First Name"
+msgstr ""
+
+#: app/forms.py:138 app/templates/layout/modals/profile_modal.html:43
+msgid "Last Name"
+msgstr ""
+
+#: app/forms.py:141 app/templates/layout/modals/profile_modal.html:62
+msgid "Default Transcription Language"
+msgstr ""
+
+#: app/forms.py:145 app/forms.py:259
+#: app/templates/layout/modals/profile_modal.html:68
+msgid "Default Transcription Model"
+msgstr ""
+
+#: app/forms.py:149 app/templates/layout/modals/profile_modal.html:50
+msgid "Interface Language"
+msgstr ""
+
+#: app/forms.py:151 app/templates/layout/modals/profile_modal.html:80
+msgid "Automatically Generate Titles for Transcriptions"
+msgstr ""
+
+#: app/forms.py:225 app/templates/layout/modals/profile_modal.html:110
+msgid "Current Password"
+msgstr ""
+
+#: app/forms.py:247
+msgid "Role Name"
+msgstr ""
+
+#: app/forms.py:254
+msgid "Description"
+msgstr ""
+
+#: app/forms.py:265
+msgid "Default LLM Model for Title Generations"
+msgstr ""
+
+#: app/forms.py:271
+msgid "Default LLM Model for Workflows"
+msgstr ""
+
+#: app/forms.py:278
+msgid "Use AssemblyAI API"
+msgstr ""
+
+#: app/forms.py:279
+msgid "Use OpenAI Whisper API"
+msgstr ""
+
+#: app/forms.py:280
+msgid "Use OpenAI GPT-4o Transcribe API"
+msgstr ""
+
+#: app/forms.py:281
+msgid "Use OpenAI GPT-4o Diarize API"
+msgstr ""
+
+#: app/forms.py:283
+msgid "Use Google Gemini API"
+msgstr ""
+
+#: app/forms.py:285
+msgid "Access Admin Panel"
+msgstr ""
+
+#: app/forms.py:286
+msgid "Allow Large Files (>25MB)"
+msgstr ""
+
+#: app/forms.py:287
+msgid "Allow Context Prompt"
+msgstr ""
+
+#: app/forms.py:288
+msgid "Allow User API Key Management"
+msgstr ""
+
+#: app/forms.py:289
+msgid "Allow Transcript Download"
+msgstr ""
+
+#: app/forms.py:290
+msgid "Allow Workflows"
+msgstr ""
+
+#: app/forms.py:291
+msgid "Manage Workflow Templates (Admin)"
+msgstr ""
+
+#: app/forms.py:292
+msgid "Allow Automatic Title Generation"
+msgstr ""
+
+#: app/forms.py:295 app/forms.py:298 app/forms.py:301
+msgid "Daily Quota"
+msgstr ""
+
+#: app/forms.py:296 app/forms.py:299 app/forms.py:302
+msgid "Weekly Quota"
+msgstr ""
+
+#: app/forms.py:297 app/forms.py:300 app/forms.py:303
+msgid "Monthly Quota"
+msgstr ""
+
+#: app/forms.py:305
+msgid "Max History Items"
+msgstr ""
+
+#: app/forms.py:309
+msgid "History Retention Days"
+msgstr ""
+
+#: app/forms.py:313
+msgid "Save Role"
+msgstr ""
+
+#: app/forms.py:387 app/templates/manage_prompts.html:32
+#: app/templates/manage_prompts.html:101
+msgid "Workflow Label"
+msgstr ""
+
+#: app/forms.py:394 app/templates/manage_prompts.html:46
+#: app/templates/manage_prompts.html:114
+msgid "Workflow Prompt"
+msgstr ""
+
+#: app/forms.py:401
+msgid "Workflow Language"
+msgstr ""
+
+#: app/forms.py:404 app/templates/manage_prompts.html:37
+#: app/templates/manage_prompts.html:106
+msgid "Label Color"
+msgstr ""
+
+#: app/forms.py:405
+msgid "Save Workflow Template"
+msgstr ""
+
+#: app/api/auth.py:74
+msgid "Logged in successfully"
+msgstr ""
+
+#: app/api/auth.py:102
 msgid "Invalid username or password."
 msgstr ""
 
-#: app/api/auth.py:107
+#: app/api/auth.py:108
 msgid "An unexpected error occurred during login. Please try again."
 msgstr ""
 
-#: app/api/auth.py:120
+#: app/api/auth.py:121
 msgid "User registration is disabled in single-user mode."
 msgstr ""
 
-#: app/api/auth.py:151
+#: app/api/auth.py:152
 #, python-format
 msgid "Account created for %(username)s! You can now log in."
 msgstr ""
 
-#: app/api/auth.py:155
+#: app/api/auth.py:156
 msgid "Registration failed. Please try again."
 msgstr ""
 
-#: app/api/auth.py:164
+#: app/api/auth.py:166
 msgid "An unexpected error occurred during registration. Please try again."
 msgstr ""
 
-#: app/api/auth.py:180
+#: app/api/auth.py:183
 msgid "You have been logged out successfully."
 msgstr ""
 
-#: app/api/auth.py:216
+#: app/api/auth.py:219
 msgid ""
 "If an account with that email exists, a password reset link has been "
 "sent. Please check your inbox and spam folder if you don't see it within "
 "a few minutes."
 msgstr ""
 
-#: app/api/auth.py:221
+#: app/api/auth.py:224
 msgid "An error occurred while processing your request. Please try again."
 msgstr ""
 
-#: app/api/auth.py:241
+#: app/api/auth.py:244
 msgid "The password reset link is invalid or has expired."
 msgstr ""
 
-#: app/api/auth.py:254
+#: app/api/auth.py:257
 msgid "Your password has been reset successfully. You can now log in."
 msgstr ""
 
-#: app/api/auth.py:258
+#: app/api/auth.py:261
 msgid "Password reset failed. Please try again."
 msgstr ""
 
-#: app/api/auth.py:261
+#: app/api/auth.py:264
 msgid "An error occurred while resetting your password. Please try again."
 msgstr ""
 
-#: app/api/auth.py:280
+#: app/api/auth.py:283
 msgid "Already logged in."
 msgstr ""
 
-#: app/api/auth.py:285
+#: app/api/auth.py:288
 msgid "Google Sign-In is not configured on the server."
 msgstr ""
 
-#: app/api/auth.py:291
+#: app/api/auth.py:294
 msgid "Invalid request payload."
 msgstr ""
 
-#: app/api/auth.py:300
+#: app/api/auth.py:303
 msgid "Invalid Google token."
 msgstr ""
 
-#: app/api/auth.py:306
+#: app/api/auth.py:309
 msgid "Failed to process Google Sign-In."
 msgstr ""
 
-#: app/api/auth.py:335
+#: app/api/auth.py:338
 msgid "Login successful."
 msgstr ""
 
-#: app/api/auth.py:342
+#: app/api/auth.py:345
 msgid "An unexpected server error occurred."
 msgstr ""
 
-#: app/api/user_settings.py:90
+#: app/api/user_settings.py:92
 msgid "Failed to retrieve user readiness status."
 msgstr ""
 
-#: app/api/user_settings.py:110
+#: app/api/user_settings.py:112
 msgid "Failed to retrieve API key status."
 msgstr ""
 
-#: app/api/user_settings.py:130
+#: app/api/user_settings.py:132
 #, python-format
 msgid "API key for %(service)s saved successfully."
 msgstr ""
 
-#: app/api/user_settings.py:137
+#: app/api/user_settings.py:139
 msgid "An unexpected error occurred while saving the API key."
 msgstr ""
 
-#: app/api/user_settings.py:141 app/api/user_settings.py:236
-#: app/api/user_settings.py:274
+#: app/api/user_settings.py:143 app/api/user_settings.py:238
+#: app/api/user_settings.py:276
 msgid "Validation failed"
 msgstr ""
 
-#: app/api/user_settings.py:156
+#: app/api/user_settings.py:158
 msgid "Invalid service specified in URL."
 msgstr ""
 
-#: app/api/user_settings.py:162
+#: app/api/user_settings.py:164
 #, python-format
 msgid "API key for %(service)s deleted successfully."
 msgstr ""
 
-#: app/api/user_settings.py:172
+#: app/api/user_settings.py:174
 msgid "An unexpected error occurred while deleting the API key."
 msgstr ""
 
-#: app/api/user_settings.py:199
+#: app/api/user_settings.py:201
 msgid "Failed to retrieve profile data."
 msgstr ""
 
-#: app/api/user_settings.py:219
+#: app/api/user_settings.py:221
 msgid "Profile updated successfully."
 msgstr ""
 
-#: app/api/user_settings.py:232
+#: app/api/user_settings.py:234
 msgid "An unexpected error occurred while updating the profile."
 msgstr ""
 
-#: app/api/user_settings.py:249
+#: app/api/user_settings.py:251
 msgid "Password change is not available for accounts signed in via Google/OAuth."
 msgstr ""
 
-#: app/api/user_settings.py:260
+#: app/api/user_settings.py:262
 msgid "Password changed successfully."
 msgstr ""
 
-#: app/api/user_settings.py:270
+#: app/api/user_settings.py:272
 msgid "An unexpected error occurred while changing the password."
 msgstr ""
 
-#: app/api/user_settings.py:305
+#: app/api/user_settings.py:307
 msgid "Failed to retrieve user prompts."
 msgstr ""
 
-#: app/api/user_settings.py:316 app/api/user_settings.py:348
+#: app/api/user_settings.py:318 app/api/user_settings.py:356
 msgid "Missing title or prompt_text in request body."
 msgstr ""
 
-#: app/api/user_settings.py:327
+#: app/api/user_settings.py:329
 msgid "Prompt saved successfully."
 msgstr ""
 
-#: app/api/user_settings.py:331
+#: app/api/user_settings.py:333
 msgid "Failed to save prompt (service returned None)."
 msgstr ""
 
-#: app/api/user_settings.py:337
+#: app/api/user_settings.py:345
 msgid "An unexpected error occurred while saving the prompt."
 msgstr ""
 
-#: app/api/user_settings.py:358
+#: app/api/user_settings.py:366
 msgid "Prompt updated successfully."
 msgstr ""
 
-#: app/api/user_settings.py:360
+#: app/api/user_settings.py:368
 msgid "Failed to update prompt (check ownership or logs)."
 msgstr ""
 
-#: app/api/user_settings.py:369
+#: app/api/user_settings.py:377
 msgid "An unexpected error occurred while updating the prompt."
 msgstr ""
 
-#: app/api/user_settings.py:380
+#: app/api/user_settings.py:388
 msgid "Prompt deleted successfully."
 msgstr ""
 
-#: app/api/user_settings.py:382
+#: app/api/user_settings.py:390
 msgid "Failed to delete prompt (check ownership or logs)."
 msgstr ""
 
-#: app/api/user_settings.py:391
+#: app/api/user_settings.py:399
 msgid "An unexpected error occurred while deleting the prompt."
 msgstr ""
 
-#: app/templates/base.html:9 app/templates/base.html:38
+#: app/templates/base.html:9 app/templates/base.html:39
 #: app/templates/index.html:5
-msgid "Transcriber Platform"
+msgid "Compass Platform"
 msgstr ""
 
-#: app/templates/base.html:32
+#: app/templates/base.html:33
 msgid "Open main menu"
 msgstr ""
 
-#: app/templates/base.html:49
+#: app/templates/base.html:50
 msgid "Open user menu"
 msgstr ""
 
-#: app/templates/base.html:58 app/templates/base.html:135
-#: app/templates/base.html:306
+#: app/templates/base.html:59 app/templates/base.html:136
+#: app/templates/layout/modals/profile_modal.html:14
 msgid "User Settings"
 msgstr ""
 
-#: app/templates/base.html:60 app/templates/base.html:139
-#: app/templates/base.html:216
+#: app/templates/base.html:61 app/templates/base.html:140
+#: app/templates/layout/modals/api_key_modal.html:14
 msgid "Manage API Keys"
 msgstr ""
 
-#: app/templates/base.html:63 app/templates/base.html:144
+#: app/templates/base.html:64 app/templates/base.html:145
 #: app/templates/manage_prompts.html:5 app/templates/manage_prompts.html:19
 msgid "Manage your Workflows"
 msgstr ""
 
-#: app/templates/base.html:67 app/templates/base.html:150
+#: app/templates/base.html:68 app/templates/base.html:151
 msgid "Admin Panel"
 msgstr ""
 
-#: app/templates/base.html:72 app/templates/base.html:155
+#: app/templates/base.html:73 app/templates/base.html:156
 msgid "Logout"
 msgstr ""
 
-#: app/templates/base.html:78 app/templates/base.html:161
-msgid "Login"
-msgstr ""
-
-#: app/templates/base.html:81 app/templates/base.html:164
-msgid "Register"
-msgstr ""
-
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "English picker"
 msgstr "English"
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Español"
 msgstr ""
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Français"
 msgstr ""
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Nederlands"
 msgstr ""
 
-#: app/templates/base.html:124
+#: app/templates/base.html:125
 msgid "Menu"
 msgstr ""
 
-#: app/templates/base.html:127
+#: app/templates/base.html:128
 msgid "Close menu"
 msgstr ""
 
-#: app/templates/base.html:226
-msgid ""
-"Enter your personal API keys for the transcription and workflow services."
-" These keys are stored securely and used only for your transcription "
-"requests."
-msgstr ""
-
-#: app/templates/base.html:227
-msgid "You can get your keys here:"
-msgstr ""
-
-#: app/templates/base.html:236
-msgid "API Service"
-msgstr ""
-
-#: app/templates/base.html:238
-msgid "Choose service"
-msgstr ""
-
-#: app/templates/base.html:239 app/templates/base.html:257
-msgid "OpenAI (Whisper/GPT-4o)"
-msgstr ""
-
-#: app/templates/base.html:240 app/templates/base.html:266
-msgid "AssemblyAI"
-msgstr ""
-
-#: app/templates/base.html:241 app/templates/base.html:275
-msgid "Google (Gemini)"
-msgstr ""
-
-#: app/templates/base.html:245
-msgid "API Key"
-msgstr ""
-
-#: app/templates/base.html:249
-msgid "Save Key"
-msgstr ""
-
-#: app/templates/base.html:253
-msgid "Configured Keys"
-msgstr ""
-
-#: app/templates/base.html:259 app/templates/base.html:268
-#: app/templates/base.html:277
-msgid "Checking..."
-msgstr ""
-
-#: app/templates/base.html:287
-msgid "Close"
-msgstr ""
-
-#: app/templates/base.html:318
-msgid "Username"
-msgstr ""
-
-#: app/templates/base.html:324
-msgid "Email"
-msgstr ""
-
-#: app/templates/base.html:330
-msgid "First Name"
-msgstr ""
-
-#: app/templates/base.html:335
-msgid "Last Name"
-msgstr ""
-
-#: app/templates/base.html:342
-msgid "Interface Language"
-msgstr ""
-
-#: app/templates/base.html:351
-msgid "Preferences"
-msgstr ""
-
-#: app/templates/base.html:354
-msgid "Default Transcription Language"
-msgstr ""
-
-#: app/templates/base.html:360
-msgid "Default Transcription Model"
-msgstr ""
-
-#: app/templates/base.html:372
-msgid "Automatically Generate Titles for Transcriptions"
-msgstr ""
-
-#: app/templates/base.html:375
-msgid "This feature is not enabled for your account role."
-msgstr ""
-
-#: app/templates/base.html:382 app/templates/manage_prompts.html:127
-msgid "Save Changes"
-msgstr ""
-
-#: app/templates/base.html:389
-msgid "Change Password"
-msgstr ""
-
-#: app/templates/base.html:396
-msgid "Current Password"
-msgstr ""
-
-#: app/templates/base.html:407
-msgid "New Password"
-msgstr ""
-
-#: app/templates/base.html:418
-msgid "Confirm New Password"
-msgstr ""
-
-#: app/templates/base.html:431
-msgid "Update Password"
-msgstr ""
-
-#: app/templates/base.html:440 app/templates/base.html:492
-#: app/templates/manage_prompts.html:123
-msgid "Cancel"
-msgstr ""
-
-#: app/templates/base.html:458
-msgid "Run Workflow"
-msgstr ""
-
-#: app/templates/base.html:468
-msgid ""
-"Apply AI analysis to the selected transcript using the workflow prompt "
-"below."
-msgstr ""
-
-#: app/templates/base.html:470
-msgid "You can manage your workflows"
-msgstr ""
-
-#: app/templates/base.html:470
-msgid "here"
-msgstr ""
-
-#: app/templates/base.html:476
-msgid "Select a Workflow or Enter a Custom Prompt Below"
-msgstr ""
-
-#: app/templates/base.html:480
-msgid "Custom Workflow Prompt"
-msgstr ""
-
-#: app/templates/base.html:483
-msgid "Enter your custom workflow prompt here (max 120 words)..."
-msgstr ""
-
-#: app/templates/base.html:484 app/templates/index.html:108
-msgid "words"
-msgstr ""
-
-#: app/templates/base.html:496
-msgid "Submit Workflow"
-msgstr ""
-
-#: app/templates/base.html:506
-msgid "Transcriber Platform App"
-msgstr ""
-
-#: app/templates/base.html:537
-msgid " Read More"
-msgstr ""
-
-#: app/templates/base.html:538
-msgid " Read Less"
-msgstr ""
-
-#: app/templates/base.html:539 app/templates/manage_prompts.html:65
-msgid "Your Saved Workflows"
-msgstr ""
-
-#: app/templates/base.html:540
-msgid "System defined - "
-msgstr ""
-
-#: app/templates/base.html:541 app/templates/index.html:219
-msgid "Start Workflow"
-msgstr ""
-
-#: app/templates/base.html:542 app/templates/index.html:236
-msgid "Workflow Result"
-msgstr ""
-
-#: app/templates/base.html:543 app/templates/index.html:265
-msgid "Workflow Error"
-msgstr ""
-
-#: app/templates/forgot_password.html:5
-msgid "Forgot Your Password"
-msgstr ""
-
-#: app/templates/forgot_password.html:11
-msgid "Forgot Your Password?"
-msgstr ""
-
-#: app/templates/forgot_password.html:13
-msgid ""
-"Enter your registered email address below, and we'll send you a link to "
-"reset your password."
-msgstr ""
-
-#: app/templates/forgot_password.html:34
-msgid "Send Reset Link"
-msgstr ""
-
-#: app/templates/forgot_password.html:40
-msgid "Remember your password?"
-msgstr ""
-
-#: app/templates/forgot_password.html:42 app/templates/login.html:141
-msgid "Login here"
+#: app/templates/base.html:192
+msgid "Compass Platform App"
 msgstr ""
 
 #: app/templates/index.html:22
@@ -586,114 +577,126 @@ msgstr ""
 msgid "Transcription Model"
 msgstr ""
 
-#: app/templates/index.html:64
+#: app/templates/index.html:61
 msgid "Transcription Language"
 msgstr ""
 
-#: app/templates/index.html:80
+#: app/templates/index.html:77
 msgid "Context prompt"
 msgstr ""
 
-#: app/templates/index.html:87
+#: app/templates/index.html:84
 msgid "Apply Workflow"
 msgstr ""
 
-#: app/templates/index.html:100
+#: app/templates/index.html:97
 msgid "Context prompt (Max 120 words)"
 msgstr ""
 
-#: app/templates/index.html:104 app/templates/index.html:105
+#: app/templates/index.html:101 app/templates/index.html:102
 msgid "(Optional) Provide context like names or jargon..."
 msgstr ""
 
-#: app/templates/index.html:106
+#: app/templates/index.html:103
 msgid "(Optional) Add context..."
 msgstr ""
 
-#: app/templates/index.html:123
+#: app/templates/index.html:105
+#: app/templates/layout/modals/workflow_modal.html:39
+msgid "words"
+msgstr ""
+
+#: app/templates/index.html:120
 msgid "TRANSCRIBE"
 msgstr ""
 
-#: app/templates/index.html:136
+#: app/templates/index.html:133
 msgid "Waiting..."
 msgstr ""
 
-#: app/templates/index.html:141
+#: app/templates/index.html:138
 msgid "STOP"
 msgstr ""
 
-#: app/templates/index.html:151
+#: app/templates/index.html:148
 msgid "Transcription History"
 msgstr ""
 
-#: app/templates/index.html:155
+#: app/templates/index.html:152
 msgid "Clear All"
 msgstr ""
 
-#: app/templates/index.html:197
+#: app/templates/index.html:198
 msgid "(Failed)"
 msgstr ""
 
-#: app/templates/index.html:230
+#: app/templates/index.html:220
+#: app/templates/layout/scripts/base_bootstrap.html:34
+msgid "Start Workflow"
+msgstr ""
+
+#: app/templates/index.html:231
 msgid "Processing Workflow..."
 msgstr ""
 
-#: app/templates/index.html:239
+#: app/templates/index.html:237
+#: app/templates/layout/scripts/base_bootstrap.html:35
+msgid "Workflow Result"
+msgstr ""
+
+#: app/templates/index.html:240
 msgid "Ran:"
 msgstr ""
 
-#: app/templates/index.html:241 app/templates/index.html:270
+#: app/templates/index.html:242 app/templates/index.html:271
 msgid "Workflow Label:"
 msgstr ""
 
-#: app/templates/index.html:243 app/templates/index.html:245
-#: app/templates/index.html:272 app/templates/index.html:274
+#: app/templates/index.html:244 app/templates/index.html:246
+#: app/templates/index.html:273 app/templates/index.html:275
 msgid "Prompt:"
 msgstr ""
 
-#: app/templates/index.html:268
+#: app/templates/index.html:266
+#: app/templates/layout/scripts/base_bootstrap.html:36
+msgid "Workflow Error"
+msgstr ""
+
+#: app/templates/index.html:269
 msgid "Attempted:"
 msgstr ""
 
-#: app/templates/index.html:290
+#: app/templates/index.html:291
 msgid "No completed transcriptions yet."
 msgstr ""
 
-#: app/templates/index.html:301
+#: app/templates/index.html:302
 msgid "Previous"
 msgstr ""
 
-#: app/templates/index.html:332
+#: app/templates/index.html:333
 msgid "Next"
 msgstr ""
 
-#: app/templates/index.html:337
+#: app/templates/index.html:338
 #, python-format
 msgid "Showing %(length)s of %(total)s items"
 msgstr ""
 
-#: app/templates/login.html:97
-msgid "Remember Me"
+#: app/templates/login.html:25
+msgid "Error:"
 msgstr ""
 
 #: app/templates/login.html:102
-msgid "Forgot Password?"
+msgid "Remember me"
 msgstr ""
 
-#: app/templates/login.html:123
-msgid "Or continue with"
-msgstr ""
-
-#: app/templates/login.html:134
-msgid "Need an account?"
+#: app/templates/login.html:108 app/templates/login.html:117
+msgid "Forgot your password?"
 msgstr ""
 
 #: app/templates/login.html:136
-msgid "Register here"
-msgstr ""
-
-#: app/templates/login.html:139
-msgid "Already have an account?"
+msgid "Or continue with"
 msgstr ""
 
 #: app/templates/manage_prompts.html:20
@@ -704,20 +707,13 @@ msgstr ""
 msgid "Add New Workflow"
 msgstr ""
 
-#: app/templates/manage_prompts.html:32 app/templates/manage_prompts.html:101
-msgid "Workflow Label"
-msgstr ""
-
-#: app/templates/manage_prompts.html:37 app/templates/manage_prompts.html:106
-msgid "Label Color"
-msgstr ""
-
-#: app/templates/manage_prompts.html:46 app/templates/manage_prompts.html:114
-msgid "Workflow Prompt"
-msgstr ""
-
 #: app/templates/manage_prompts.html:54
 msgid "Add Workflow"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:32
+#: app/templates/manage_prompts.html:65
+msgid "Your Saved Workflows"
 msgstr ""
 
 #: app/templates/manage_prompts.html:68 app/templates/manage_prompts.html:71
@@ -736,16 +732,23 @@ msgstr ""
 msgid "Edit Workflow"
 msgstr ""
 
-#: app/templates/reset_password.html:5 app/templates/reset_password.html:11
+#: app/templates/layout/modals/profile_modal.html:154
+#: app/templates/layout/modals/workflow_modal.html:47
+#: app/templates/manage_prompts.html:123
+msgid "Cancel"
+msgstr ""
+
+#: app/templates/layout/modals/profile_modal.html:90
+#: app/templates/manage_prompts.html:127
+msgid "Save Changes"
+msgstr ""
+
+#: app/templates/reset_password.html:6 app/templates/reset_password.html:11
 msgid "Reset Your Password"
 msgstr ""
 
 #: app/templates/reset_password.html:12
 msgid "Please enter your new password below."
-msgstr ""
-
-#: app/templates/reset_password.html:48
-msgid "Reset Password"
 msgstr ""
 
 #: app/templates/admin/costs.html:87
@@ -801,6 +804,124 @@ msgid ""
 "later."
 msgstr ""
 
+#: app/templates/layout/modals/api_key_modal.html:24
+msgid ""
+"Enter your personal API keys for the transcription and workflow services."
+" These keys are stored securely and used only for your transcription "
+"requests."
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:25
+msgid "You can get your keys here:"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:36
+msgid "Choose service"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:37
+#: app/templates/layout/modals/api_key_modal.html:55
+msgid "OpenAI (Whisper/GPT-4o)"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:38
+#: app/templates/layout/modals/api_key_modal.html:64
+msgid "AssemblyAI"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:39
+#: app/templates/layout/modals/api_key_modal.html:73
+msgid "Google (Gemini)"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:47
+msgid "Save Key"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:51
+msgid "Configured Keys"
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:57
+#: app/templates/layout/modals/api_key_modal.html:66
+#: app/templates/layout/modals/api_key_modal.html:75
+msgid "Checking..."
+msgstr ""
+
+#: app/templates/layout/modals/api_key_modal.html:85
+msgid "Close"
+msgstr ""
+
+#: app/templates/layout/modals/profile_modal.html:59
+msgid "Preferences"
+msgstr ""
+
+#: app/templates/layout/modals/profile_modal.html:83
+msgid "This feature is not enabled for your account role."
+msgstr ""
+
+#: app/templates/layout/modals/profile_modal.html:97
+msgid "Change Password"
+msgstr ""
+
+#: app/templates/layout/modals/profile_modal.html:145
+msgid "Update Password"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:13
+msgid "Run Workflow"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:23
+msgid ""
+"Apply AI analysis to the selected transcript using the workflow prompt "
+"below."
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:25
+msgid "You can manage your workflows"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:25
+msgid "here"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:31
+msgid "Select a Workflow or Enter a Custom Prompt Below"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:35
+msgid "Custom Workflow Prompt"
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:38
+msgid "Enter your custom workflow prompt here (max 120 words)..."
+msgstr ""
+
+#: app/templates/layout/modals/workflow_modal.html:51
+msgid "Submit Workflow"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:28
+msgid " Read More"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:29
+msgid " Read Less"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:30
+msgid "Undo"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:31
+msgid "Restoring..."
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:33
+msgid "System defined - "
+msgstr ""
+
 #~ msgid ""
 #~ "Max file size: 1GB. Supported formats:"
 #~ " MP3, M4A, WAV, OGG, WEBM, MPGA, "
@@ -808,5 +929,47 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Rate limit exceeded: %(description)s"
+#~ msgstr ""
+
+#~ msgid "Transcriber Platform"
+#~ msgstr ""
+
+#~ msgid "Transcriber Platform App"
+#~ msgstr ""
+
+#~ msgid "Forgot Your Password"
+#~ msgstr ""
+
+#~ msgid "Forgot Your Password?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Enter your registered email address "
+#~ "below, and we'll send you a link"
+#~ " to reset your password."
+#~ msgstr ""
+
+#~ msgid "Send Reset Link"
+#~ msgstr ""
+
+#~ msgid "Remember your password?"
+#~ msgstr ""
+
+#~ msgid "Login here"
+#~ msgstr ""
+
+#~ msgid "Remember Me"
+#~ msgstr ""
+
+#~ msgid "Forgot Password?"
+#~ msgstr ""
+
+#~ msgid "Need an account?"
+#~ msgstr ""
+
+#~ msgid "Register here"
+#~ msgstr ""
+
+#~ msgid "Already have an account?"
 #~ msgstr ""
 

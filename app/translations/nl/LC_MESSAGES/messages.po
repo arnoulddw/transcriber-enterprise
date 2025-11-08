@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-08-12 16:58+0200\n"
+"POT-Creation-Date: 2025-11-08 16:59+0100\n"
 "PO-Revision-Date: 2025-06-10 23:54+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: nl\n"
@@ -19,106 +19,336 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app/__init__.py:341
+#: app/__init__.py:360
 msgid "Service temporarily unavailable. Initialization in progress."
 msgstr "Dienst tijdelijk niet beschikbaar. Initialisatie is bezig."
 
-#: app/__init__.py:352 app/__init__.py:485
+#: app/__init__.py:371 app/__init__.py:538
 msgid "Authentication required."
 msgstr "Authenticatie vereist."
 
-#: app/__init__.py:355
+#: app/__init__.py:374
 msgid "Please log in to access this page."
 msgstr "Log in om deze pagina te bekijken."
 
-#: app/__init__.py:457
+#: app/__init__.py:510
 msgid "Not Found"
 msgstr "Niet Gevonden"
 
-#: app/__init__.py:470 app/templates/errors/500.html:5
+#: app/__init__.py:523 app/templates/errors/500.html:5
 msgid "Internal Server Error"
 msgstr "Interne Serverfout"
 
-#: app/__init__.py:477 app/templates/errors/403.html:5
+#: app/__init__.py:530 app/templates/errors/403.html:5
 msgid "Forbidden"
 msgstr "Verboden Toegang"
 
-#: app/__init__.py:478
+#: app/__init__.py:531
 msgid "You do not have permission to access this page."
 msgstr "U heeft geen toestemming om deze pagina te bekijken."
 
-#: app/__init__.py:485
+#: app/__init__.py:538
 msgid "Unauthorized"
 msgstr "Ongeautoriseerd"
 
-#: app/__init__.py:486
+#: app/__init__.py:539
 msgid "Authentication required to access this page."
 msgstr "Authenticatie is vereist om deze pagina te bekijken."
 
-#: app/__init__.py:495
+#: app/__init__.py:548
 #, python-format
 msgid "Too many requests: %(description)s. Please try again later."
 msgstr "Te veel aanvragen: %(description)s. Probeer het later opnieuw."
 
-#: app/__init__.py:509
+#: app/__init__.py:562
 #, python-format
 msgid "File is too large. The maximum allowed file size is %(size)sMB."
-msgstr "Bestand is te groot. De maximaal toegestane bestandsgrootte is %(size)s MB."
+msgstr ""
+"Bestand is te groot. De maximaal toegestane bestandsgrootte is %(size)s "
+"MB."
 
-#: app/config.py:77
+#: app/config.py:80
 msgid "Automatic Detection"
 msgstr "Automatische Detectie"
 
-#: app/config.py:78
+#: app/config.py:81
 msgid "English"
 msgstr "Engels"
 
-#: app/config.py:79
+#: app/config.py:82
 msgid "Dutch"
 msgstr "Nederlands"
 
-#: app/config.py:80
+#: app/config.py:83
 msgid "French"
 msgstr "Frans"
 
-#: app/config.py:81
+#: app/config.py:84
 msgid "Spanish"
 msgstr "Spaans"
 
-#: app/api/auth.py:101
+#: app/forms.py:29 app/forms.py:62 app/forms.py:124
+#: app/templates/layout/modals/profile_modal.html:26
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: app/forms.py:36 app/forms.py:96
+#: app/templates/layout/modals/profile_modal.html:32
+msgid "Email"
+msgstr "E-mailadres"
+
+#: app/forms.py:43 app/forms.py:66
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: app/forms.py:50
+msgid "Confirm Password"
+msgstr "Bevestig wachtwoord"
+
+#: app/forms.py:56 app/templates/base.html:82 app/templates/base.html:165
+msgid "Register"
+msgstr "Registreren"
+
+#: app/forms.py:69
+#, fuzzy
+msgid "Remember Me"
+msgstr "Onthoud mij"
+
+#: app/forms.py:70 app/templates/base.html:79 app/templates/base.html:162
+msgid "Login"
+msgstr "Inloggen"
+
+#: app/forms.py:75 app/templates/layout/modals/api_key_modal.html:34
+msgid "API Service"
+msgstr "API-dienst"
+
+#: app/forms.py:85 app/templates/layout/modals/api_key_modal.html:43
+msgid "API Key"
+msgstr "API-sleutel"
+
+#: app/forms.py:91
+#, fuzzy
+msgid "Save API Key"
+msgstr "Sleutel opslaan"
+
+#: app/forms.py:102
+msgid "Send Reset Link"
+msgstr ""
+
+#: app/forms.py:106 app/forms.py:229
+#: app/templates/layout/modals/profile_modal.html:121
+msgid "New Password"
+msgstr "Nieuw wachtwoord"
+
+#: app/forms.py:113 app/forms.py:236
+#: app/templates/layout/modals/profile_modal.html:132
+msgid "Confirm New Password"
+msgstr "Bevestig nieuw wachtwoord"
+
+#: app/forms.py:119 app/templates/reset_password.html:47
+msgid "Reset Password"
+msgstr "Wachtwoord opnieuw instellen"
+
+#: app/forms.py:131
+msgid "Email Address"
+msgstr ""
+
+#: app/forms.py:137 app/templates/layout/modals/profile_modal.html:38
+msgid "First Name"
+msgstr "Voornaam"
+
+#: app/forms.py:138 app/templates/layout/modals/profile_modal.html:43
+msgid "Last Name"
+msgstr "Achternaam"
+
+#: app/forms.py:141 app/templates/layout/modals/profile_modal.html:62
+msgid "Default Transcription Language"
+msgstr "Standaard transcriptietaal"
+
+#: app/forms.py:145 app/forms.py:259
+#: app/templates/layout/modals/profile_modal.html:68
+msgid "Default Transcription Model"
+msgstr "Standaard transcriptiemodel"
+
+#: app/forms.py:149 app/templates/layout/modals/profile_modal.html:50
+msgid "Interface Language"
+msgstr "Taal van de interface"
+
+#: app/forms.py:151 app/templates/layout/modals/profile_modal.html:80
+msgid "Automatically Generate Titles for Transcriptions"
+msgstr "Automatisch titels genereren voor transcripties"
+
+#: app/forms.py:225 app/templates/layout/modals/profile_modal.html:110
+msgid "Current Password"
+msgstr "Huidig wachtwoord"
+
+#: app/forms.py:247
+#, fuzzy
+msgid "Role Name"
+msgstr "Achternaam"
+
+#: app/forms.py:254
+#, fuzzy
+msgid "Description"
+msgstr "Transcriptiemodel"
+
+#: app/forms.py:265
+msgid "Default LLM Model for Title Generations"
+msgstr ""
+
+#: app/forms.py:271
+#, fuzzy
+msgid "Default LLM Model for Workflows"
+msgstr "U kunt uw Workflows beheren"
+
+#: app/forms.py:278
+#, fuzzy
+msgid "Use AssemblyAI API"
+msgstr "AssemblyAI"
+
+#: app/forms.py:279
+#, fuzzy
+msgid "Use OpenAI Whisper API"
+msgstr "OpenAI (Whisper/GPT-4o)"
+
+#: app/forms.py:280
+msgid "Use OpenAI GPT-4o Transcribe API"
+msgstr ""
+
+#: app/forms.py:281
+msgid "Use OpenAI GPT-4o Diarize API"
+msgstr ""
+
+#: app/forms.py:283
+#, fuzzy
+msgid "Use Google Gemini API"
+msgstr "Google (Gemini)"
+
+#: app/forms.py:285
+#, fuzzy
+msgid "Access Admin Panel"
+msgstr "Beheerderspaneel"
+
+#: app/forms.py:286
+msgid "Allow Large Files (>25MB)"
+msgstr ""
+
+#: app/forms.py:287
+#, fuzzy
+msgid "Allow Context Prompt"
+msgstr "Context-Prompt"
+
+#: app/forms.py:288
+msgid "Allow User API Key Management"
+msgstr ""
+
+#: app/forms.py:289
+#, fuzzy
+msgid "Allow Transcript Download"
+msgstr "Standaard transcriptiemodel"
+
+#: app/forms.py:290
+#, fuzzy
+msgid "Allow Workflows"
+msgstr "Workflow toepassen"
+
+#: app/forms.py:291
+msgid "Manage Workflow Templates (Admin)"
+msgstr ""
+
+#: app/forms.py:292
+#, fuzzy
+msgid "Allow Automatic Title Generation"
+msgstr "Automatische Detectie"
+
+#: app/forms.py:295 app/forms.py:298 app/forms.py:301
+msgid "Daily Quota"
+msgstr ""
+
+#: app/forms.py:296 app/forms.py:299 app/forms.py:302
+msgid "Weekly Quota"
+msgstr ""
+
+#: app/forms.py:297 app/forms.py:300 app/forms.py:303
+msgid "Monthly Quota"
+msgstr ""
+
+#: app/forms.py:305
+msgid "Max History Items"
+msgstr ""
+
+#: app/forms.py:309
+msgid "History Retention Days"
+msgstr ""
+
+#: app/forms.py:313
+#, fuzzy
+msgid "Save Role"
+msgstr "Sleutel opslaan"
+
+#: app/forms.py:387 app/templates/manage_prompts.html:32
+#: app/templates/manage_prompts.html:101
+msgid "Workflow Label"
+msgstr "Workflow Label"
+
+#: app/forms.py:394 app/templates/manage_prompts.html:46
+#: app/templates/manage_prompts.html:114
+msgid "Workflow Prompt"
+msgstr "Workflow Prompt"
+
+#: app/forms.py:401
+#, fuzzy
+msgid "Workflow Language"
+msgstr "Workflow Label"
+
+#: app/forms.py:404 app/templates/manage_prompts.html:37
+#: app/templates/manage_prompts.html:106
+msgid "Label Color"
+msgstr "Labelkleur"
+
+#: app/forms.py:405
+#, fuzzy
+msgid "Save Workflow Template"
+msgstr "Workflow Label"
+
+#: app/api/auth.py:74
+msgid "Logged in successfully"
+msgstr "Succesvol ingelogd."
+
+#: app/api/auth.py:102
 msgid "Invalid username or password."
 msgstr "Ongeldige gebruikersnaam of wachtwoord."
 
-#: app/api/auth.py:107
+#: app/api/auth.py:108
 msgid "An unexpected error occurred during login. Please try again."
 msgstr ""
 "Er is een onverwachte fout opgetreden tijdens het inloggen. Probeer het "
 "opnieuw."
 
-#: app/api/auth.py:120
+#: app/api/auth.py:121
 msgid "User registration is disabled in single-user mode."
 msgstr "Gebruikersregistratie is uitgeschakeld in de modus voor één gebruiker."
 
-#: app/api/auth.py:151
+#: app/api/auth.py:152
 #, python-format
 msgid "Account created for %(username)s! You can now log in."
 msgstr "Account voor %(username)s aangemaakt! U kunt nu inloggen."
 
-#: app/api/auth.py:155
+#: app/api/auth.py:156
 msgid "Registration failed. Please try again."
 msgstr "Registratie mislukt. Probeer het opnieuw."
 
-#: app/api/auth.py:164
+#: app/api/auth.py:166
 msgid "An unexpected error occurred during registration. Please try again."
 msgstr ""
 "Er is een onverwachte fout opgetreden tijdens de registratie. Probeer het"
 " opnieuw."
 
-#: app/api/auth.py:180
+#: app/api/auth.py:183
 msgid "You have been logged out successfully."
 msgstr "U bent succesvol uitgelogd."
 
-#: app/api/auth.py:216
+#: app/api/auth.py:219
 msgid ""
 "If an account with that email exists, a password reset link has been "
 "sent. Please check your inbox and spam folder if you don't see it within "
@@ -128,459 +358,233 @@ msgstr ""
 "opnieuw instellen van het wachtwoord verzonden. Controleer uw inbox en "
 "spammap als u deze niet binnen enkele minuten ziet."
 
-#: app/api/auth.py:221
+#: app/api/auth.py:224
 msgid "An error occurred while processing your request. Please try again."
 msgstr ""
 "Er is een fout opgetreden bij het verwerken van uw verzoek. Probeer het "
 "opnieuw."
 
-#: app/api/auth.py:241
+#: app/api/auth.py:244
 msgid "The password reset link is invalid or has expired."
 msgstr ""
 "De link voor het opnieuw instellen van het wachtwoord is ongeldig of "
 "verlopen."
 
-#: app/api/auth.py:254
+#: app/api/auth.py:257
 msgid "Your password has been reset successfully. You can now log in."
 msgstr "Uw wachtwoord is succesvol opnieuw ingesteld. U kunt nu inloggen."
 
-#: app/api/auth.py:258
+#: app/api/auth.py:261
 msgid "Password reset failed. Please try again."
 msgstr "Het opnieuw instellen van het wachtwoord is mislukt. Probeer het opnieuw."
 
-#: app/api/auth.py:261
+#: app/api/auth.py:264
 msgid "An error occurred while resetting your password. Please try again."
 msgstr ""
 "Er is een fout opgetreden bij het opnieuw instellen van uw wachtwoord. "
 "Probeer het opnieuw."
 
-#: app/api/auth.py:280
+#: app/api/auth.py:283
 msgid "Already logged in."
 msgstr "Al ingelogd."
 
-#: app/api/auth.py:285
+#: app/api/auth.py:288
 msgid "Google Sign-In is not configured on the server."
 msgstr "Inloggen met Google is niet geconfigureerd op de server."
 
-#: app/api/auth.py:291
+#: app/api/auth.py:294
 msgid "Invalid request payload."
 msgstr "Ongeldige aanvraag."
 
-#: app/api/auth.py:300
+#: app/api/auth.py:303
 msgid "Invalid Google token."
 msgstr "Ongeldig Google-token."
 
-#: app/api/auth.py:306
+#: app/api/auth.py:309
 msgid "Failed to process Google Sign-In."
 msgstr "Verwerken van Google-login mislukt."
 
-#: app/api/auth.py:335
+#: app/api/auth.py:338
 msgid "Login successful."
 msgstr "Succesvol ingelogd."
 
-#: app/api/auth.py:342
+#: app/api/auth.py:345
 msgid "An unexpected server error occurred."
 msgstr "Er is een onverwachte serverfout opgetreden."
 
-#: app/api/user_settings.py:90
+#: app/api/user_settings.py:92
 msgid "Failed to retrieve user readiness status."
 msgstr "Kon de status van de gebruiker niet ophalen."
 
-#: app/api/user_settings.py:110
+#: app/api/user_settings.py:112
 msgid "Failed to retrieve API key status."
 msgstr "Kon de status van de API-sleutel niet ophalen."
 
-#: app/api/user_settings.py:130
+#: app/api/user_settings.py:132
 #, python-format
 msgid "API key for %(service)s saved successfully."
 msgstr "API-sleutel voor %(service)s succesvol opgeslagen."
 
-#: app/api/user_settings.py:137
+#: app/api/user_settings.py:139
 msgid "An unexpected error occurred while saving the API key."
 msgstr "Er is een onverwachte fout opgetreden bij het opslaan van de API-sleutel."
 
-#: app/api/user_settings.py:141 app/api/user_settings.py:236
-#: app/api/user_settings.py:274
+#: app/api/user_settings.py:143 app/api/user_settings.py:238
+#: app/api/user_settings.py:276
 msgid "Validation failed"
 msgstr "Validatie mislukt"
 
-#: app/api/user_settings.py:156
+#: app/api/user_settings.py:158
 msgid "Invalid service specified in URL."
 msgstr "Ongeldige dienst opgegeven in de URL."
 
-#: app/api/user_settings.py:162
+#: app/api/user_settings.py:164
 #, python-format
 msgid "API key for %(service)s deleted successfully."
 msgstr "API-sleutel voor %(service)s succesvol verwijderd."
 
-#: app/api/user_settings.py:172
+#: app/api/user_settings.py:174
 msgid "An unexpected error occurred while deleting the API key."
 msgstr ""
 "Er is een onverwachte fout opgetreden bij het verwijderen van de API-"
 "sleutel."
 
-#: app/api/user_settings.py:199
+#: app/api/user_settings.py:201
 msgid "Failed to retrieve profile data."
 msgstr "Kon profielgegevens niet ophalen."
 
-#: app/api/user_settings.py:219
+#: app/api/user_settings.py:221
 msgid "Profile updated successfully."
 msgstr "Profiel succesvol bijgewerkt."
 
-#: app/api/user_settings.py:232
+#: app/api/user_settings.py:234
 msgid "An unexpected error occurred while updating the profile."
 msgstr "Er is een onverwachte fout opgetreden bij het bijwerken van het profiel."
 
-#: app/api/user_settings.py:249
+#: app/api/user_settings.py:251
 msgid "Password change is not available for accounts signed in via Google/OAuth."
 msgstr ""
 "Wachtwoord wijzigen is niet beschikbaar voor accounts die zijn ingelogd "
 "via Google/OAuth."
 
-#: app/api/user_settings.py:260
+#: app/api/user_settings.py:262
 msgid "Password changed successfully."
 msgstr "Wachtwoord succesvol gewijzigd."
 
-#: app/api/user_settings.py:270
+#: app/api/user_settings.py:272
 msgid "An unexpected error occurred while changing the password."
 msgstr "Er is een onverwachte fout opgetreden bij het wijzigen van het wachtwoord."
 
-#: app/api/user_settings.py:305
+#: app/api/user_settings.py:307
 msgid "Failed to retrieve user prompts."
 msgstr "Kon gebruikers-Prompts niet ophalen."
 
-#: app/api/user_settings.py:316 app/api/user_settings.py:348
+#: app/api/user_settings.py:318 app/api/user_settings.py:356
 msgid "Missing title or prompt_text in request body."
 msgstr "Titel of Prompt-tekst ontbreekt in de aanvraag."
 
-#: app/api/user_settings.py:327
+#: app/api/user_settings.py:329
 msgid "Prompt saved successfully."
 msgstr "Prompt succesvol opgeslagen."
 
-#: app/api/user_settings.py:331
+#: app/api/user_settings.py:333
 msgid "Failed to save prompt (service returned None)."
 msgstr "Opslaan van Prompt mislukt (dienst gaf geen reactie)."
 
-#: app/api/user_settings.py:337
+#: app/api/user_settings.py:345
 msgid "An unexpected error occurred while saving the prompt."
 msgstr "Er is een onverwachte fout opgetreden bij het opslaan van de Prompt."
 
-#: app/api/user_settings.py:358
+#: app/api/user_settings.py:366
 msgid "Prompt updated successfully."
 msgstr "Prompt succesvol bijgewerkt."
 
-#: app/api/user_settings.py:360
+#: app/api/user_settings.py:368
 msgid "Failed to update prompt (check ownership or logs)."
 msgstr "Bijwerken van Prompt mislukt (controleer eigendom of logs)."
 
-#: app/api/user_settings.py:369
+#: app/api/user_settings.py:377
 msgid "An unexpected error occurred while updating the prompt."
 msgstr "Er is een onverwachte fout opgetreden bij het bijwerken van de Prompt."
 
-#: app/api/user_settings.py:380
+#: app/api/user_settings.py:388
 msgid "Prompt deleted successfully."
 msgstr "Prompt succesvol verwijderd."
 
-#: app/api/user_settings.py:382
+#: app/api/user_settings.py:390
 msgid "Failed to delete prompt (check ownership or logs)."
 msgstr "Verwijderen van Prompt mislukt (controleer eigendom of logs)."
 
-#: app/api/user_settings.py:391
+#: app/api/user_settings.py:399
 msgid "An unexpected error occurred while deleting the prompt."
 msgstr "Er is een onverwachte fout opgetreden bij het verwijderen van de Prompt."
 
-#: app/templates/base.html:9 app/templates/base.html:38
+#: app/templates/base.html:9 app/templates/base.html:39
 #: app/templates/index.html:5
-msgid "Transcriber Platform"
+#, fuzzy
+msgid "Compass Platform"
 msgstr "Transcriber Platform"
 
-#: app/templates/base.html:32
+#: app/templates/base.html:33
 msgid "Open main menu"
 msgstr "Hoofdmenu openen"
 
-#: app/templates/base.html:49
+#: app/templates/base.html:50
 msgid "Open user menu"
 msgstr "Gebruikersmenu openen"
 
-#: app/templates/base.html:58 app/templates/base.html:135
-#: app/templates/base.html:306
+#: app/templates/base.html:59 app/templates/base.html:136
+#: app/templates/layout/modals/profile_modal.html:14
 msgid "User Settings"
 msgstr "Gebruikersinstellingen"
 
-#: app/templates/base.html:60 app/templates/base.html:139
-#: app/templates/base.html:216
+#: app/templates/base.html:61 app/templates/base.html:140
+#: app/templates/layout/modals/api_key_modal.html:14
 msgid "Manage API Keys"
 msgstr "API-sleutels beheren"
 
-#: app/templates/base.html:63 app/templates/base.html:144
+#: app/templates/base.html:64 app/templates/base.html:145
 #: app/templates/manage_prompts.html:5 app/templates/manage_prompts.html:19
 msgid "Manage your Workflows"
 msgstr "Beheer uw Workflows"
 
-#: app/templates/base.html:67 app/templates/base.html:150
+#: app/templates/base.html:68 app/templates/base.html:151
 msgid "Admin Panel"
 msgstr "Beheerderspaneel"
 
-#: app/templates/base.html:72 app/templates/base.html:155
+#: app/templates/base.html:73 app/templates/base.html:156
 msgid "Logout"
 msgstr "Uitloggen"
 
-#: app/templates/base.html:78 app/templates/base.html:161
-msgid "Login"
-msgstr "Inloggen"
-
-#: app/templates/base.html:81 app/templates/base.html:164
-msgid "Register"
-msgstr "Registreren"
-
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 #, fuzzy
 msgid "English picker"
 msgstr "Engels"
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Español"
 msgstr "Español"
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Français"
 msgstr "Français"
 
-#: app/templates/base.html:103
+#: app/templates/base.html:104
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: app/templates/base.html:124
+#: app/templates/base.html:125
 msgid "Menu"
 msgstr "Menu"
 
-#: app/templates/base.html:127
+#: app/templates/base.html:128
 msgid "Close menu"
 msgstr "Menu sluiten"
 
-#: app/templates/base.html:226
-msgid ""
-"Enter your personal API keys for the transcription and workflow services."
-" These keys are stored securely and used only for your transcription "
-"requests."
-msgstr ""
-"Voer uw persoonlijke API-sleutels in voor de transcriptie- en Workflow-"
-"diensten. Deze sleutels worden veilig opgeslagen en alleen gebruikt voor "
-"uw transcriptie-aanvragen."
-
-#: app/templates/base.html:227
-msgid "You can get your keys here:"
-msgstr "U kunt uw sleutels hier verkrijgen:"
-
-#: app/templates/base.html:236
-msgid "API Service"
-msgstr "API-dienst"
-
-#: app/templates/base.html:238
-msgid "Choose service"
-msgstr "Kies een dienst"
-
-#: app/templates/base.html:239 app/templates/base.html:257
-msgid "OpenAI (Whisper/GPT-4o)"
-msgstr "OpenAI (Whisper/GPT-4o)"
-
-#: app/templates/base.html:240 app/templates/base.html:266
-msgid "AssemblyAI"
-msgstr "AssemblyAI"
-
-#: app/templates/base.html:241 app/templates/base.html:275
-msgid "Google (Gemini)"
-msgstr "Google (Gemini)"
-
-#: app/templates/base.html:245
-msgid "API Key"
-msgstr "API-sleutel"
-
-#: app/templates/base.html:249
-msgid "Save Key"
-msgstr "Sleutel opslaan"
-
-#: app/templates/base.html:253
-msgid "Configured Keys"
-msgstr "Geconfigureerde sleutels"
-
-#: app/templates/base.html:259 app/templates/base.html:268
-#: app/templates/base.html:277
-msgid "Checking..."
-msgstr "Controleren..."
-
-#: app/templates/base.html:287
-msgid "Close"
-msgstr "Sluiten"
-
-#: app/templates/base.html:318
-msgid "Username"
-msgstr "Gebruikersnaam"
-
-#: app/templates/base.html:324
-msgid "Email"
-msgstr "E-mailadres"
-
-#: app/templates/base.html:330
-msgid "First Name"
-msgstr "Voornaam"
-
-#: app/templates/base.html:335
-msgid "Last Name"
-msgstr "Achternaam"
-
-#: app/templates/base.html:342
-msgid "Interface Language"
-msgstr "Taal van de interface"
-
-#: app/templates/base.html:351
-msgid "Preferences"
-msgstr "Voorkeuren"
-
-#: app/templates/base.html:354
-msgid "Default Transcription Language"
-msgstr "Standaard transcriptietaal"
-
-#: app/templates/base.html:360
-msgid "Default Transcription Model"
-msgstr "Standaard transcriptiemodel"
-
-#: app/templates/base.html:372
-msgid "Automatically Generate Titles for Transcriptions"
-msgstr "Automatisch titels genereren voor transcripties"
-
-#: app/templates/base.html:375
-msgid "This feature is not enabled for your account role."
-msgstr "Deze functie is niet ingeschakeld voor uw accountrol."
-
-#: app/templates/base.html:382 app/templates/manage_prompts.html:127
-msgid "Save Changes"
-msgstr "Wijzigingen opslaan"
-
-#: app/templates/base.html:389
-msgid "Change Password"
-msgstr "Wachtwoord wijzigen"
-
-#: app/templates/base.html:396
-msgid "Current Password"
-msgstr "Huidig wachtwoord"
-
-#: app/templates/base.html:407
-msgid "New Password"
-msgstr "Nieuw wachtwoord"
-
-#: app/templates/base.html:418
-msgid "Confirm New Password"
-msgstr "Bevestig nieuw wachtwoord"
-
-#: app/templates/base.html:431
-msgid "Update Password"
-msgstr "Wachtwoord bijwerken"
-
-#: app/templates/base.html:440 app/templates/base.html:492
-#: app/templates/manage_prompts.html:123
-msgid "Cancel"
-msgstr "Annuleren"
-
-#: app/templates/base.html:458
-msgid "Run Workflow"
-msgstr "Workflow uitvoeren"
-
-#: app/templates/base.html:468
-msgid ""
-"Apply AI analysis to the selected transcript using the workflow prompt "
-"below."
-msgstr ""
-"Pas AI-analyse toe op de geselecteerde transcriptie met de onderstaande "
-"Workflow Prompt."
-
-#: app/templates/base.html:470
-msgid "You can manage your workflows"
-msgstr "U kunt uw Workflows beheren"
-
-#: app/templates/base.html:470
-msgid "here"
-msgstr "hier"
-
-#: app/templates/base.html:476
-msgid "Select a Workflow or Enter a Custom Prompt Below"
-msgstr "Selecteer een Workflow of voer hieronder een gepersonaliseerde Prompt in"
-
-#: app/templates/base.html:480
-msgid "Custom Workflow Prompt"
-msgstr "Gepersonaliseerde Workflow Prompt"
-
-#: app/templates/base.html:483
-msgid "Enter your custom workflow prompt here (max 120 words)..."
-msgstr "Voer hier uw gepersonaliseerde Workflow Prompt in (max 120 woorden)..."
-
-#: app/templates/base.html:484 app/templates/index.html:108
-msgid "words"
-msgstr "woorden"
-
-#: app/templates/base.html:496
-msgid "Submit Workflow"
-msgstr "Workflow indienen"
-
-#: app/templates/base.html:506
-msgid "Transcriber Platform App"
+#: app/templates/base.html:192
+#, fuzzy
+msgid "Compass Platform App"
 msgstr "Transcriber Platform App"
-
-#: app/templates/base.html:537
-msgid " Read More"
-msgstr " Lees meer"
-
-#: app/templates/base.html:538
-msgid " Read Less"
-msgstr " Lees minder"
-
-#: app/templates/base.html:539 app/templates/manage_prompts.html:65
-msgid "Your Saved Workflows"
-msgstr "Uw opgeslagen Workflows"
-
-#: app/templates/base.html:540
-msgid "System defined - "
-msgstr "Systeemgedefinieerd - "
-
-#: app/templates/base.html:541 app/templates/index.html:219
-msgid "Start Workflow"
-msgstr "Start Workflow"
-
-#: app/templates/base.html:542 app/templates/index.html:236
-msgid "Workflow Result"
-msgstr "Workflow Resultaat"
-
-#: app/templates/base.html:543 app/templates/index.html:265
-msgid "Workflow Error"
-msgstr "Workflow Fout"
-
-#: app/templates/forgot_password.html:5
-msgid "Forgot Your Password"
-msgstr "Wachtwoord vergeten"
-
-#: app/templates/forgot_password.html:11
-msgid "Forgot Your Password?"
-msgstr "Wachtwoord vergeten?"
-
-#: app/templates/forgot_password.html:13
-msgid ""
-"Enter your registered email address below, and we'll send you a link to "
-"reset your password."
-msgstr ""
-"Voer hieronder uw geregistreerde e-mailadres in, en we sturen u een link "
-"om uw wachtwoord opnieuw in te stellen."
-
-#: app/templates/forgot_password.html:34
-msgid "Send Reset Link"
-msgstr "Verstuur herstellink"
-
-#: app/templates/forgot_password.html:40
-msgid "Remember your password?"
-msgstr "Weet u uw wachtwoord weer?"
-
-#: app/templates/forgot_password.html:42 app/templates/login.html:141
-msgid "Login here"
-msgstr "Log hier in"
 
 #: app/templates/index.html:22
 msgid "Upload Audio File"
@@ -603,10 +607,9 @@ msgid "Select audio file…"
 msgstr "Selecteer audiobestand…"
 
 #: app/templates/index.html:40
-#, fuzzy
 msgid ""
-"Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA,"
-" MPEG."
+"Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA, "
+"MPEG."
 msgstr ""
 "Max. bestandsgrootte: 200 MB. Ondersteunde formaten: MP3, M4A, WAV, OGG, "
 "WEBM, MPGA, MPEG."
@@ -615,115 +618,129 @@ msgstr ""
 msgid "Transcription Model"
 msgstr "Transcriptiemodel"
 
-#: app/templates/index.html:64
+#: app/templates/index.html:61
 msgid "Transcription Language"
 msgstr "Transcriptietaal"
 
-#: app/templates/index.html:80
+#: app/templates/index.html:77
 msgid "Context prompt"
 msgstr "Context-Prompt"
 
-#: app/templates/index.html:87
+#: app/templates/index.html:84
 msgid "Apply Workflow"
 msgstr "Workflow toepassen"
 
-#: app/templates/index.html:100
+#: app/templates/index.html:97
 msgid "Context prompt (Max 120 words)"
 msgstr "Context-Prompt (Max 120 woorden)"
 
-#: app/templates/index.html:104 app/templates/index.html:105
+#: app/templates/index.html:101 app/templates/index.html:102
 msgid "(Optional) Provide context like names or jargon..."
 msgstr "(Optioneel) Geef context zoals namen of jargon..."
 
-#: app/templates/index.html:106
+#: app/templates/index.html:103
 msgid "(Optional) Add context..."
 msgstr "(Optioneel) Voeg context toe..."
 
-#: app/templates/index.html:123
+#: app/templates/index.html:105
+#: app/templates/layout/modals/workflow_modal.html:39
+msgid "words"
+msgstr "woorden"
+
+#: app/templates/index.html:120
 msgid "TRANSCRIBE"
 msgstr "TRANSCRIBEREN"
 
-#: app/templates/index.html:136
+#: app/templates/index.html:133
 msgid "Waiting..."
 msgstr "Wachten..."
 
-#: app/templates/index.html:141
+#: app/templates/index.html:138
 msgid "STOP"
 msgstr "STOP"
 
-#: app/templates/index.html:151
+#: app/templates/index.html:148
 msgid "Transcription History"
 msgstr "Transcriptiegeschiedenis"
 
-#: app/templates/index.html:155
+#: app/templates/index.html:152
 msgid "Clear All"
 msgstr "Alles wissen"
 
-#: app/templates/index.html:197
+#: app/templates/index.html:198
 msgid "(Failed)"
 msgstr "(Mislukt)"
 
-#: app/templates/index.html:230
+#: app/templates/index.html:220
+#: app/templates/layout/scripts/base_bootstrap.html:34
+msgid "Start Workflow"
+msgstr "Start Workflow"
+
+#: app/templates/index.html:231
 msgid "Processing Workflow..."
 msgstr "Workflow verwerken..."
 
-#: app/templates/index.html:239
+#: app/templates/index.html:237
+#: app/templates/layout/scripts/base_bootstrap.html:35
+msgid "Workflow Result"
+msgstr "Workflow Resultaat"
+
+#: app/templates/index.html:240
 msgid "Ran:"
 msgstr "Uitgevoerd:"
 
-#: app/templates/index.html:241 app/templates/index.html:270
+#: app/templates/index.html:242 app/templates/index.html:271
 msgid "Workflow Label:"
 msgstr "Workflow Label:"
 
-#: app/templates/index.html:243 app/templates/index.html:245
-#: app/templates/index.html:272 app/templates/index.html:274
+#: app/templates/index.html:244 app/templates/index.html:246
+#: app/templates/index.html:273 app/templates/index.html:275
 msgid "Prompt:"
 msgstr "Prompt:"
 
-#: app/templates/index.html:268
+#: app/templates/index.html:266
+#: app/templates/layout/scripts/base_bootstrap.html:36
+msgid "Workflow Error"
+msgstr "Workflow Fout"
+
+#: app/templates/index.html:269
 msgid "Attempted:"
 msgstr "Geprobeerd:"
 
-#: app/templates/index.html:290
+#: app/templates/index.html:291
 msgid "No completed transcriptions yet."
 msgstr "Nog geen voltooide transcripties."
 
-#: app/templates/index.html:301
+#: app/templates/index.html:302
 msgid "Previous"
 msgstr "Vorige"
 
-#: app/templates/index.html:332
+#: app/templates/index.html:333
 msgid "Next"
 msgstr "Volgende"
 
-#: app/templates/index.html:337
+#: app/templates/index.html:338
 #, python-format
 msgid "Showing %(length)s of %(total)s items"
 msgstr "Toont %(length)s van %(total)s items"
 
-#: app/templates/login.html:97
-msgid "Remember Me"
-msgstr "Onthoud mij"
+#: app/templates/login.html:25
+msgid "Error:"
+msgstr ""
 
 #: app/templates/login.html:102
-msgid "Forgot Password?"
+#, fuzzy
+msgid "Remember me"
+msgstr "Onthoud mij"
+
+#: app/templates/login.html:108 app/templates/login.html:117
+#, fuzzy
+msgid "Forgot your password?"
 msgstr "Wachtwoord vergeten?"
 
-#: app/templates/login.html:123
+#: app/templates/login.html:136
 msgid "Or continue with"
 msgstr "Of ga verder met"
-
-#: app/templates/login.html:134
-msgid "Need an account?"
-msgstr "Account nodig?"
-
-#: app/templates/login.html:136
-msgid "Register here"
-msgstr "Registreer hier"
-
-#: app/templates/login.html:139
-msgid "Already have an account?"
-msgstr "Heeft u al een account?"
 
 #: app/templates/manage_prompts.html:20
 msgid "Create, edit, or delete your reusable workflow prompts."
@@ -733,21 +750,14 @@ msgstr "Maak, bewerk of verwijder uw herbruikbare Workflow Prompts."
 msgid "Add New Workflow"
 msgstr "Nieuwe Workflow toevoegen"
 
-#: app/templates/manage_prompts.html:32 app/templates/manage_prompts.html:101
-msgid "Workflow Label"
-msgstr "Workflow Label"
-
-#: app/templates/manage_prompts.html:37 app/templates/manage_prompts.html:106
-msgid "Label Color"
-msgstr "Labelkleur"
-
-#: app/templates/manage_prompts.html:46 app/templates/manage_prompts.html:114
-msgid "Workflow Prompt"
-msgstr "Workflow Prompt"
-
 #: app/templates/manage_prompts.html:54
 msgid "Add Workflow"
 msgstr "Workflow toevoegen"
+
+#: app/templates/layout/scripts/base_bootstrap.html:32
+#: app/templates/manage_prompts.html:65
+msgid "Your Saved Workflows"
+msgstr "Uw opgeslagen Workflows"
 
 #: app/templates/manage_prompts.html:68 app/templates/manage_prompts.html:71
 msgid "Loading workflows..."
@@ -765,17 +775,24 @@ msgstr "Fout bij het laden van Workflows:"
 msgid "Edit Workflow"
 msgstr "Workflow bewerken"
 
-#: app/templates/reset_password.html:5 app/templates/reset_password.html:11
+#: app/templates/layout/modals/profile_modal.html:154
+#: app/templates/layout/modals/workflow_modal.html:47
+#: app/templates/manage_prompts.html:123
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: app/templates/layout/modals/profile_modal.html:90
+#: app/templates/manage_prompts.html:127
+msgid "Save Changes"
+msgstr "Wijzigingen opslaan"
+
+#: app/templates/reset_password.html:6 app/templates/reset_password.html:11
 msgid "Reset Your Password"
 msgstr "Stel uw wachtwoord opnieuw in"
 
 #: app/templates/reset_password.html:12
 msgid "Please enter your new password below."
 msgstr "Voer hieronder uw nieuwe wachtwoord in."
-
-#: app/templates/reset_password.html:48
-msgid "Reset Password"
-msgstr "Wachtwoord opnieuw instellen"
 
 #: app/templates/admin/costs.html:87
 msgid "Save Pricing Configuration"
@@ -834,6 +851,163 @@ msgstr ""
 "We hebben een melding ontvangen en onderzoeken het probleem. Probeer het "
 "later opnieuw."
 
+#: app/templates/layout/modals/api_key_modal.html:24
+msgid ""
+"Enter your personal API keys for the transcription and workflow services."
+" These keys are stored securely and used only for your transcription "
+"requests."
+msgstr ""
+"Voer uw persoonlijke API-sleutels in voor de transcriptie- en Workflow-"
+"diensten. Deze sleutels worden veilig opgeslagen en alleen gebruikt voor "
+"uw transcriptie-aanvragen."
+
+#: app/templates/layout/modals/api_key_modal.html:25
+msgid "You can get your keys here:"
+msgstr "U kunt uw sleutels hier verkrijgen:"
+
+#: app/templates/layout/modals/api_key_modal.html:36
+msgid "Choose service"
+msgstr "Kies een dienst"
+
+#: app/templates/layout/modals/api_key_modal.html:37
+#: app/templates/layout/modals/api_key_modal.html:55
+msgid "OpenAI (Whisper/GPT-4o)"
+msgstr "OpenAI (Whisper/GPT-4o)"
+
+#: app/templates/layout/modals/api_key_modal.html:38
+#: app/templates/layout/modals/api_key_modal.html:64
+msgid "AssemblyAI"
+msgstr "AssemblyAI"
+
+#: app/templates/layout/modals/api_key_modal.html:39
+#: app/templates/layout/modals/api_key_modal.html:73
+msgid "Google (Gemini)"
+msgstr "Google (Gemini)"
+
+#: app/templates/layout/modals/api_key_modal.html:47
+msgid "Save Key"
+msgstr "Sleutel opslaan"
+
+#: app/templates/layout/modals/api_key_modal.html:51
+msgid "Configured Keys"
+msgstr "Geconfigureerde sleutels"
+
+#: app/templates/layout/modals/api_key_modal.html:57
+#: app/templates/layout/modals/api_key_modal.html:66
+#: app/templates/layout/modals/api_key_modal.html:75
+msgid "Checking..."
+msgstr "Controleren..."
+
+#: app/templates/layout/modals/api_key_modal.html:85
+msgid "Close"
+msgstr "Sluiten"
+
+#: app/templates/layout/modals/profile_modal.html:59
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+#: app/templates/layout/modals/profile_modal.html:83
+msgid "This feature is not enabled for your account role."
+msgstr "Deze functie is niet ingeschakeld voor uw accountrol."
+
+#: app/templates/layout/modals/profile_modal.html:97
+msgid "Change Password"
+msgstr "Wachtwoord wijzigen"
+
+#: app/templates/layout/modals/profile_modal.html:145
+msgid "Update Password"
+msgstr "Wachtwoord bijwerken"
+
+#: app/templates/layout/modals/workflow_modal.html:13
+msgid "Run Workflow"
+msgstr "Workflow uitvoeren"
+
+#: app/templates/layout/modals/workflow_modal.html:23
+msgid ""
+"Apply AI analysis to the selected transcript using the workflow prompt "
+"below."
+msgstr ""
+"Pas AI-analyse toe op de geselecteerde transcriptie met de onderstaande "
+"Workflow Prompt."
+
+#: app/templates/layout/modals/workflow_modal.html:25
+msgid "You can manage your workflows"
+msgstr "U kunt uw Workflows beheren"
+
+#: app/templates/layout/modals/workflow_modal.html:25
+msgid "here"
+msgstr "hier"
+
+#: app/templates/layout/modals/workflow_modal.html:31
+msgid "Select a Workflow or Enter a Custom Prompt Below"
+msgstr "Selecteer een Workflow of voer hieronder een gepersonaliseerde Prompt in"
+
+#: app/templates/layout/modals/workflow_modal.html:35
+msgid "Custom Workflow Prompt"
+msgstr "Gepersonaliseerde Workflow Prompt"
+
+#: app/templates/layout/modals/workflow_modal.html:38
+msgid "Enter your custom workflow prompt here (max 120 words)..."
+msgstr "Voer hier uw gepersonaliseerde Workflow Prompt in (max 120 woorden)..."
+
+#: app/templates/layout/modals/workflow_modal.html:51
+msgid "Submit Workflow"
+msgstr "Workflow indienen"
+
+#: app/templates/layout/scripts/base_bootstrap.html:28
+msgid " Read More"
+msgstr " Lees meer"
+
+#: app/templates/layout/scripts/base_bootstrap.html:29
+msgid " Read Less"
+msgstr " Lees minder"
+
+#: app/templates/layout/scripts/base_bootstrap.html:30
+msgid "Undo"
+msgstr ""
+
+#: app/templates/layout/scripts/base_bootstrap.html:31
+#, fuzzy
+msgid "Restoring..."
+msgstr "Wachten..."
+
+#: app/templates/layout/scripts/base_bootstrap.html:33
+msgid "System defined - "
+msgstr "Systeemgedefinieerd - "
+
 #~ msgid "Rate limit exceeded: %(description)s"
 #~ msgstr "Limiet voor aanvragen overschreden: %(description)s"
 
+#~ msgid "Forgot Your Password"
+#~ msgstr "Wachtwoord vergeten"
+
+#~ msgid ""
+#~ "Enter your registered email address "
+#~ "below, and we'll send you a link"
+#~ " to reset your password."
+#~ msgstr ""
+#~ "Voer hieronder uw geregistreerde e-mailadres"
+#~ " in, en we sturen u een link"
+#~ " om uw wachtwoord opnieuw in te "
+#~ "stellen."
+
+#~ msgid "Send Reset Link"
+#~ msgstr "Verstuur herstellink"
+
+#~ msgid "Remember your password?"
+#~ msgstr "Weet u uw wachtwoord weer?"
+
+#~ msgid "Login here"
+#~ msgstr "Log hier in"
+
+#~ msgid "Forgot Password?"
+#~ msgstr "Wachtwoord vergeten?"
+
+#~ msgid "Need an account?"
+#~ msgstr "Account nodig?"
+
+#~ msgid "Register here"
+#~ msgstr "Registreer hier"
+
+#~ msgid "Already have an account?"
+#~ msgstr "Heeft u al een account?"

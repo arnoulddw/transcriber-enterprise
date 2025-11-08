@@ -204,7 +204,7 @@ Guidelines:
 - Avoid generic titles like "Meeting Discussion" or "Audio Recording"
 - Do not include metadata or file information in the title
 
-Only respond with the title. No explanations or additional text.
+Only respond with the title in the language of the transcription. No explanations or additional text.
 
 Transcription Content:
 ---

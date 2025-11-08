@@ -43,12 +43,14 @@ class OpenAIClient(BaseLLMClient):
     def _get_api_name(self) -> str:
         return "OpenAI LLM"
 
-    def _initialize_client(self, api_key: str) -> None:
+    def _initialize_client(self, api_key: str, config: Dict[str, Any]) -> None:
         """Initializes the OpenAI API client."""
         if not OPENAI_AVAILABLE:
             raise ValueError("OpenAI library not installed.")
         try:
             self.client = OpenAI(api_key=api_key)
+            # Allow overriding the default model via application config
+            self.default_model = config.get("WORKFLOW_LLM_MODEL", self.DEFAULT_MODEL)
             self.logger.debug("OpenAI client initialized successfully.")
         except OpenAIError as e:
             raise ValueError(f"OpenAI client initialization failed: {e}") from e
@@ -61,7 +63,9 @@ class OpenAIClient(BaseLLMClient):
         if not self.client:
              raise LlmConfigurationError("OpenAI client not initialized.", provider=self._get_api_name())
 
-        model_name = kwargs.get("model", self.DEFAULT_MODEL)
+        # Remove any externally provided model so we can control final value without duplicates
+        provided_model = kwargs.pop("model", None)
+        model_name = provided_model or getattr(self, "default_model", self.DEFAULT_MODEL)
         logger = get_logger(__name__, model=model_name, component=self._get_api_name())
         logger.debug("Generating text (using chat endpoint)...")
 
@@ -90,7 +94,7 @@ class OpenAIClient(BaseLLMClient):
         if not self.client:
              raise LlmConfigurationError("OpenAI client not initialized.", provider=self._get_api_name())
 
-        model_name = kwargs.get("model", self.DEFAULT_MODEL)
+        model_name = kwargs.get("model", getattr(self, "default_model", self.DEFAULT_MODEL))
         logger = get_logger(__name__, model=model_name, component=self._get_api_name())
         logger.debug("Requesting chat completion...")
 

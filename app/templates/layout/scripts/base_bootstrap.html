@@ -1,0 +1,236 @@
+<!-- app/templates/layout/scripts/base_bootstrap.html -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Global variables available to other JS files
+        window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        window.IS_MULTI_USER = JSON.parse('{{ is_multi_user|default(false)|tojson|safe }}');
+        window.USER_PERMISSIONS = JSON.parse('{{ user_permissions|tojson|safe }}');
+        window.API_KEY_STATUS = JSON.parse('{{ initial_key_status|default({})|tojson|safe }}');
+        try {
+            window.TRANSCRIPTION_MODELS = JSON.parse('{{ TRANSCRIPTION_MODEL_CATALOG|tojson|safe }}');
+        } catch (e) { window.TRANSCRIPTION_MODELS = []; console.error("Error parsing transcription model catalog:", e); }
+        try {
+            window.SUPPORTED_LANGUAGE_MAP = JSON.parse('{{ supported_languages|tojson|safe }}');
+        } catch (e) { window.SUPPORTED_LANGUAGE_MAP = {}; console.error("Error parsing supported_languages map:", e); }
+        try {
+            window.SUPPORTED_LANGUAGES = JSON.parse('{{ SUPPORTED_UI_LANGS_CONFIG|tojson|safe }}');
+        } catch (e) { window.SUPPORTED_LANGUAGES = []; console.error("Error parsing supported_ui_languages list:", e); }
+        try {
+            window.COLOR_NAME_MAP = JSON.parse('{{ COLOR_NAME_MAP|tojson|safe }}');
+        } catch (e) { window.COLOR_NAME_MAP = {}; console.error("Error parsing color_name_map:", e); }
+        try {
+            window.API_NAME_MAP_FRONTEND = JSON.parse('{{ API_NAME_MAP_FRONTEND|tojson|safe }}');
+        } catch (e) { window.API_NAME_MAP_FRONTEND = {}; console.error("Error parsing api_name_map_frontend:", e); }
+        window.APP_DEBUG_MODE = JSON.parse('{{ app_debug | tojson }}');
+        window.CURRENT_UI_LANGUAGE = '{{ current_language }}';
+        window.i18n = {
+            readMore: "{{ _(' Read More') }}",
+            readLess: "{{ _(' Read Less') }}",
+            undo: "{{ _('Undo') }}",
+            restoring: "{{ _('Restoring...') }}",
+            yourSavedWorkflows: "{{ _('Your Saved Workflows') }}",
+            systemDefined: "{{ _('System defined - ') }}",
+            startWorkflow: "{{ _('Start Workflow') }}",
+            workflowResult: "{{ _('Workflow Result') }}",
+            workflowError: "{{ _('Workflow Error') }}"
+        };
+        console.log("Application Debug Mode (Tailwind):", window.APP_DEBUG_MODE);
+
+        // Mobile Sidenav Logic (Vanilla JS)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileNav = document.getElementById('mobile-nav');
+        const closeMobileNavButton = document.getElementById('close-mobile-nav-button');
+        const sidenavOverlay = document.getElementById('sidenav-overlay');
+        let firstFocusableElementMobile, lastFocusableElementMobile;
+
+        function getFocusableElementsMobile() {
+            if (!mobileNav) return [];
+            const focusable = Array.from(
+                mobileNav.querySelectorAll(
+                    'a[href]:not([disabled]), button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), details:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+            ).filter(el => !el.hasAttribute('disabled') && !el.closest('.hidden'));
+            firstFocusableElementMobile = focusable[0];
+            lastFocusableElementMobile = focusable[focusable.length - 1];
+            return focusable;
+        }
+
+        function openMobileNav() {
+            if (!mobileNav || !sidenavOverlay || !mobileMenuButton) return;
+            mobileNav.classList.remove('-translate-x-full');
+            mobileNav.setAttribute('aria-hidden', 'false');
+            mobileMenuButton.setAttribute('aria-expanded', 'true');
+            sidenavOverlay.classList.remove('hidden', 'opacity-0');
+            sidenavOverlay.classList.add('opacity-100');
+            document.body.style.overflow = 'hidden';
+            getFocusableElementsMobile();
+            if (firstFocusableElementMobile) {
+                firstFocusableElementMobile.focus();
+            } else {
+                mobileNav.focus();
+            }
+        }
+
+        function closeMobileNav() {
+            if (!mobileNav || !sidenavOverlay || !mobileMenuButton) return;
+            mobileNav.classList.add('-translate-x-full');
+            mobileNav.setAttribute('aria-hidden', 'true');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+            sidenavOverlay.classList.remove('opacity-100');
+            sidenavOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                sidenavOverlay.classList.add('hidden');
+            }, 300); // Match transition duration
+            document.body.style.overflow = '';
+            mobileMenuButton.focus();
+        }
+
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                const isHidden = mobileNav.classList.contains('-translate-x-full');
+                if (isHidden) {
+                    openMobileNav();
+                } else {
+                    closeMobileNav();
+                }
+            });
+        }
+        if (closeMobileNavButton) {
+            closeMobileNavButton.addEventListener('click', closeMobileNav);
+        }
+        if (sidenavOverlay) {
+            sidenavOverlay.addEventListener('click', closeMobileNav);
+        }
+
+        // Keyboard navigation for mobile sidenav
+        document.addEventListener('keydown', function(event) {
+            if (mobileNav && !mobileNav.classList.contains('-translate-x-full')) { // Only if mobile nav is open
+                if (event.key === 'Escape') {
+                    closeMobileNav();
+                }
+                // Basic focus trap for Tab key
+                if (event.key === 'Tab') {
+                    if (!firstFocusableElementMobile || !lastFocusableElementMobile) {
+                        getFocusableElementsMobile(); // Ensure they are calculated
+                    }
+                    if (event.shiftKey) { // Shift + Tab
+                        if (document.activeElement === firstFocusableElementMobile) {
+                            lastFocusableElementMobile.focus();
+                            event.preventDefault();
+                        }
+                    } else { // Tab
+                        if (document.activeElement === lastFocusableElementMobile) {
+                            firstFocusableElementMobile.focus();
+                            event.preventDefault();
+                        }
+                    }
+                }
+            }
+        });
+
+        // Desktop User Dropdown Logic (Vanilla JS)
+        const userMenuButtonDesktop = document.getElementById('user-menu-button-desktop');
+        const userDropdownDesktop = document.getElementById('user-dropdown-desktop');
+
+        if (userMenuButtonDesktop && userDropdownDesktop) {
+            userMenuButtonDesktop.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent click from bubbling to document
+                const isExpanded = userMenuButtonDesktop.getAttribute('aria-expanded') === 'true';
+                userMenuButtonDesktop.setAttribute('aria-expanded', String(!isExpanded));
+
+                // Toggle visibility and animation classes
+                if (userDropdownDesktop.classList.contains('hidden')) {
+                    userDropdownDesktop.classList.remove('hidden');
+                    void userDropdownDesktop.offsetWidth; // Force reflow for transition
+                    userDropdownDesktop.classList.remove('opacity-0', 'scale-95');
+                    userDropdownDesktop.classList.add('opacity-100', 'scale-100');
+                } else {
+                    userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                    userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        userDropdownDesktop.classList.add('hidden');
+                    }, 100); // Match transition duration
+                }
+            });
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', function(event) {
+                if (userDropdownDesktop && !userDropdownDesktop.classList.contains('hidden')) {
+                    if (!userMenuButtonDesktop.contains(event.target) && !userDropdownDesktop.contains(event.target)) {
+                        userMenuButtonDesktop.setAttribute('aria-expanded', 'false');
+                        userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                        userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            userDropdownDesktop.classList.add('hidden');
+                        }, 100);
+                    }
+                }
+            });
+
+            // Close dropdown with Escape key
+            userDropdownDesktop.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !userDropdownDesktop.classList.contains('hidden')) {
+                    userMenuButtonDesktop.setAttribute('aria-expanded', 'false');
+                    userDropdownDesktop.classList.remove('opacity-100', 'scale-100');
+                    userDropdownDesktop.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        userDropdownDesktop.classList.add('hidden');
+                    }, 100);
+                    userMenuButtonDesktop.focus(); // Return focus to the button
+                }
+            });
+        }
+
+        // Language Dropdown Logic
+        const langMenuButton = document.getElementById('language-menu-button');
+        const langDropdown = document.getElementById('language-dropdown');
+
+        if (langMenuButton && langDropdown) {
+            langMenuButton.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const isExpanded = langMenuButton.getAttribute('aria-expanded') === 'true';
+                langMenuButton.setAttribute('aria-expanded', String(!isExpanded));
+
+                if (langDropdown.classList.contains('hidden')) {
+                    langDropdown.classList.remove('hidden');
+                    void langDropdown.offsetWidth;
+                    langDropdown.classList.remove('opacity-0', 'scale-95');
+                    langDropdown.classList.add('opacity-100', 'scale-100');
+                } else {
+                    langDropdown.classList.remove('opacity-100', 'scale-100');
+                    langDropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        langDropdown.classList.add('hidden');
+                    }, 100);
+                }
+            });
+
+            document.addEventListener('click', function(event) {
+                if (langDropdown && !langDropdown.classList.contains('hidden')) {
+                    if (!langMenuButton.contains(event.target) && !langDropdown.contains(event.target)) {
+                        langMenuButton.setAttribute('aria-expanded', 'false');
+                        langDropdown.classList.remove('opacity-100', 'scale-100');
+                        langDropdown.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => {
+                            langDropdown.classList.add('hidden');
+                        }, 100);
+                    }
+                }
+            });
+
+            langDropdown.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !langDropdown.classList.contains('hidden')) {
+                    langMenuButton.setAttribute('aria-expanded', 'false');
+                    langDropdown.classList.remove('opacity-100', 'scale-100');
+                    langDropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        langDropdown.classList.add('hidden');
+                    }, 100);
+                    langMenuButton.focus();
+                }
+            });
+        }
+    });
+</script>

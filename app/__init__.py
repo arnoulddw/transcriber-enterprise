@@ -15,7 +15,7 @@ from flask import Flask, render_template, g, request, jsonify, redirect, url_for
 # Import Flask-Login current_user proxy
 from flask_login import current_user
 # --- NEW: Import get_locale and gettext ---
-from flask_babel import get_locale, gettext as _
+from flask_babel import get_locale, gettext as _, lazy_gettext as _l
 from babel.numbers import format_currency as babel_format_currency, format_decimal, format_percent as babel_format_percent
 
 # Import extensions, config, blueprints, and other components
@@ -371,7 +371,7 @@ def create_app(config_class=Config) -> Flask:
                  return jsonify({'error': _('Authentication required.')}), 401
             else:
                  logging.debug(f"Redirecting unauthenticated user to login page. Requested endpoint: {request.endpoint}")
-                 flash(_("Please log in to access this page."), "info")
+                 flash(_l("Please log in to access this page."), "info")
                  return redirect(url_for('auth.login', next=request.url))
 
     @app.after_request
@@ -528,7 +528,7 @@ def create_app(config_class=Config) -> Flask:
         user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
         logging.warning(f"403 Forbidden: {request.path} ({user_info}). Reason: {error.description}")
         if request.path.startswith('/api/'): return jsonify({'error': _('Forbidden'), 'message': error.description}), 403
-        flash(error.description or _("You do not have permission to access this page."), "danger")
+        flash(error.description or _l("You do not have permission to access this page."), "danger")
         return render_template('errors/403.html'), 403
 
     @app.errorhandler(401)
@@ -536,7 +536,7 @@ def create_app(config_class=Config) -> Flask:
         user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
         logging.warning(f"401 Unauthorized: {request.path} ({user_info}). Reason: {error.description}")
         if request.path.startswith('/api/'): return jsonify({'error': _('Unauthorized'), 'message': error.description or _('Authentication required.')}), 401
-        else: flash(error.description or _("Authentication required to access this page."), "warning"); return redirect(url_for('auth.login', next=request.url))
+        else: flash(error.description or _l("Authentication required to access this page."), "warning"); return redirect(url_for('auth.login', next=request.url))
 
     @app.errorhandler(429)
     def ratelimit_handler(e):
@@ -545,7 +545,7 @@ def create_app(config_class=Config) -> Flask:
         if request.path.startswith('/api/'):
             return jsonify(error=f"Rate limit exceeded: {e.description}"), 429
         else:
-            flash(_("Too many requests: %(description)s. Please try again later.", description=e.description), "warning")
+            flash(_l("Too many requests: %(description)s. Please try again later.", description=e.description), "warning")
             referrer = request.referrer; target_url = url_for('main.index')
             try:
                 if referrer and urlparse(referrer).netloc == urlparse(request.url_root).netloc: target_url = referrer

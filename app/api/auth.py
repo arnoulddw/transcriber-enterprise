@@ -12,7 +12,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 # Add this if needed later for redirect validation within this blueprint:
 from urllib.parse import urlparse
 # --- NEW: Import gettext for translation ---
-from flask_babel import gettext as _
+from flask_babel import gettext as _, lazy_gettext as _l
 
 # Import extensions and application components
 from app.extensions import limiter # Import limiter instance
@@ -71,7 +71,7 @@ def login():
                 # Log the user in using Flask-Login
                 login_user(user, remember=remember)
                 logging.info(f"{log_prefix} Login successful.")
-                flash(_('Logged in successfully'), 'success')
+                flash(_l('Logged in successfully'), 'success')
                 # Prevent session fixation - Flask-Login's login_user handles marking session as fresh.
 
                 # --- NEW: Persist language from session to profile ---
@@ -99,13 +99,13 @@ def login():
                     return redirect(url_for('main.index'))
             else:
                 # Authentication failed (logged by auth_service)
-                flash(_('Invalid username or password.'), 'danger')
+                flash(_l('Invalid username or password.'), 'danger')
                 logging.warning(f"{log_prefix} Login failed: Invalid credentials.")
 
         except Exception as e:
             # Catch unexpected errors during login process
             logging.error(f"{log_prefix} Unexpected error during login: {e}", exc_info=True)
-            flash(_('An unexpected error occurred during login. Please try again.'), 'danger')
+            flash(_l('An unexpected error occurred during login. Please try again.'), 'danger')
 
     # Render the login page for GET requests or failed POST validation
     # Pass google_client_id from config via context processor
@@ -118,7 +118,7 @@ def register():
     """Handles user registration page (GET) and form submission (POST)."""
     # Registration is only allowed in multi-user mode
     if current_app.config['DEPLOYMENT_MODE'] != 'multi':
-        flash(_('User registration is disabled in single-user mode.'), 'warning')
+        flash(_l('User registration is disabled in single-user mode.'), 'warning')
         return redirect(url_for('auth.login'))
 
     # Redirect if user is already authenticated
@@ -149,11 +149,11 @@ def register():
                     logging.info(f"{log_prefix} Language preference from session used and removed.")
                 # --- END NEW ---
                 logging.info(f"{log_prefix} Registration successful.")
-                flash(_('Account created for %(username)s! You can now log in.', username=username), 'success')
+                flash(_l('Account created for %(username)s! You can now log in.', username=username), 'success')
                 return redirect(url_for('auth.login'))
             else:
                 # This path might be less likely now service raises exceptions
-                flash(_('Registration failed. Please try again.'), 'danger')
+                flash(_l('Registration failed. Please try again.'), 'danger')
 
         except AuthServiceError as ase:
              # Handle specific errors from the service (e.g., username/email taken)
@@ -163,7 +163,7 @@ def register():
         except Exception as e:
             # Catch unexpected errors during registration
             logging.error(f"{log_prefix} Unexpected error during registration: {e}", exc_info=True)
-            flash(_('An unexpected error occurred during registration. Please try again.'), 'danger')
+            flash(_l('An unexpected error occurred during registration. Please try again.'), 'danger')
             return redirect(url_for('auth.register'))
 
     # Render the registration page for GET requests or failed POST validation
@@ -180,7 +180,7 @@ def logout():
     # Optional: Clear the session completely for extra security
     # session.clear()
     logging.info(f"[API:Auth:Logout:{username}] User logged out.")
-    flash(_('You have been logged out successfully.'), 'success')
+    flash(_l('You have been logged out successfully.'), 'success')
     return redirect(url_for('auth.login')) # Redirect to login page
 
 
@@ -216,12 +216,12 @@ def forgot_password():
                 # Don't reveal if the user exists, just log it
 
             # Flash generic message regardless of user existence or email sending success
-            flash(_('If an account with that email exists, a password reset link has been sent. Please check your inbox and spam folder if you don\'t see it within a few minutes.'), 'info')
+            flash(_l('If an account with that email exists, a password reset link has been sent. Please check your inbox and spam folder if you don\'t see it within a few minutes.'), 'info')
             return redirect(url_for('auth.login'))
 
         except Exception as e:
             logging.error(f"{log_prefix} Error processing forgot password request: {e}", exc_info=True)
-            flash(_('An error occurred while processing your request. Please try again.'), 'danger')
+            flash(_l('An error occurred while processing your request. Please try again.'), 'danger')
             # Redirect to login even on error to avoid confusion
             return redirect(url_for('auth.login'))
 
@@ -241,7 +241,7 @@ def reset_password_request(token):
     user_id = auth_service.verify_password_reset_token(token)
     if not user_id:
         logging.warning(f"{log_prefix} Invalid or expired password reset token.")
-        flash(_('The password reset link is invalid or has expired.'), 'danger')
+        flash(_l('The password reset link is invalid or has expired.'), 'danger')
         return redirect(url_for('auth.forgot_password'))
 
     # Token is valid, proceed with form handling
@@ -254,14 +254,14 @@ def reset_password_request(token):
             success = auth_service.reset_user_password(user_id, new_password)
             if success:
                 logging.info(f"{log_prefix} Password reset successful for user ID {user_id}.")
-                flash(_('Your password has been reset successfully. You can now log in.'), 'success')
+                flash(_l('Your password has been reset successfully. You can now log in.'), 'success')
                 return redirect(url_for('auth.login'))
             else:
                 # Should be rare if token/form are valid, but handle model failure
-                flash(_('Password reset failed. Please try again.'), 'danger')
+                flash(_l('Password reset failed. Please try again.'), 'danger')
         except Exception as e:
             logging.error(f"{log_prefix} Error resetting password for user ID {user_id}: {e}", exc_info=True)
-            flash(_('An error occurred while resetting your password. Please try again.'), 'danger')
+            flash(_l('An error occurred while resetting your password. Please try again.'), 'danger')
             # Stay on the reset page on error? Or redirect to forgot? Redirecting might be less confusing.
             return redirect(url_for('auth.forgot_password'))
 

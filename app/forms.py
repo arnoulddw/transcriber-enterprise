@@ -3,6 +3,7 @@
 
 import logging
 
+from flask_babel import lazy_gettext as _
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, ValidationError, EmailField, TextAreaField, IntegerField, HiddenField, FloatField
 # --- MODIFIED: Removed Optional validator ---
@@ -25,53 +26,53 @@ except ImportError:
 # --- RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm remain unchanged ---
 class RegistrationForm(FlaskForm):
     username = StringField(
-        'Username',
+        _('Username'),
         validators=[
             DataRequired(message="Username is required."),
             Length(min=4, max=25, message="Username must be between 4 and 25 characters.")
         ]
     )
     email = EmailField(
-        'Email',
+        _('Email'),
         validators=[
             DataRequired(message="Email is required."),
             Email(message="Invalid email address.")
         ]
     )
     password = PasswordField(
-        'Password',
+        _('Password'),
         validators=[
             DataRequired(message="Password is required."),
             Length(min=8, message="Password must be at least 8 characters long.")
         ]
     )
     confirm_password = PasswordField(
-        'Confirm Password',
+        _('Confirm Password'),
         validators=[
             DataRequired(message="Please confirm your password."),
             EqualTo('password', message='Passwords must match.')
         ]
     )
-    submit = SubmitField('Register')
+    submit = SubmitField(_('Register'))
 
 
 
 class LoginForm(FlaskForm):
     username = StringField(
-        'Username',
+        _('Username'),
         validators=[DataRequired(message="Username is required.")]
     )
     password = PasswordField(
-        'Password',
+        _('Password'),
         validators=[DataRequired(message="Password is required.")]
     )
-    remember_me = BooleanField('Remember Me')
-    submit = SubmitField('Login')
+    remember_me = BooleanField(_('Remember Me'))
+    submit = SubmitField(_('Login'))
 
 
 class ApiKeyForm(FlaskForm):
     service = SelectField(
-        'API Service',
+        _('API Service'),
         choices=[
             ('', '-- Select Service --'),
             ('openai', 'OpenAI (Whisper/GPT-4o)'),
@@ -81,73 +82,73 @@ class ApiKeyForm(FlaskForm):
         validators=[DataRequired(message="Please select an API service.")]
     )
     api_key = StringField(
-        'API Key',
+        _('API Key'),
         validators=[
             DataRequired(message="API Key is required."),
             Length(min=10, message="API Key seems too short.") # Basic length check
         ]
     )
-    submit = SubmitField('Save API Key')
+    submit = SubmitField(_('Save API Key'))
 
 
 class ForgotPasswordForm(FlaskForm):
     email = EmailField(
-        'Email',
+        _('Email'),
         validators=[
             DataRequired(message="Please enter your registered email address."),
             Email(message="Invalid email address.")
         ]
     )
-    submit = SubmitField('Send Reset Link')
+    submit = SubmitField(_('Send Reset Link'))
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField(
-        'New Password',
+        _('New Password'),
         validators=[
             DataRequired(message="Password is required."),
             Length(min=8, message="Password must be at least 8 characters long.")
         ]
     )
     confirm_password = PasswordField(
-        'Confirm New Password',
+        _('Confirm New Password'),
         validators=[
             DataRequired(message="Please confirm your new password."),
             EqualTo('password', message='Passwords must match.')
         ]
     )
-    submit = SubmitField('Reset Password')
+    submit = SubmitField(_('Reset Password'))
 
 
 class UserProfileForm(FlaskForm):
     username = StringField(
-        'Username',
+        _('Username'),
         validators=[
             DataRequired(message="Username is required."),
             Length(min=4, max=25, message="Username must be between 4 and 25 characters.")
         ]
     )
     email = EmailField(
-        'Email Address',
+        _('Email Address'),
         validators=[
             DataRequired(message="Email is required."),
             Email(message="Invalid email address.")
         ]
     )
-    first_name = StringField('First Name', validators=[Length(max=100)]) # Optional handled by form processing
-    last_name = StringField('Last Name', validators=[Length(max=100)]) # Optional handled by form processing
+    first_name = StringField(_('First Name'), validators=[Length(max=100)]) # Optional handled by form processing
+    last_name = StringField(_('Last Name'), validators=[Length(max=100)]) # Optional handled by form processing
 
     default_content_language = SelectField(
-        'Default Transcription Language',
+        _('Default Transcription Language'),
         validators=[] # Optional handled by form processing
     )
     default_transcription_model = SelectField(
-        'Default Transcription Model',
+        _('Default Transcription Model'),
         validators=[] # Optional handled by form processing
     )
     # --- NEW: Add UI language field ---
-    language = SelectField('Interface Language', validators=[])
+    language = SelectField(_('Interface Language'), validators=[])
     # --- END NEW ---
-    enable_auto_title_generation = BooleanField('Automatically Generate Titles for Transcriptions')
+    enable_auto_title_generation = BooleanField(_('Automatically Generate Titles for Transcriptions'))
 
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
@@ -221,18 +222,18 @@ class UserProfileForm(FlaskForm):
 
 class ChangePasswordForm(FlaskForm):
     current_password = PasswordField(
-        'Current Password',
+        _('Current Password'),
         validators=[DataRequired(message="Current password is required.")]
     )
     new_password = PasswordField(
-        'New Password',
+        _('New Password'),
         validators=[
             DataRequired(message="New password is required."),
             Length(min=8, message="Password must be at least 8 characters long.")
         ]
     )
     confirm_new_password = PasswordField(
-        'Confirm New Password',
+        _('Confirm New Password'),
         validators=[
             DataRequired(message="Please confirm your new password."),
             EqualTo('new_password', message='New passwords must match.')
@@ -243,73 +244,73 @@ class ChangePasswordForm(FlaskForm):
 class AdminRoleForm(FlaskForm):
     """Form for creating or editing roles in the admin panel."""
     name = StringField(
-        'Role Name',
+        _('Role Name'),
         validators=[
             DataRequired(message="Role name is required."),
             Length(min=3, max=80, message="Role name must be between 3 and 80 characters.")
         ]
     )
     description = TextAreaField(
-        'Description',
+        _('Description'),
         validators=[Length(max=500)] # Optional handled by form processing
     )
 
     default_transcription_model = SelectField(
-        'Default Transcription Model',
+        _('Default Transcription Model'),
         validators=[],
         choices=[],
         validate_choice=False
     )
     default_title_generation_model = SelectField(
-        'Default LLM Model for Title Generations',
+        _('Default LLM Model for Title Generations'),
         validators=[],
         choices=[],
         validate_choice=False
     )
     default_workflow_model = SelectField(
-        'Default LLM Model for Workflows',
+        _('Default LLM Model for Workflows'),
         validators=[],
         choices=[],
         validate_choice=False
     )
 
     # Permissions (Boolean Fields)
-    use_api_assemblyai = BooleanField('Use AssemblyAI API')
-    use_api_openai_whisper = BooleanField('Use OpenAI Whisper API')
-    use_api_openai_gpt_4o_transcribe = BooleanField('Use OpenAI GPT-4o Transcribe API')
-    use_api_openai_gpt_4o_transcribe_diarize = BooleanField('Use OpenAI GPT-4o Diarize API')
+    use_api_assemblyai = BooleanField(_('Use AssemblyAI API'))
+    use_api_openai_whisper = BooleanField(_('Use OpenAI Whisper API'))
+    use_api_openai_gpt_4o_transcribe = BooleanField(_('Use OpenAI GPT-4o Transcribe API'))
+    use_api_openai_gpt_4o_transcribe_diarize = BooleanField(_('Use OpenAI GPT-4o Diarize API'))
     # --- MODIFIED: Add use_api_google_gemini field ---
-    use_api_google_gemini = BooleanField('Use Google Gemini API')
+    use_api_google_gemini = BooleanField(_('Use Google Gemini API'))
     # --- END MODIFIED ---
-    access_admin_panel = BooleanField('Access Admin Panel')
-    allow_large_files = BooleanField('Allow Large Files (>25MB)')
-    allow_context_prompt = BooleanField('Allow Context Prompt')
-    allow_api_key_management = BooleanField('Allow User API Key Management')
-    allow_download_transcript = BooleanField('Allow Transcript Download')
-    allow_workflows = BooleanField('Allow Workflows')
-    manage_workflow_templates = BooleanField('Manage Workflow Templates (Admin)')
-    allow_auto_title_generation = BooleanField('Allow Automatic Title Generation')
+    access_admin_panel = BooleanField(_('Access Admin Panel'))
+    allow_large_files = BooleanField(_('Allow Large Files (>25MB)'))
+    allow_context_prompt = BooleanField(_('Allow Context Prompt'))
+    allow_api_key_management = BooleanField(_('Allow User API Key Management'))
+    allow_download_transcript = BooleanField(_('Allow Transcript Download'))
+    allow_workflows = BooleanField(_('Allow Workflows'))
+    manage_workflow_templates = BooleanField(_('Manage Workflow Templates (Admin)'))
+    allow_auto_title_generation = BooleanField(_('Allow Automatic Title Generation'))
 
     # Limits
-    limit_daily_cost = FloatField('Daily Quota', validators=[NumberRange(min=0)], default=0.0)
-    limit_weekly_cost = FloatField('Weekly Quota', validators=[NumberRange(min=0)], default=0.0)
-    limit_monthly_cost = FloatField('Monthly Quota', validators=[NumberRange(min=0)], default=0.0)
-    limit_daily_minutes = IntegerField('Daily Quota', validators=[NumberRange(min=0)], default=0)
-    limit_weekly_minutes = IntegerField('Weekly Quota', validators=[NumberRange(min=0)], default=0)
-    limit_monthly_minutes = IntegerField('Monthly Quota', validators=[NumberRange(min=0)], default=0)
-    limit_daily_workflows = IntegerField('Daily Quota', validators=[NumberRange(min=0)], default=0)
-    limit_weekly_workflows = IntegerField('Weekly Quota', validators=[NumberRange(min=0)], default=0)
-    limit_monthly_workflows = IntegerField('Monthly Quota', validators=[NumberRange(min=0)], default=0)
+    limit_daily_cost = FloatField(_('Daily Quota'), validators=[NumberRange(min=0)], default=0.0)
+    limit_weekly_cost = FloatField(_('Weekly Quota'), validators=[NumberRange(min=0)], default=0.0)
+    limit_monthly_cost = FloatField(_('Monthly Quota'), validators=[NumberRange(min=0)], default=0.0)
+    limit_daily_minutes = IntegerField(_('Daily Quota'), validators=[NumberRange(min=0)], default=0)
+    limit_weekly_minutes = IntegerField(_('Weekly Quota'), validators=[NumberRange(min=0)], default=0)
+    limit_monthly_minutes = IntegerField(_('Monthly Quota'), validators=[NumberRange(min=0)], default=0)
+    limit_daily_workflows = IntegerField(_('Daily Quota'), validators=[NumberRange(min=0)], default=0)
+    limit_weekly_workflows = IntegerField(_('Weekly Quota'), validators=[NumberRange(min=0)], default=0)
+    limit_monthly_workflows = IntegerField(_('Monthly Quota'), validators=[NumberRange(min=0)], default=0)
     max_history_items = IntegerField(
-        'Max History Items',
+        _('Max History Items'),
         validators=[NumberRange(min=0)], default=0
     )
     history_retention_days = IntegerField(
-        'History Retention Days',
+        _('History Retention Days'),
         validators=[NumberRange(min=0)], default=0
     )
 
-    submit = SubmitField('Save Role')
+    submit = SubmitField(_('Save Role'))
 
     def __init__(self, original_name=None, *args, **kwargs):
         super(AdminRoleForm, self).__init__(*args, **kwargs)
@@ -383,25 +384,25 @@ class AdminRoleForm(FlaskForm):
 class AdminTemplateWorkflowForm(FlaskForm):
     """Form for creating or editing template workflows in the admin panel."""
     title = StringField(
-        'Workflow Label',
+        _('Workflow Label'),
         validators=[
             DataRequired(message="Label is required."),
             Length(min=3, max=100, message="Label must be between 3 and 100 characters.")
         ]
     )
     prompt_text = TextAreaField(
-        'Workflow Prompt',
+        _('Workflow Prompt'),
         validators=[
             DataRequired(message="Prompt text is required."),
             Length(max=1000)
         ]
     )
     language = SelectField(
-        'Workflow Language',
+        _('Workflow Language'),
         validators=[]
     )
-    color = HiddenField('Label Color')
-    submit = SubmitField('Save Workflow Template')
+    color = HiddenField(_('Label Color'))
+    submit = SubmitField(_('Save Workflow Template'))
 
     def __init__(self, *args, **kwargs):
         super(AdminTemplateWorkflowForm, self).__init__(*args, **kwargs)
