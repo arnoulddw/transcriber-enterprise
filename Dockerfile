@@ -57,11 +57,17 @@ ENV PATH="/app/.local/bin:${PATH}"
 # Copy the entire application source code (including Tailwind configs, input CSS)
 COPY --chown=appuser:appuser . .
 
+# Ensure entrypoint script is executable
+RUN chmod +x /app/docker-entrypoint.sh
+
 # Build Tailwind CSS for production
 RUN npm run build:css:prod
 
 # Compile translation files
 RUN /app/.local/bin/pybabel compile -d app/translations
+
+# Set default Flask app for CLI commands
+ENV FLASK_APP=app
 
 # Expose the port the application will run on
 EXPOSE 5004
@@ -69,12 +75,5 @@ EXPOSE 5004
 # Use Tini as the entrypoint
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-# Define the default command to run the application using Gunicorn
-# Use the full path to gunicorn installed in the user's local bin (relative to their HOME /app)
-CMD ["/app/.local/bin/gunicorn", \
-     "--bind", "0.0.0.0:5004", \
-     "--workers", "4", \
-     "--timeout", "120", \
-     "--forwarded-allow-ips", "*", \
-     "--log-level", "info", \
-     "app:create_app()"]
+# Define the default command to run the bootstrap script, which will launch Gunicorn
+CMD ["/app/docker-entrypoint.sh"]

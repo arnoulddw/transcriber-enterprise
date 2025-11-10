@@ -4,12 +4,14 @@
 import logging
 
 import click
+from flask import current_app
 from flask.cli import with_appcontext
 
 from app.initialization import (
     initialize_database_schema,
     create_default_roles,
     create_initial_admin,
+    create_initialization_marker,
 )
 from migrations.runner import run_migrations
 
@@ -82,12 +84,32 @@ def db_migrate_command_cli():
     logging.info(f"{log_prefix} Completed successfully.")
 
 
+@click.command("bootstrap")
+@with_appcontext
+def bootstrap_command_cli():
+    """Run all bootstrap steps (schema, migrations, marker creation)."""
+    log_prefix = "[CLI:bootstrap]"
+    logging.info(f"{log_prefix} Requested bootstrap run.")
+    click.echo("Running bootstrap tasks (schema + migrations)...")
+    try:
+        initialize_database_schema()
+        run_migrations()
+        create_initialization_marker(current_app.config)
+    except Exception as exc:
+        click.echo(click.style(f"Bootstrap error: {exc}", fg="red"), err=True)
+        logging.error(f"{log_prefix} Failed: {exc}", exc_info=True)
+        raise SystemExit(1) from exc
+    click.echo(click.style("Bootstrap completed successfully.", fg="green"))
+    logging.info(f"{log_prefix} Completed successfully.")
+
+
 def register_cli_commands(app):
     """Register custom CLI commands on the Flask application."""
     app.cli.add_command(init_db_command_cli)
     app.cli.add_command(create_roles_command_cli)
     app.cli.add_command(create_admin_command_cli)
     app.cli.add_command(db_migrate_command_cli)
+    app.cli.add_command(bootstrap_command_cli)
     logging.info(
-        "[SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate."
+        "[SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate, bootstrap."
     )

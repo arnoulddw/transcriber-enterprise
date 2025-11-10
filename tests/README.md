@@ -28,10 +28,10 @@ docker compose -f docker-compose.test.yml up -d
 
 **2. Run the Test Suite**
 
-This is the definitive command to execute the tests. It runs `pytest` inside a temporary application container, ensuring the Python path is set correctly so that your application modules are found.
+Use the helper script to install dev dependencies inside the test container and execute `pytest`. This ensures every run has the correct tooling without modifying the production image.
 
 ```bash
-docker compose run --rm -e PYTHONPATH=/app transcriber-platform /app/.local/bin/pytest
+docker compose run --rm -e PYTHONPATH=/app transcriber-platform ./tests/run_tests.sh
 ```
 
 **3. Shut Down the Test Database**
