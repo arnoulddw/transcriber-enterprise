@@ -2,6 +2,8 @@
 {# Base template for all admin section pages. Extends the main base.html #}
 {% extends "base.html" %}
 
+{% block body_class %}admin-panel{% endblock %}
+
 {% block title %}Admin - {{ self.subtitle() | striptags | trim }}{% endblock %}
 
 {% block head_extra %}
@@ -102,7 +104,7 @@
         <div id="admin-sidenav-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-20 lg:hidden transition-opacity duration-300 ease-in-out opacity-0"></div>
 
         {# Main Admin Content Area #}
-        <main class="flex-grow py-4 px-0 sm:px-4 lg:ml-64 lg:pt-20">
+        <main class="flex-grow min-w-0 py-4 px-0 sm:px-4 lg:ml-64 lg:pt-20">
             <div class="container mx-auto">
                 <div class="bg-white shadow rounded-lg p-6">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-1">{% block subtitle %}Panel{% endblock %}</h1>

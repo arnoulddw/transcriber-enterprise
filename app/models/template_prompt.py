@@ -33,6 +33,9 @@ class TemplatePrompt:
         # --- END ADDED ---
         self.created_at = kwargs.get('created_at')
         self.updated_at = kwargs.get('updated_at')
+        # Usage metrics are optional and default to zero when not supplied
+        self.unique_user_count = int(kwargs.get('unique_user_count', 0) or 0)
+        self.total_usage_count = int(kwargs.get('total_usage_count', 0) or 0)
 
     def __repr__(self):
         lang_info = f"Lang:{self.language}" if self.language else "Lang:All"
@@ -196,6 +199,42 @@ def get_template_by_id(prompt_id: int) -> Optional[TemplatePrompt]:
         # The cursor is managed by the application context, so we don't close it here.
         pass
     return prompt
+
+
+def get_template_usage_stats() -> Dict[int, Dict[str, int]]:
+    """Returns workflow usage stats per template (total runs and unique users)."""
+    log_prefix = "[DB:TemplatePrompt:UsageStats]"
+    sql = """
+        SELECT
+            up.source_template_id AS template_id,
+            COUNT(*) AS total_uses,
+            COUNT(DISTINCT lo.user_id) AS unique_users
+        FROM llm_operations lo
+        INNER JOIN user_prompts up ON lo.prompt_id = up.id
+        WHERE lo.operation_type = 'workflow'
+          AND up.source_template_id IS NOT NULL
+        GROUP BY up.source_template_id
+    """
+    cursor = get_cursor()
+    stats: Dict[int, Dict[str, int]] = {}
+    try:
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        for row in rows:
+            template_id = row.get('template_id')
+            if template_id is None:
+                continue
+            stats[int(template_id)] = {
+                'total_uses': int(row.get('total_uses') or 0),
+                'unique_users': int(row.get('unique_users') or 0)
+            }
+        logging.debug(f"{log_prefix} Retrieved usage stats for {len(stats)} templates.")
+    except MySQLError as err:
+        logging.error(f"{log_prefix} Error retrieving usage stats: {err}", exc_info=True)
+    finally:
+        # The cursor is managed by the application context, so we don't close it here.
+        pass
+    return stats
 
 # --- MODIFIED: Add color parameter ---
 def update_template(prompt_id: int, title: str, prompt_text: str, language: Optional[str] = None, color: str = '#ffffff') -> bool:

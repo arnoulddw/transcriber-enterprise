@@ -157,6 +157,21 @@ def test_get_template_prompts_success(app, mock_db_models):
         prompts = admin_management_service.get_template_prompts()
         assert len(prompts) == 1
         assert prompts[0].title == 'Test Prompt'
+        assert prompts[0].unique_user_count == 0
+        assert prompts[0].total_usage_count == 0
+
+
+def test_get_template_prompts_with_usage_stats(app, mock_db_models):
+    """Ensures usage counts are attached when requested."""
+    template = TemplatePrompt(id=1, title='Popular Prompt')
+    mock_db_models['template'].get_templates.return_value = [template]
+    mock_db_models['template'].get_template_usage_stats.return_value = {
+        1: {'unique_users': 4, 'total_uses': 12}
+    }
+    with app.app_context():
+        prompts = admin_management_service.get_template_prompts(include_usage=True)
+        assert prompts[0].unique_user_count == 4
+        assert prompts[0].total_usage_count == 12
 
 def test_add_template_prompt_success(app, mock_db_models):
     """Tests successful creation of a template prompt."""

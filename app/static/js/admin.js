@@ -26,7 +26,7 @@ window.handleSaveTemplateWorkflow = async function() { // MODIFIED: Attached to 
         window.showNotification('Please provide both a label and prompt text.', 'warning', 4000, false);
         return;
     }
-    window.logger.log(logPrefix, `Saving template. ID: ${promptId || 'New'}, Title: ${title}, Color: ${color}`);
+    window.logger.info(logPrefix, `Saving template. ID: ${promptId || 'New'}, Title: ${title}, Color: ${color}`);
 
     saveButton.disabled = true;
     const originalButtonHtml = saveButton.innerHTML;
@@ -59,7 +59,7 @@ window.handleSaveTemplateWorkflow = async function() { // MODIFIED: Attached to 
         }
 
         window.showNotification(data.message || 'Template workflow saved successfully!', 'success', 4000, false);
-        window.logger.log(logPrefix, "Save successful via API.");
+        window.logger.info(logPrefix, "Save successful via API.");
 
         window.location.href = "/admin/template-workflows";
 
@@ -85,7 +85,7 @@ function handleDeleteUser(userId, username) {
         return;
     }
 
-    window.logger.log(logPrefix, `Attempting to delete user...`);
+    window.logger.info(logPrefix, `Attempting to delete user...`);
     const deleteButton = document.querySelector(`.delete-user-btn[data-user-id="${userId}"]`);
     const originalButtonHtml = deleteButton ? deleteButton.innerHTML : '<i class="material-icons text-base">delete</i>';
     if (deleteButton) {
@@ -110,7 +110,7 @@ function handleDeleteUser(userId, username) {
     })
     .then(data => {
         window.showNotification(data.message || `User "${username}" deleted successfully.`, 'success', 4000, false);
-        window.logger.log(logPrefix, "User deleted successfully.");
+        window.logger.info(logPrefix, "User deleted successfully.");
         const rowToRemove = document.querySelector(`#usersTableBody tr[data-user-id="${userId}"]`);
         if (rowToRemove) {
             rowToRemove.remove();
@@ -294,7 +294,7 @@ function updateUserRole(userId, newRoleId, roleSelect, roleSpan, originalRoleId)
         return response.json();
     })
     .then(data => {
-        window.logger.log(logPrefix, "Role update successful:", data.message);
+        window.logger.info(logPrefix, "Role update successful:", data.message);
         window.showNotification(data.message || 'Role updated successfully!', 'success', 4000, false);
 
         const newRoleName = roleSelect.options[roleSelect.selectedIndex].text;

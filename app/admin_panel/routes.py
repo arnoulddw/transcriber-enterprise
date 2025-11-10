@@ -398,7 +398,7 @@ def manage_template_workflows():
     log_prefix = f"[ROUTE:AdminPanel:TemplateWorkflows:User:{current_user.id}]"
     logging.debug(f"{log_prefix} Accessing template workflow list page.")
     try:
-        templates = admin_management_service.get_template_prompts()
+        templates = admin_management_service.get_template_prompts(include_usage=True)
         return render_template('admin/template_prompts.html', templates=templates)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading template workflows: {e}", exc_info=True)

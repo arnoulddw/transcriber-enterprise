@@ -125,6 +125,12 @@ These are processed by PostCSS with the Tailwind plugin.
        No need for a separate @screen sm rule here for .role-select if HTML handles desktop.
     */
 }
+
+@layer components {
+    body.admin-panel .toast-container {
+        @apply z-[200];
+    }
+}
 .hidden {
     display: none;
 }

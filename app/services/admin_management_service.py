@@ -480,12 +480,19 @@ def delete_role(role_id: int) -> None:
 
 # --- Template Prompt Management ---
 
-def get_template_prompts(language: Optional[str] = None) -> List[TemplatePrompt]:
+def get_template_prompts(language: Optional[str] = None, include_usage: bool = False) -> List[TemplatePrompt]:
     """Retrieves template prompts, optionally filtered by language."""
     log_prefix = "[SERVICE:Admin:TemplatePrompts]"
     try:
         with current_app.app_context():
-            return template_prompt_model.get_templates(language=language)
+            templates = template_prompt_model.get_templates(language=language)
+            if include_usage and language is None:
+                usage_stats = template_prompt_model.get_template_usage_stats()
+                for template in templates:
+                    stats = usage_stats.get(template.id, {'unique_users': 0, 'total_uses': 0})
+                    template.unique_user_count = stats['unique_users']
+                    template.total_usage_count = stats['total_uses']
+            return templates
     except MySQLError as db_err:
         logging.error(f"{log_prefix} Database error retrieving template prompts: {db_err}", exc_info=True)
         raise AdminServiceError("Database error retrieving template prompts.") from db_err

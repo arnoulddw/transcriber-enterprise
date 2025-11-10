@@ -14,7 +14,7 @@
     {# <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"> #}
     {% block head_extra %}{% endblock %}
 </head>
-<body class="bg-body-bg text-default-text flex flex-col min-h-screen font-sans">
+<body class="bg-body-bg text-default-text flex flex-col min-h-screen font-sans {% block body_class %}{% endblock %}">
     {# Notification container for dynamic messages #}
     <div id="notification-container" class="toast-container"></div>
 

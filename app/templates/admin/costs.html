@@ -43,9 +43,6 @@
                                     <label for="title_generation-{{ model_id }}" class="text-gray-700">{{ model_id }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    {% if model_id == active_title_generation_model %}
-                                    <span class="h-2 w-2 bg-green-500 rounded-full" title="Currently active"></span>
-                                    {% endif %}
                                     <input type="number" step="0.00001" id="title_generation-{{ model_id }}" name="title_generation-{{ model_id }}" class="form-input w-32 text-right sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" data-type="title_generation">
                                 </div>
                             </div>
@@ -71,9 +68,6 @@
                                     <label for="workflow-{{ model_id }}" class="text-gray-700">{{ model_id }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    {% if model_id == active_workflow_model %}
-                                    <span class="h-2 w-2 bg-green-500 rounded-full" title="Currently active"></span>
-                                    {% endif %}
                                     <input type="number" step="0.00001" id="workflow-{{ model_id }}" name="workflow-{{ model_id }}" class="form-input w-32 text-right sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" data-type="workflow">
                                 </div>
                             </div>

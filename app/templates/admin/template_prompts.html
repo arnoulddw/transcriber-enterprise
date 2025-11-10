@@ -37,6 +37,8 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label Color</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unique Users</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Runs</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prompt Text (Preview)</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -59,6 +61,12 @@
                                 <span class="inline-block w-4 h-4 rounded-full mr-2 border border-gray-300 flex-shrink-0" {% if template.color %}style="background-color: {{ template.color | e }};"{% endif %}></span>
                                 <span>{{ COLOR_NAME_MAP.get(template.color, template.color) | e }}</span>
                             </div>
+                        </td>
+                        <td data-label="Unique Users" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                            {{ template.unique_user_count or 0 }}
+                        </td>
+                        <td data-label="Total Runs" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                            {{ template.total_usage_count or 0 }}
                         </td>
                         <td data-label="Prompt Text (Preview)" class="px-6 py-4 text-sm text-gray-500 max-w-md whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.prompt_text | e | truncate(150) }}
@@ -85,7 +93,7 @@
                     {% endfor %}
                 {% elif not error %}
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No template workflows found.</td> {# Adjusted colspan #}
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">No template workflows found.</td> {# Adjusted colspan #}
                     </tr>
                 {% endif %}
             </tbody>
