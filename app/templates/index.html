@@ -74,7 +74,7 @@
                 {% if user_permissions.allow_context_prompt %}
                 <button type="button" id="toggleContextPromptBtn"
                         class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                    <i class="material-icons tiny -ml-0.5 mr-1.5">add_circle_outline</i>{{ _('Context prompt') }}
+                    <i class="material-icons tiny -ml-0.5 mr-1.5">add_circle_outline</i>{{ _('Context Prompt') }}
                 </button>
                 {% endif %}
                 {% if user_permissions.allow_workflows %}
@@ -94,7 +94,7 @@
             {% if user_permissions.allow_context_prompt %}
             <div id="contextPromptSection" class="hidden mt-4">
                 <div>
-                    <label for="contextPrompt" class="block text-sm font-medium text-gray-700">{{ _('Context prompt (Max 120 words)') }}</label>
+                    <label for="contextPrompt" class="block text-sm font-medium text-gray-700">{{ _('Context Prompt (Max 120 words)') }}</label>
                     <div class="mt-1">
                         <textarea id="contextPrompt" name="context_prompt" rows="3"
                                   class="form-textarea block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"

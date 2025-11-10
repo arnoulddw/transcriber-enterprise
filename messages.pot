@@ -851,7 +851,7 @@ msgid "Transcription Language"
 msgstr ""
 
 #: app/templates/index.html:77
-msgid "Context prompt"
+msgid "Context Prompt"
 msgstr ""
 
 #: app/templates/index.html:84
@@ -859,7 +859,7 @@ msgid "Apply Workflow"
 msgstr ""
 
 #: app/templates/index.html:97
-msgid "Context prompt (Max 120 words)"
+msgid "Context Prompt (Max 120 words)"
 msgstr ""
 
 #: app/templates/index.html:101 app/templates/index.html:102
@@ -1190,4 +1190,3 @@ msgstr ""
 #: app/templates/layout/scripts/base_bootstrap.html:33
 msgid "System defined - "
 msgstr ""
-

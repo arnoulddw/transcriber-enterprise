@@ -10,14 +10,29 @@ These are processed by PostCSS with the Tailwind plugin.
 @tailwind utilities;
 
 @layer components {
-    .btn {
-        @apply font-bold py-2 px-4 rounded;
+    .btn-base {
+        @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
     }
     .btn-primary {
-        @apply bg-blue-500 text-white;
+        @apply btn-base border border-transparent text-white bg-primary hover:bg-primary-dark focus:ring-primary;
     }
-    .btn-primary:hover {
-        @apply bg-blue-700;
+    .btn-secondary {
+        @apply btn-base border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-primary;
+    }
+    .btn-success {
+        @apply btn-base border border-transparent text-white bg-green-600 hover:bg-green-700 focus:ring-green-500;
+    }
+    .btn-danger {
+        @apply btn-base border border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
+    }
+    .btn-muted {
+        @apply btn-base border border-transparent text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-gray-400;
+    }
+    .btn-save {
+        @apply btn-primary;
+    }
+    .btn-create {
+        @apply btn-success;
     }
 }
 @layer components {
@@ -25,13 +40,6 @@ These are processed by PostCSS with the Tailwind plugin.
         @apply fixed inset-x-0 bottom-6 px-4 safe-area-bottom w-full z-[100] flex flex-col items-center gap-2.5 pointer-events-none;
     }
 }
-    .btn-save {
-        @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
-    }
-
-    .btn-create {
-        @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500;
-    }
 
 /* Custom styles for rendered markdown in workflow results */
 @layer components {

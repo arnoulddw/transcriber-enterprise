@@ -1,13 +1,21 @@
 <!-- app/templates/layout/components/auth_card.html -->
-{% macro render(title, description=None, title_classes='mt-6 text-center text-2xl font-bold text-gray-900', divider_margin_class='mt-4') -%}
-<div class="max-w-md w-full bg-white shadow-xl rounded-lg p-8 space-y-6">
-    <div>
-        <h2 class="{{ title_classes }}">{{ title }}</h2>
-        {% if description %}
-        <p class="mt-2 text-center text-sm text-gray-600">{{ description }}</p>
-        {% endif %}
-        <div class="{{ divider_margin_class }} border-b border-gray-200"></div>
-    </div>
+{% import "layout/components/form_layout.html" as form_layout %}
+
+{% macro render(title, description=None, title_classes='mt-2 text-center text-2xl font-bold text-gray-900', divider_margin_class='mt-4') -%}
+{% call form_layout.card(
+    title=title,
+    description=description,
+    centered=True,
+    wrapper_classes='w-full max-w-md',
+    title_tag='h2',
+    title_classes=title_classes,
+    description_classes='mt-2 text-center text-sm text-gray-600',
+    divider=True,
+    divider_classes=divider_margin_class ~ ' border-b border-gray-200',
+    body_classes='space-y-6',
+    surface=True,
+    padding_classes='p-8'
+) %}
     {{ caller() }}
-</div>
+{% endcall %}
 {%- endmacro %}

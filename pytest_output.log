@@ -1,0 +1,1441 @@
+Warning: .env file not found at /app/.env
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-8.4.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.10.0
+collected 171 items
+
+tests/functional/services/test_transcription_service.py .....            [  2%]
+tests/functional/test_transcription_management.py .F...                  [  5%]
+tests/functional/admin/test_admin_api.py .............                   [ 13%]
+tests/functional/admin/test_admin_panel.py ...........                   [ 19%]
+tests/functional/api/test_llm_api.py .F....FF.                           [ 25%]
+tests/functional/api/test_transcriptions_api.py ...............          [ 33%]
+tests/functional/routes/test_auth_routes.py FFF.FFF                      [ 38%]
+tests/functional/routes/test_user_routes.py ...........                  [ 44%]
+tests/functional/services/test_admin_management_service.py ............. [ 52%]
+....                                                                     [ 54%]
+tests/functional/services/test_admin_metrics_service.py ........         [ 59%]
+tests/functional/services/test_auth_service.py .......                   [ 63%]
+tests/functional/services/test_email_service.py ....                     [ 65%]
+tests/functional/services/test_llm_service.py .............              [ 73%]
+tests/functional/services/test_user_service.py ........                  [ 77%]
+tests/functional/services/test_workflow_service.py ...........           [ 84%]
+tests/functional/workflow/test_workflow_api.py ..F.F.F...                [ 90%]
+tests/functional/workflow/test_workflow_integration.py ...               [ 91%]
+tests/functional/workflow/test_workflow_management.py .........          [ 97%]
+tests/unit/utils/test_title_utils.py .....                               [100%]
+
+=================================== FAILURES ===================================
+________ TestTranscriptionManagement.test_upload_with_invalid_file_type ________
+
+self = <test_transcription_management.TestTranscriptionManagement object at 0xffff7e582810>
+logged_in_client = <FlaskClient <Flask 'app'>>
+
+    def test_upload_with_invalid_file_type(self, logged_in_client):
+        """
+        Test case for file upload failure due to an invalid file type.
+        """
+        # Prepare the data for the POST request
+        data = {
+            "api_choice": "whisper",
+            "language_code": "en",
+            "audio_file": (io.BytesIO(b"test data"), INVALID_TEST_FILENAME),
+        }
+    
+        # Make the request to the transcribe endpoint
+        response = logged_in_client.post(
+            url_for("transcriptions.transcribe_audio"),
+            data=data,
+            content_type="multipart/form-data",
+        )
+    
+        # Assert that the request was a bad request
+        assert response.status_code == 400
+        response_data = response.get_json()
+>       assert response_data["error"] == "File type not allowed."
+E       AssertionError: assert 'This file ty...ranscription.' == 'File type not allowed.'
+E         
+E         - File type not allowed.
+E         + This file type is not supported for transcription.
+
+tests/functional/test_transcription_management.py:73: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:13:50,171 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:13:50,179 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:13:50,180 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:13:50,182 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:13:50,193 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:13:50,209 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:13:50,222 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:13:50,237 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:13:50,251 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:13:50,264 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:13:50,277 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:13:50,311 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:13:50,332 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:13:50,332 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:13:50,339 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:13:50,339 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:13:50,351 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:13:50,351 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:13:50,368 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:13:50,370 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:13:50,374 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:13:50,375 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:13:50,381 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:13:50,485 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:13:50,486 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:13:50,487 - INFO - [DB:Role] Created new role 'test_role' with ID 1.
+2025-11-10 18:13:50,487 - INFO - [SERVICE:Auth] Creating user with role: test_role
+2025-11-10 18:13:50,488 - INFO - [SERVICE:Auth] Role found: test_role with id 1
+2025-11-10 18:13:50,499 - WARNING - [DB:User] New user with role 'test_role' has no transcription providers permitted.
+2025-11-10 18:13:50,501 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test_role'.
+2025-11-10 18:13:50,502 - INFO - Template synchronization complete.
+2025-11-10 18:13:50,503 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:13:50,504 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser'.
+2025-11-10 18:13:50,504 - INFO - [API:Auth:Login:testuser] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:13:50,507 - ERROR - [API:Transcribe:User:1] File type not allowed: test_document.txt
+------------------------------ Captured log call -------------------------------
+ERROR    root:transcriptions.py:97 [API:Transcribe:User:1] File type not allowed: test_document.txt
+_______________________ test_generate_llm_text_no_prompt _______________________
+
+logged_in_client = <FlaskClient <Flask 'app'>>
+
+    def test_generate_llm_text_no_prompt(logged_in_client):
+        """
+        GIVEN a logged-in user
+        WHEN the /api/llm/generate endpoint is called with no prompt
+        THEN it should return a 400 Bad Request.
+        """
+        response = logged_in_client.post('/api/llm/generate', json={})
+        assert response.status_code == 400
+        json_data = response.get_json()
+        assert 'error' in json_data
+>       assert 'Missing prompt' in json_data['error']
+E       AssertionError: assert 'Missing prompt' in 'Please include a prompt before requesting AI text generation.'
+
+tests/functional/api/test_llm_api.py:63: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:01,563 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:01,570 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:01,570 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:01,572 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:01,581 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:01,594 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:01,606 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:01,620 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:01,635 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:01,649 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:01,663 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:01,701 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:01,723 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:01,723 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:01,729 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:01,729 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:01,740 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:01,740 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:01,753 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:01,754 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:01,759 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:01,760 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:01,767 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:01,894 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:01,894 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:01,895 - INFO - [DB:Role] Created new role 'test_role' with ID 1.
+2025-11-10 18:14:01,895 - INFO - [SERVICE:Auth] Creating user with role: test_role
+2025-11-10 18:14:01,895 - INFO - [SERVICE:Auth] Role found: test_role with id 1
+2025-11-10 18:14:01,905 - WARNING - [DB:User] New user with role 'test_role' has no transcription providers permitted.
+2025-11-10 18:14:01,906 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test_role'.
+2025-11-10 18:14:01,907 - INFO - Template synchronization complete.
+2025-11-10 18:14:01,908 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:14:01,909 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser'.
+2025-11-10 18:14:01,909 - INFO - [API:Auth:Login:testuser] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:01,911 - WARNING - [API:LLM:Generate:User:1] Invalid request: Missing 'prompt' in JSON payload.
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm.py:51 [API:LLM:Generate:User:1] Invalid request: Missing 'prompt' in JSON payload.
+___________________ test_get_llm_operation_status_not_found ____________________
+
+logged_in_client = <FlaskClient <Flask 'app'>>
+mock_llm_dependencies = {'llm_operation_model': <MagicMock id='281472779054160'>, 'llm_service': <MagicMock id='281472778957072'>}
+
+    def test_get_llm_operation_status_not_found(logged_in_client, mock_llm_dependencies):
+        """
+        GIVEN a logged-in user
+        WHEN the /api/llm/operations/<id>/status endpoint is called with an unknown ID
+        THEN it should return a 404 Not Found.
+        """
+        mock_llm_dependencies['llm_operation_model'].get_llm_operation_by_id.return_value = None
+    
+        response = logged_in_client.get('/api/llm/operations/999/status')
+    
+        assert response.status_code == 404
+        json_data = response.get_json()
+        assert 'error' in json_data
+>       assert 'not found' in json_data['error']
+E       AssertionError: assert 'not found' in 'We could not find that AI operation.'
+
+tests/functional/api/test_llm_api.py:155: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:03,379 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:03,387 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:03,387 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:03,389 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:03,400 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:03,413 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:03,427 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:03,438 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:03,452 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:03,466 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:03,480 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:03,516 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:03,539 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:03,540 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:03,548 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:03,548 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:03,557 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:03,557 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:03,571 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:03,573 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:03,577 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:03,577 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:03,584 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:03,707 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:03,707 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:03,708 - INFO - [DB:Role] Created new role 'test_role' with ID 1.
+2025-11-10 18:14:03,709 - INFO - [SERVICE:Auth] Creating user with role: test_role
+2025-11-10 18:14:03,709 - INFO - [SERVICE:Auth] Role found: test_role with id 1
+2025-11-10 18:14:03,719 - WARNING - [DB:User] New user with role 'test_role' has no transcription providers permitted.
+2025-11-10 18:14:03,720 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test_role'.
+2025-11-10 18:14:03,721 - INFO - Template synchronization complete.
+2025-11-10 18:14:03,722 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:14:03,723 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser'.
+2025-11-10 18:14:03,723 - INFO - [API:Auth:Login:testuser] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:03,725 - WARNING - [API:LLM:Status:Op:999:User:1] LLM operation not found.
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm.py:132 [API:LLM:Status:Op:999:User:1] LLM operation not found.
+_________________ test_get_llm_operation_status_access_denied __________________
+
+logged_in_client = <FlaskClient <Flask 'app'>>
+mock_llm_dependencies = {'llm_operation_model': <MagicMock id='281472779046672'>, 'llm_service': <MagicMock id='281472781287952'>}
+
+    def test_get_llm_operation_status_access_denied(logged_in_client, mock_llm_dependencies):
+        """
+        GIVEN a logged-in user
+        WHEN they request an operation they do not own
+        THEN it should return a 403 Forbidden.
+        """
+        # Simulate finding the operation without user_id, but not with it
+        mock_llm_dependencies['llm_operation_model'].get_llm_operation_by_id.side_effect = [
+            None, # Call with user_id fails
+            {'id': 456} # Call without user_id succeeds
+        ]
+    
+        response = logged_in_client.get('/api/llm/operations/456/status')
+    
+        assert response.status_code == 403
+        json_data = response.get_json()
+        assert 'error' in json_data
+>       assert 'Access denied' in json_data['error']
+E       AssertionError: assert 'Access denied' in 'You do not have access to this AI operation.'
+
+tests/functional/api/test_llm_api.py:174: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:03,765 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:03,774 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:03,774 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:03,776 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:03,786 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:03,801 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:03,815 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:03,828 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:03,840 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:03,855 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:03,869 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:03,904 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:03,926 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:03,926 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:03,932 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:03,932 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:03,943 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:03,943 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:03,957 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:03,958 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:03,962 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:03,963 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:03,975 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:04,102 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:04,103 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:04,103 - INFO - [DB:Role] Created new role 'test_role' with ID 1.
+2025-11-10 18:14:04,104 - INFO - [SERVICE:Auth] Creating user with role: test_role
+2025-11-10 18:14:04,104 - INFO - [SERVICE:Auth] Role found: test_role with id 1
+2025-11-10 18:14:04,113 - WARNING - [DB:User] New user with role 'test_role' has no transcription providers permitted.
+2025-11-10 18:14:04,115 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test_role'.
+2025-11-10 18:14:04,116 - INFO - Template synchronization complete.
+2025-11-10 18:14:04,116 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:14:04,118 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser'.
+2025-11-10 18:14:04,118 - INFO - [API:Auth:Login:testuser] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:04,119 - WARNING - [API:LLM:Status:Op:456:User:1] Access denied: Operation exists but is not owned by user.
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm.py:129 [API:LLM:Status:Op:456:User:1] Access denied: Operation exists but is not owned by user.
+_______________________ test_register_user_successfully ________________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_register_user_successfully(client, clean_db):
+        """
+        Tests that a user can register successfully through the registration route.
+        """
+        with client.application.app_context():
+            role_model.create_role('test-role', 'A role for testing')
+            role_model.create_role('beta-tester', 'Beta Tester')
+>           response = client.post(url_for('auth.register'), data={
+                'username': 'newuser',
+                'email': 'newuser@example.com',
+                'password': 'password123',
+                'confirm_password': 'password123',
+                'role': 'test-role'
+            }, follow_redirects=True)
+
+tests/functional/routes/test_auth_routes.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1167: in post
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1150: in open
+    response = self.resolve_redirect(response, buffered=buffered)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1056: in resolve_redirect
+    return self.open(builder, buffered=buffered)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:112: in login
+    return render_template('login.html', title='Login', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:10,335 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:10,343 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:10,343 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:10,346 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:10,354 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:10,367 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:10,380 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:10,394 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:10,407 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:10,419 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:10,432 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:10,471 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:10,491 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:10,491 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:10,498 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:10,498 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:10,508 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:10,508 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:10,523 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:10,524 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:10,529 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:10,530 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:10,537 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:10,649 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:10,649 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:10,650 - INFO - [DB:Role] Created new role 'test-role' with ID 1.
+2025-11-10 18:14:10,650 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:10,651 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:10,652 - INFO - [DB:Role] Created new role 'beta-tester' with ID 2.
+2025-11-10 18:14:10,670 - INFO - [API:Auth:Register:newuser] Registration attempt received for email newuser@example.com.
+2025-11-10 18:14:10,670 - INFO - [SERVICE:Auth] Creating user with role: beta-tester
+2025-11-10 18:14:10,670 - INFO - [SERVICE:Auth] Role found: beta-tester with id 2
+2025-11-10 18:14:10,682 - WARNING - [DB:User] New user with role 'beta-tester' has no transcription providers permitted.
+2025-11-10 18:14:10,684 - INFO - [SERVICE:Auth] User 'newuser' created successfully with role 'beta-tester'.
+2025-11-10 18:14:10,686 - INFO - Template synchronization complete.
+2025-11-10 18:14:10,686 - INFO - [API:Auth:Register:newuser] Registration successful.
+------------------------------ Captured log call -------------------------------
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'test-role' with ID 1.
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'beta-tester' with ID 2.
+INFO     root:auth.py:134 [API:Auth:Register:newuser] Registration attempt received for email newuser@example.com.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: beta-tester
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: beta-tester with id 2
+WARNING  app.models.user.repository:repository.py:52 [DB:User] New user with role 'beta-tester' has no transcription providers permitted.
+INFO     root:auth_service.py:92 [SERVICE:Auth] User 'newuser' created successfully with role 'beta-tester'.
+INFO     app.services.user_service:user_service.py:599 Template synchronization complete.
+INFO     root:auth.py:151 [API:Auth:Register:newuser] Registration successful.
+_______________________ test_register_duplicate_username _______________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_register_duplicate_username(client, clean_db):
+        """
+        Tests that registering with a duplicate username fails.
+        """
+        with client.application.app_context():
+            role_model.create_role('test-role', 'A role for testing')
+            role_model.create_role('beta-tester', 'Beta Tester')
+            auth_service.create_user('existinguser', 'password', 'exists@example.com', 'test-role')
+>           response = client.post(url_for('auth.register'), data={
+                'username': 'existinguser',
+                'email': 'new@example.com',
+                'password': 'password123',
+                'confirm_password': 'password123',
+                'role': 'test-role'
+            }, follow_redirects=True)
+
+tests/functional/routes/test_auth_routes.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1167: in post
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:171: in register
+    return render_template('login.html', title='Register', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:10,924 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:10,932 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:10,932 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:10,934 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:10,945 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:10,960 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:10,975 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:10,999 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:11,021 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:11,037 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:11,053 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:11,089 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:11,111 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:11,111 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:11,117 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:11,117 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:11,128 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:11,129 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:11,144 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:11,145 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:11,150 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:11,151 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:11,157 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:11,265 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:11,265 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:11,266 - INFO - [DB:Role] Created new role 'test-role' with ID 1.
+2025-11-10 18:14:11,267 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:11,267 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:11,268 - INFO - [DB:Role] Created new role 'beta-tester' with ID 2.
+2025-11-10 18:14:11,268 - INFO - [SERVICE:Auth] Creating user with role: test-role
+2025-11-10 18:14:11,268 - INFO - [SERVICE:Auth] Role found: test-role with id 1
+2025-11-10 18:14:11,277 - WARNING - [DB:User] New user with role 'test-role' has no transcription providers permitted.
+2025-11-10 18:14:11,278 - INFO - [SERVICE:Auth] User 'existinguser' created successfully with role 'test-role'.
+2025-11-10 18:14:11,279 - INFO - Template synchronization complete.
+2025-11-10 18:14:11,280 - INFO - [API:Auth:Register:existinguser] Registration attempt received for email new@example.com.
+2025-11-10 18:14:11,280 - INFO - [SERVICE:Auth] Creating user with role: beta-tester
+2025-11-10 18:14:11,281 - INFO - [SERVICE:Auth] Role found: beta-tester with id 2
+2025-11-10 18:14:11,281 - WARNING - [SERVICE:Auth] Attempted to create user with duplicate username: existinguser
+2025-11-10 18:14:11,281 - WARNING - [API:Auth:Register:existinguser] Registration failed: Username 'existinguser' is already taken.
+------------------------------ Captured log call -------------------------------
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'test-role' with ID 1.
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'beta-tester' with ID 2.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: test-role
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: test-role with id 1
+WARNING  app.models.user.repository:repository.py:52 [DB:User] New user with role 'test-role' has no transcription providers permitted.
+INFO     root:auth_service.py:92 [SERVICE:Auth] User 'existinguser' created successfully with role 'test-role'.
+INFO     app.services.user_service:user_service.py:599 Template synchronization complete.
+INFO     root:auth.py:134 [API:Auth:Register:existinguser] Registration attempt received for email new@example.com.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: beta-tester
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: beta-tester with id 2
+WARNING  root:auth_service.py:74 [SERVICE:Auth] Attempted to create user with duplicate username: existinguser
+WARNING  root:auth.py:160 [API:Auth:Register:existinguser] Registration failed: Username 'existinguser' is already taken.
+________________________ test_register_duplicate_email _________________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_register_duplicate_email(client, clean_db):
+        """
+        Tests that registering with a duplicate email fails.
+        """
+        with client.application.app_context():
+            role_model.create_role('test-role', 'A role for testing')
+            role_model.create_role('beta-tester', 'Beta Tester')
+            auth_service.create_user('existinguser', 'password', 'exists@example.com', 'test-role')
+>           response = client.post(url_for('auth.register'), data={
+                'username': 'newuser',
+                'email': 'exists@example.com',
+                'password': 'password123',
+                'confirm_password': 'password123',
+                'role': 'test-role'
+            }, follow_redirects=True)
+
+tests/functional/routes/test_auth_routes.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1167: in post
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:171: in register
+    return render_template('login.html', title='Register', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:11,412 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:11,420 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:11,420 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:11,422 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:11,431 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:11,445 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:11,458 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:11,471 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:11,483 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:11,495 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:11,508 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:11,556 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:11,578 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:11,578 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:11,584 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:11,584 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:11,595 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:11,595 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:11,610 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:11,611 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:11,615 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:11,616 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:11,623 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:11,727 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:11,727 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:11,728 - INFO - [DB:Role] Created new role 'test-role' with ID 1.
+2025-11-10 18:14:11,728 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:11,728 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:11,730 - INFO - [DB:Role] Created new role 'beta-tester' with ID 2.
+2025-11-10 18:14:11,730 - INFO - [SERVICE:Auth] Creating user with role: test-role
+2025-11-10 18:14:11,730 - INFO - [SERVICE:Auth] Role found: test-role with id 1
+2025-11-10 18:14:11,739 - WARNING - [DB:User] New user with role 'test-role' has no transcription providers permitted.
+2025-11-10 18:14:11,740 - INFO - [SERVICE:Auth] User 'existinguser' created successfully with role 'test-role'.
+2025-11-10 18:14:11,741 - INFO - Template synchronization complete.
+2025-11-10 18:14:11,742 - INFO - [API:Auth:Register:newuser] Registration attempt received for email exists@example.com.
+2025-11-10 18:14:11,742 - INFO - [SERVICE:Auth] Creating user with role: beta-tester
+2025-11-10 18:14:11,742 - INFO - [SERVICE:Auth] Role found: beta-tester with id 2
+2025-11-10 18:14:11,742 - WARNING - [SERVICE:Auth] Attempted to create user with duplicate email: exists@example.com
+2025-11-10 18:14:11,742 - WARNING - [API:Auth:Register:newuser] Registration failed: Email address 'exists@example.com' is already registered.
+------------------------------ Captured log call -------------------------------
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'test-role' with ID 1.
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'beta-tester' with ID 2.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: test-role
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: test-role with id 1
+WARNING  app.models.user.repository:repository.py:52 [DB:User] New user with role 'test-role' has no transcription providers permitted.
+INFO     root:auth_service.py:92 [SERVICE:Auth] User 'existinguser' created successfully with role 'test-role'.
+INFO     app.services.user_service:user_service.py:599 Template synchronization complete.
+INFO     root:auth.py:134 [API:Auth:Register:newuser] Registration attempt received for email exists@example.com.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: beta-tester
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: beta-tester with id 2
+WARNING  root:auth_service.py:78 [SERVICE:Auth] Attempted to create user with duplicate email: exists@example.com
+WARNING  root:auth.py:160 [API:Auth:Register:newuser] Registration failed: Email address 'exists@example.com' is already registered.
+________________________ test_login_incorrect_password _________________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_login_incorrect_password(client, clean_db):
+        """
+        Tests that logging in with an incorrect password fails.
+        """
+        with client.application.app_context():
+            role_model.create_role('test-role', 'A role for testing')
+            auth_service.create_user('testuser', 'password123', 'test@example.com', 'test-role')
+>           response = client.post(url_for('auth.login'), data={
+                'username': 'testuser',
+                'password': 'wrongpassword'
+            }, follow_redirects=True)
+
+tests/functional/routes/test_auth_routes.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1167: in post
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:112: in login
+    return render_template('login.html', title='Login', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:12,333 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:12,341 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:12,341 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:12,343 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:12,354 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:12,369 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:12,383 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:12,395 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:12,407 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:12,420 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:12,434 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:12,469 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:12,494 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:12,494 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:12,501 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:12,501 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:12,511 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:12,511 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:12,525 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:12,526 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:12,530 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:12,531 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:12,538 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:12,646 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:12,646 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:12,647 - INFO - [DB:Role] Created new role 'test-role' with ID 1.
+2025-11-10 18:14:12,647 - INFO - [SERVICE:Auth] Creating user with role: test-role
+2025-11-10 18:14:12,647 - INFO - [SERVICE:Auth] Role found: test-role with id 1
+2025-11-10 18:14:12,657 - WARNING - [DB:User] New user with role 'test-role' has no transcription providers permitted.
+2025-11-10 18:14:12,658 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test-role'.
+2025-11-10 18:14:12,660 - INFO - Template synchronization complete.
+2025-11-10 18:14:12,660 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:14:12,661 - WARNING - [SERVICE:Auth] Password verification failed for user 'testuser'.
+2025-11-10 18:14:12,661 - WARNING - [API:Auth:Login:testuser] Login failed: Invalid credentials.
+------------------------------ Captured log call -------------------------------
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'test-role' with ID 1.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: test-role
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: test-role with id 1
+WARNING  app.models.user.repository:repository.py:52 [DB:User] New user with role 'test-role' has no transcription providers permitted.
+INFO     root:auth_service.py:92 [SERVICE:Auth] User 'testuser' created successfully with role 'test-role'.
+INFO     app.services.user_service:user_service.py:599 Template synchronization complete.
+INFO     root:auth.py:65 [API:Auth:Login:testuser] Login attempt received.
+WARNING  root:auth_service.py:133 [SERVICE:Auth] Password verification failed for user 'testuser'.
+WARNING  root:auth.py:103 [API:Auth:Login:testuser] Login failed: Invalid credentials.
+_________________________ test_login_non_existent_user _________________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_login_non_existent_user(client, clean_db):
+        """
+        Tests that logging in with a non-existent username fails.
+        """
+        with client.application.app_context():
+>           response = client.post(url_for('auth.login'), data={
+                'username': 'nouser',
+                'password': 'password123'
+            }, follow_redirects=True)
+
+tests/functional/routes/test_auth_routes.py:113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1167: in post
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:112: in login
+    return render_template('login.html', title='Login', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:12,832 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:12,840 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:12,840 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:12,842 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:12,852 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:12,865 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:12,877 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:12,889 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:12,903 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:12,916 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:12,930 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:12,965 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:12,990 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:12,991 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:13,001 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:13,001 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:13,015 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:13,015 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:13,030 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:13,032 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:13,036 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:13,037 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:13,045 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:13,148 - INFO - [API:Auth:Login:nouser] Login attempt received.
+2025-11-10 18:14:13,149 - WARNING - [SERVICE:Auth] User 'nouser' not found during password verification.
+2025-11-10 18:14:13,149 - WARNING - [API:Auth:Login:nouser] Login failed: Invalid credentials.
+------------------------------ Captured log call -------------------------------
+INFO     root:auth.py:65 [API:Auth:Login:nouser] Login attempt received.
+WARNING  root:auth_service.py:139 [SERVICE:Auth] User 'nouser' not found during password verification.
+WARNING  root:auth.py:103 [API:Auth:Login:nouser] Login failed: Invalid credentials.
+___________________________ test_logout_successfully ___________________________
+
+client = <FlaskClient <Flask 'app'>>, clean_db = None
+
+    def test_logout_successfully(client, clean_db):
+        """
+        Tests that a logged-in user can successfully log out.
+        """
+        with client.application.app_context():
+            role_model.create_role('test-role', 'A role for testing')
+            auth_service.create_user('testuser', 'password123', 'test@example.com', 'test-role')
+            client.post(url_for('auth.login'), data={
+                'username': 'testuser',
+                'password': 'password123'
+            }, follow_redirects=True)
+    
+>           response = client.get(url_for('auth.logout'), follow_redirects=True)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/functional/routes/test_auth_routes.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/lib/python3.11/site-packages/werkzeug/test.py:1162: in get
+    return self.open(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1150: in open
+    response = self.resolve_redirect(response, buffered=buffered)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1056: in resolve_redirect
+    return self.open(builder, buffered=buffered)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/testing.py:235: in open
+    response = super().open(
+.local/lib/python3.11/site-packages/werkzeug/test.py:1116: in open
+    response_parts = self.run_wsgi_app(request.environ, buffered=buffered)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:988: in run_wsgi_app
+    rv = run_wsgi_app(self.application, environ, buffered=buffered)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/werkzeug/test.py:1264: in run_wsgi_app
+    app_rv = app(environ, start_response)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1536: in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1514: in wsgi_app
+    response = self.handle_exception(e)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:1511: in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:919: in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:917: in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/app.py:902: in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask_limiter/extension.py:1314: in __inner
+    return cast(R, flask.current_app.ensure_sync(obj)(*a, **k))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/auth.py:112: in login
+    return render_template('login.html', title='Login', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:150: in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/flask/templating.py:131: in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/environment.py:1295: in render
+    self.environment.handle_exception()
+.local/lib/python3.11/site-packages/jinja2/environment.py:942: in handle_exception
+    raise rewrite_traceback_stack(source=source)
+app/templates/login.html:4: in top-level template code
+    {% import "layout/components/auth_card.html" as auth_card %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/base.html:179: in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/templates/login.html:19: in block 'content'
+    {% call auth_card.render(title=_(title), title_classes="mt-6 text-center text-3xl font-bold text-gray-900", divider_margin_class="mt-2") %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:5: in template
+    {% call form_layout.card(
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/form_layout.html:32: in template
+    {{ caller() }}
+.local/lib/python3.11/site-packages/jinja2/runtime.py:784: in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+app/templates/layout/components/auth_card.html:19: in template
+    {{ caller() }}
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <enum '_PassArg'>, obj = Undefined
+
+    @classmethod
+    def from_obj(cls, obj: F) -> t.Optional["_PassArg"]:
+>       if hasattr(obj, "jinja_pass_arg"):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       jinja2.exceptions.UndefinedError: No caller defined
+
+.local/lib/python3.11/site-packages/jinja2/utils.py:92: UndefinedError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:13,286 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:13,294 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:13,294 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:13,296 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:13,305 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:13,320 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:13,337 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:13,350 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:13,364 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:13,376 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:13,389 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:13,426 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:13,447 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:13,447 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:13,455 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:13,455 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:13,465 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:13,465 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:13,480 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:13,481 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:13,486 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:13,487 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:13,497 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:13,646 - INFO - [DB:Role] create_role called with permissions: {}
+2025-11-10 18:14:13,646 - INFO - [DB:Role] Prepared columns: [], values: []
+2025-11-10 18:14:13,648 - INFO - [DB:Role] Created new role 'test-role' with ID 1.
+2025-11-10 18:14:13,648 - INFO - [SERVICE:Auth] Creating user with role: test-role
+2025-11-10 18:14:13,648 - INFO - [SERVICE:Auth] Role found: test-role with id 1
+2025-11-10 18:14:13,658 - WARNING - [DB:User] New user with role 'test-role' has no transcription providers permitted.
+2025-11-10 18:14:13,660 - INFO - [SERVICE:Auth] User 'testuser' created successfully with role 'test-role'.
+2025-11-10 18:14:13,661 - INFO - Template synchronization complete.
+2025-11-10 18:14:13,661 - INFO - [API:Auth:Login:testuser] Login attempt received.
+2025-11-10 18:14:13,663 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser'.
+2025-11-10 18:14:13,663 - INFO - [API:Auth:Login:testuser] Login successful.
+2025-11-10 18:14:13,710 - INFO - [API:Auth:Logout:testuser] User logged out.
+------------------------------ Captured log call -------------------------------
+INFO     root:role.py:294 [DB:Role] create_role called with permissions: {}
+INFO     root:role.py:313 [DB:Role] Prepared columns: [], values: []
+INFO     root:role.py:325 [DB:Role] Created new role 'test-role' with ID 1.
+INFO     root:auth_service.py:65 [SERVICE:Auth] Creating user with role: test-role
+INFO     root:auth_service.py:70 [SERVICE:Auth] Role found: test-role with id 1
+WARNING  app.models.user.repository:repository.py:52 [DB:User] New user with role 'test-role' has no transcription providers permitted.
+INFO     root:auth_service.py:92 [SERVICE:Auth] User 'testuser' created successfully with role 'test-role'.
+INFO     app.services.user_service:user_service.py:599 Template synchronization complete.
+INFO     root:auth.py:65 [API:Auth:Login:testuser] Login attempt received.
+INFO     root:auth_service.py:130 [SERVICE:Auth] Password verification successful for user 'testuser'.
+INFO     root:auth.py:73 [API:Auth:Login:testuser] Login successful.
+INFO     root:auth.py:182 [API:Auth:Logout:testuser] User logged out.
+_______________________ test_run_workflow_missing_prompt _______________________
+
+client_with_workflow_permission = <FlaskClient <Flask 'app'>>
+
+    def test_run_workflow_missing_prompt(client_with_workflow_permission):
+        response = client_with_workflow_permission.post(
+            "/api/transcriptions/some-id/workflow", json={}
+        )
+        assert response.status_code == 400
+>       assert "Missing prompt" in response.get_json()["error"]
+E       AssertionError: assert 'Missing prompt' in 'Please include a workflow prompt before submitting.'
+
+tests/functional/workflow/test_workflow_api.py:80: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:41,935 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:41,943 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:41,943 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:41,945 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:41,955 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:41,969 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:41,981 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:41,992 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:42,004 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:42,018 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:42,041 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:42,084 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:42,106 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:42,106 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:42,112 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:42,112 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:42,123 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:42,123 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:42,137 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:42,138 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:42,143 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:42,144 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:42,151 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:42,264 - INFO - ================================================================================
+2025-11-10 18:14:42,264 - INFO - FIXTURE: logged_in_client_with_permissions - START
+2025-11-10 18:14:42,264 - INFO - ================================================================================
+2025-11-10 18:14:42,265 - INFO - FIXTURE: Checking database state - found 0 existing roles
+2025-11-10 18:14:42,265 - INFO - FIXTURE: Database is clean - no existing roles
+2025-11-10 18:14:42,265 - INFO - FIXTURE: Creating admin role with all permissions
+2025-11-10 18:14:42,265 - INFO - [DB:Role] create_role called with permissions: {'use_api_assemblyai': True, 'allow_workflows': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True, 'use_api_google_gemini': True, 'allow_api_key_management': True, 'allow_auto_title_generation': True, 'allow_download_transcript': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True}
+2025-11-10 18:14:42,265 - INFO - [DB:Role] Prepared columns: ['use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe', 'use_api_openai_gpt_4o_transcribe_diarize', 'use_api_google_gemini', 'access_admin_panel', 'allow_large_files', 'allow_context_prompt', 'allow_api_key_management', 'allow_download_transcript', 'allow_workflows', 'allow_auto_title_generation'], values: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+2025-11-10 18:14:42,266 - INFO - [DB:Role] Created new role 'admin' with ID 1.
+2025-11-10 18:14:42,266 - INFO - FIXTURE: Created role - id=1, name=admin, allow_workflows=True
+2025-11-10 18:14:42,266 - INFO - FIXTURE: Creating testuser_permissions
+2025-11-10 18:14:42,266 - INFO - [SERVICE:Auth] Creating user with role: admin
+2025-11-10 18:14:42,266 - INFO - [SERVICE:Auth] Role found: admin with id 1
+2025-11-10 18:14:42,277 - INFO - [SERVICE:Auth] User 'testuser_permissions' created successfully with role 'admin'.
+2025-11-10 18:14:42,277 - INFO - Template synchronization complete.
+2025-11-10 18:14:42,278 - INFO - FIXTURE: Found user - id=1, username=testuser_permissions, role_id=1, enable_auto_title=True
+2025-11-10 18:14:42,278 - INFO - FIXTURE: Enabling auto-title generation for user 1
+2025-11-10 18:14:42,278 - WARNING - [DB:User:1] Attempted to update preferences for non-existent user or no changes made.
+2025-11-10 18:14:42,278 - INFO - FIXTURE: After updates - user_id=1, role_id=1, enable_auto_title=True
+2025-11-10 18:14:42,278 - INFO - FIXTURE: User role verified from DB - role_name=admin, use_api_openai_whisper=True, allow_auto_title_generation=True
+2025-11-10 18:14:42,279 - INFO - FIXTURE: logged_in_client_with_permissions - SETUP COMPLETE
+2025-11-10 18:14:42,279 - INFO - [API:Auth:Login:testuser_permissions] Login attempt received.
+2025-11-10 18:14:42,280 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser_permissions'.
+2025-11-10 18:14:42,282 - INFO - [API:Auth:Login:testuser_permissions] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:42,282 - WARNING - [API:Workflow:Run:some-id:User:1] Invalid request: Missing 'prompt' in JSON payload.
+------------------------------ Captured log call -------------------------------
+WARNING  root:workflows.py:59 [API:Workflow:Run:some-id:User:1] Invalid request: Missing 'prompt' in JSON payload.
+________________________ test_run_workflow_usage_limit _________________________
+
+client_with_workflow_permission = <FlaskClient <Flask 'app'>>
+
+    def test_run_workflow_usage_limit(client_with_workflow_permission):
+        with patch(
+            "app.api.workflows.workflow_service.start_workflow",
+            side_effect=UsageLimitExceededError("limit hit"),
+        ):
+            response = client_with_workflow_permission.post(
+                "/api/transcriptions/xyz/workflow",
+                json={"prompt": "Summarize"},
+            )
+        assert response.status_code == 403
+        payload = response.get_json()
+>       assert payload["error"] == "limit hit"
+E       AssertionError: assert 'You have rea...ls: limit hit' == 'limit hit'
+E         
+E         - limit hit
+E         + You have reached your workflow usage limit. Please try again later. Details: limit hit
+
+tests/functional/workflow/test_workflow_api.py:107: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:42,692 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:42,700 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:42,700 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:42,704 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:42,715 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:42,729 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:42,742 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:42,758 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:42,770 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:42,781 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:42,796 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:42,830 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:42,853 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:42,853 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:42,860 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:42,860 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:42,871 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:42,871 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:42,886 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:42,887 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:42,895 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:42,896 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:42,904 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:43,010 - INFO - ================================================================================
+2025-11-10 18:14:43,010 - INFO - FIXTURE: logged_in_client_with_permissions - START
+2025-11-10 18:14:43,010 - INFO - ================================================================================
+2025-11-10 18:14:43,010 - INFO - FIXTURE: Checking database state - found 0 existing roles
+2025-11-10 18:14:43,010 - INFO - FIXTURE: Database is clean - no existing roles
+2025-11-10 18:14:43,010 - INFO - FIXTURE: Creating admin role with all permissions
+2025-11-10 18:14:43,010 - INFO - [DB:Role] create_role called with permissions: {'use_api_assemblyai': True, 'allow_workflows': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True, 'use_api_google_gemini': True, 'allow_api_key_management': True, 'allow_auto_title_generation': True, 'allow_download_transcript': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True}
+2025-11-10 18:14:43,010 - INFO - [DB:Role] Prepared columns: ['use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe', 'use_api_openai_gpt_4o_transcribe_diarize', 'use_api_google_gemini', 'access_admin_panel', 'allow_large_files', 'allow_context_prompt', 'allow_api_key_management', 'allow_download_transcript', 'allow_workflows', 'allow_auto_title_generation'], values: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+2025-11-10 18:14:43,011 - INFO - [DB:Role] Created new role 'admin' with ID 1.
+2025-11-10 18:14:43,012 - INFO - FIXTURE: Created role - id=1, name=admin, allow_workflows=True
+2025-11-10 18:14:43,012 - INFO - FIXTURE: Creating testuser_permissions
+2025-11-10 18:14:43,012 - INFO - [SERVICE:Auth] Creating user with role: admin
+2025-11-10 18:14:43,012 - INFO - [SERVICE:Auth] Role found: admin with id 1
+2025-11-10 18:14:43,029 - INFO - [SERVICE:Auth] User 'testuser_permissions' created successfully with role 'admin'.
+2025-11-10 18:14:43,030 - INFO - Template synchronization complete.
+2025-11-10 18:14:43,030 - INFO - FIXTURE: Found user - id=1, username=testuser_permissions, role_id=1, enable_auto_title=True
+2025-11-10 18:14:43,030 - INFO - FIXTURE: Enabling auto-title generation for user 1
+2025-11-10 18:14:43,030 - WARNING - [DB:User:1] Attempted to update preferences for non-existent user or no changes made.
+2025-11-10 18:14:43,031 - INFO - FIXTURE: After updates - user_id=1, role_id=1, enable_auto_title=True
+2025-11-10 18:14:43,031 - INFO - FIXTURE: User role verified from DB - role_name=admin, use_api_openai_whisper=True, allow_auto_title_generation=True
+2025-11-10 18:14:43,031 - INFO - FIXTURE: logged_in_client_with_permissions - SETUP COMPLETE
+2025-11-10 18:14:43,032 - INFO - [API:Auth:Login:testuser_permissions] Login attempt received.
+2025-11-10 18:14:43,033 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser_permissions'.
+2025-11-10 18:14:43,034 - INFO - [API:Auth:Login:testuser_permissions] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:43,035 - WARNING - [API:Workflow:Run:xyz:User:1] Workflow start failed: limit hit
+------------------------------ Captured log call -------------------------------
+WARNING  root:workflows.py:89 [API:Workflow:Run:xyz:User:1] Workflow start failed: limit hit
+______________________ test_edit_workflow_missing_result _______________________
+
+client_with_workflow_permission = <FlaskClient <Flask 'app'>>
+
+    def test_edit_workflow_missing_result(client_with_workflow_permission):
+        response = client_with_workflow_permission.put(
+            "/api/workflows/operations/99", json={}
+        )
+        assert response.status_code == 400
+>       assert "Missing result" in response.get_json()["error"]
+E       AssertionError: assert 'Missing result' in 'Please include the updated workflow result in your request.'
+
+tests/functional/workflow/test_workflow_api.py:131: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2025-11-10 18:14:43,458 - INFO - [DB:Pool] MySQL connection pool initialized successfully.
+2025-11-10 18:14:43,466 - INFO - [SYSTEM] Registered CLI commands: init-db, create-roles, create-admin, db-migrate.
+2025-11-10 18:14:43,466 - INFO - [SYSTEM] Application initialization complete.
+2025-11-10 18:14:43,468 - INFO - [DB:Schema:MySQL] Checking/Initializing 'roles' table...
+2025-11-10 18:14:43,477 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_monthly' column (INT NOT NULL DEFAULT 0 AFTER limit_monthly_workflows).
+2025-11-10 18:14:43,489 - INFO - [DB:Schema:MySQL] Adding 'max_transcriptions_total' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_monthly).
+2025-11-10 18:14:43,504 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_transcriptions_total).
+2025-11-10 18:14:43,517 - INFO - [DB:Schema:MySQL] Adding 'max_minutes_total' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_monthly).
+2025-11-10 18:14:43,569 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_monthly' column (INT NOT NULL DEFAULT 0 AFTER max_minutes_total).
+2025-11-10 18:14:43,581 - INFO - [DB:Schema:MySQL] Adding 'max_workflows_total' column (INT NOT NULL DEFAULT 0 AFTER max_workflows_monthly).
+2025-11-10 18:14:43,596 - INFO - [DB:Schema:MySQL] 'roles' table schema verified/initialized.
+2025-11-10 18:14:43,629 - INFO - Checking/Initializing 'transcriptions' table schema...
+2025-11-10 18:14:43,650 - INFO - 'transcriptions' table schema verified/initialized.
+2025-11-10 18:14:43,650 - INFO - [DB:Schema:MySQL] Checking/Initializing 'template_prompts' table...
+2025-11-10 18:14:43,656 - INFO - [DB:Schema:MySQL] 'template_prompts' table schema verified/initialized.
+2025-11-10 18:14:43,656 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_prompts' table...
+2025-11-10 18:14:43,666 - INFO - [DB:Schema:MySQL] 'user_prompts' table schema verified/initialized.
+2025-11-10 18:14:43,666 - INFO - [DB:Schema:MySQL] Checking/Initializing 'llm_operations' table...
+2025-11-10 18:14:43,679 - INFO - [DB:Schema:MySQL] 'llm_operations' table schema verified/initialized.
+2025-11-10 18:14:43,680 - INFO - [DB:Catalog] Ensuring transcription catalog tables exist.
+2025-11-10 18:14:43,684 - INFO - [DB:Catalog:LLM] Ensuring LLM catalog table exists.
+2025-11-10 18:14:43,685 - INFO - [DB:Schema:MySQL] Checking/Initializing 'user_usage' table...
+2025-11-10 18:14:43,693 - INFO - [DB:Schema:MySQL] 'user_usage' table schema verified/initialized.
+2025-11-10 18:14:43,796 - INFO - ================================================================================
+2025-11-10 18:14:43,796 - INFO - FIXTURE: logged_in_client_with_permissions - START
+2025-11-10 18:14:43,796 - INFO - ================================================================================
+2025-11-10 18:14:43,796 - INFO - FIXTURE: Checking database state - found 0 existing roles
+2025-11-10 18:14:43,796 - INFO - FIXTURE: Database is clean - no existing roles
+2025-11-10 18:14:43,796 - INFO - FIXTURE: Creating admin role with all permissions
+2025-11-10 18:14:43,796 - INFO - [DB:Role] create_role called with permissions: {'use_api_assemblyai': True, 'allow_workflows': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True, 'use_api_google_gemini': True, 'allow_api_key_management': True, 'allow_auto_title_generation': True, 'allow_download_transcript': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True}
+2025-11-10 18:14:43,796 - INFO - [DB:Role] Prepared columns: ['use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe', 'use_api_openai_gpt_4o_transcribe_diarize', 'use_api_google_gemini', 'access_admin_panel', 'allow_large_files', 'allow_context_prompt', 'allow_api_key_management', 'allow_download_transcript', 'allow_workflows', 'allow_auto_title_generation'], values: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+2025-11-10 18:14:43,797 - INFO - [DB:Role] Created new role 'admin' with ID 1.
+2025-11-10 18:14:43,798 - INFO - FIXTURE: Created role - id=1, name=admin, allow_workflows=True
+2025-11-10 18:14:43,798 - INFO - FIXTURE: Creating testuser_permissions
+2025-11-10 18:14:43,798 - INFO - [SERVICE:Auth] Creating user with role: admin
+2025-11-10 18:14:43,798 - INFO - [SERVICE:Auth] Role found: admin with id 1
+2025-11-10 18:14:43,808 - INFO - [SERVICE:Auth] User 'testuser_permissions' created successfully with role 'admin'.
+2025-11-10 18:14:43,809 - INFO - Template synchronization complete.
+2025-11-10 18:14:43,809 - INFO - FIXTURE: Found user - id=1, username=testuser_permissions, role_id=1, enable_auto_title=True
+2025-11-10 18:14:43,809 - INFO - FIXTURE: Enabling auto-title generation for user 1
+2025-11-10 18:14:43,809 - WARNING - [DB:User:1] Attempted to update preferences for non-existent user or no changes made.
+2025-11-10 18:14:43,809 - INFO - FIXTURE: After updates - user_id=1, role_id=1, enable_auto_title=True
+2025-11-10 18:14:43,810 - INFO - FIXTURE: User role verified from DB - role_name=admin, use_api_openai_whisper=True, allow_auto_title_generation=True
+2025-11-10 18:14:43,810 - INFO - FIXTURE: logged_in_client_with_permissions - SETUP COMPLETE
+2025-11-10 18:14:43,810 - INFO - [API:Auth:Login:testuser_permissions] Login attempt received.
+2025-11-10 18:14:43,812 - INFO - [SERVICE:Auth] Password verification successful for user 'testuser_permissions'.
+2025-11-10 18:14:43,812 - INFO - [API:Auth:Login:testuser_permissions] Login successful.
+----------------------------- Captured stderr call -----------------------------
+2025-11-10 18:14:43,812 - WARNING - [API:Workflow:Edit:Op:99:User:1] Invalid request: Missing 'result' in JSON payload.
+------------------------------ Captured log call -------------------------------
+WARNING  root:workflows.py:132 [API:Workflow:Edit:Op:99:User:1] Invalid request: Missing 'result' in JSON payload.
+=============================== warnings summary ===============================
+.local/lib/python3.11/site-packages/pydub/utils.py:14
+  /app/.local/lib/python3.11/site-packages/pydub/utils.py:14: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    import audioop
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/functional/test_transcription_management.py::TestTranscriptionManagement::test_upload_with_invalid_file_type
+FAILED tests/functional/api/test_llm_api.py::test_generate_llm_text_no_prompt
+FAILED tests/functional/api/test_llm_api.py::test_get_llm_operation_status_not_found
+FAILED tests/functional/api/test_llm_api.py::test_get_llm_operation_status_access_denied
+FAILED tests/functional/routes/test_auth_routes.py::test_register_user_successfully
+FAILED tests/functional/routes/test_auth_routes.py::test_register_duplicate_username
+FAILED tests/functional/routes/test_auth_routes.py::test_register_duplicate_email
+FAILED tests/functional/routes/test_auth_routes.py::test_login_incorrect_password
+FAILED tests/functional/routes/test_auth_routes.py::test_login_non_existent_user
+FAILED tests/functional/routes/test_auth_routes.py::test_logout_successfully
+FAILED tests/functional/workflow/test_workflow_api.py::test_run_workflow_missing_prompt
+FAILED tests/functional/workflow/test_workflow_api.py::test_run_workflow_usage_limit
+FAILED tests/functional/workflow/test_workflow_api.py::test_edit_workflow_missing_result
+============= 13 failed, 158 passed, 1 warning in 61.75s (0:01:01) =============

@@ -125,7 +125,7 @@ msgstr "Sleutel opslaan"
 
 #: app/forms.py:102
 msgid "Send Reset Link"
-msgstr ""
+msgstr "Stuur resetlink"
 
 #: app/forms.py:106 app/forms.py:229
 #: app/templates/layout/modals/profile_modal.html:121
@@ -143,7 +143,7 @@ msgstr "Wachtwoord opnieuw instellen"
 
 #: app/forms.py:131
 msgid "Email Address"
-msgstr ""
+msgstr "E-mailadres"
 
 #: app/forms.py:137 app/templates/layout/modals/profile_modal.html:38
 msgid "First Name"
@@ -186,7 +186,7 @@ msgstr "Transcriptiemodel"
 
 #: app/forms.py:265
 msgid "Default LLM Model for Title Generations"
-msgstr ""
+msgstr "Standaard LLM-model voor titelgeneratie"
 
 #: app/forms.py:271
 #, fuzzy
@@ -205,11 +205,11 @@ msgstr "OpenAI (Whisper/GPT-4o)"
 
 #: app/forms.py:280
 msgid "Use OpenAI GPT-4o Transcribe API"
-msgstr ""
+msgstr "Gebruik de OpenAI GPT-4o Transcribe API"
 
 #: app/forms.py:281
 msgid "Use OpenAI GPT-4o Diarize API"
-msgstr ""
+msgstr "Gebruik de OpenAI GPT-4o Diarize API"
 
 #: app/forms.py:283
 #, fuzzy
@@ -223,7 +223,7 @@ msgstr "Beheerderspaneel"
 
 #: app/forms.py:286
 msgid "Allow Large Files (>25MB)"
-msgstr ""
+msgstr "Grote bestanden toestaan (>25 MB)"
 
 #: app/forms.py:287
 #, fuzzy
@@ -232,7 +232,7 @@ msgstr "Context-Prompt"
 
 #: app/forms.py:288
 msgid "Allow User API Key Management"
-msgstr ""
+msgstr "Beheer van API-sleutels door gebruiker toestaan"
 
 #: app/forms.py:289
 #, fuzzy
@@ -246,7 +246,7 @@ msgstr "Workflow toepassen"
 
 #: app/forms.py:291
 msgid "Manage Workflow Templates (Admin)"
-msgstr ""
+msgstr "Workflow-sjablonen beheren (beheerder)"
 
 #: app/forms.py:292
 #, fuzzy
@@ -255,23 +255,23 @@ msgstr "Automatische Detectie"
 
 #: app/forms.py:295 app/forms.py:298 app/forms.py:301
 msgid "Daily Quota"
-msgstr ""
+msgstr "Dagelijkse limiet"
 
 #: app/forms.py:296 app/forms.py:299 app/forms.py:302
 msgid "Weekly Quota"
-msgstr ""
+msgstr "Wekelijkse limiet"
 
 #: app/forms.py:297 app/forms.py:300 app/forms.py:303
 msgid "Monthly Quota"
-msgstr ""
+msgstr "Maandelijkse limiet"
 
 #: app/forms.py:305
 msgid "Max History Items"
-msgstr ""
+msgstr "Maximaal aantal geschiedenisitems"
 
 #: app/forms.py:309
 msgid "History Retention Days"
-msgstr ""
+msgstr "Aantal bewaardagen voor geschiedenis"
 
 #: app/forms.py:313
 #, fuzzy
@@ -811,15 +811,15 @@ msgstr ""
 
 #: app/core/decorators.py:112
 msgid "User not authenticated or role not assigned."
-msgstr ""
+msgstr "Gebruiker niet geauthenticeerd of geen rol toegewezen."
 
 #: app/core/decorators.py:115
 msgid "Server configuration error checking usage limits."
-msgstr ""
+msgstr "Serverconfiguratiefout bij het controleren van gebruikslimieten."
 
 #: app/core/decorators.py:118 app/core/decorators.py:148
 msgid "Usage limits check passed."
-msgstr ""
+msgstr "Controle van gebruikslimieten geslaagd."
 
 #: app/core/decorators.py:126 app/core/decorators.py:128
 #: app/core/decorators.py:130 app/core/decorators.py:133
@@ -827,7 +827,7 @@ msgstr ""
 #: app/core/decorators.py:141 app/core/decorators.py:143
 #: app/core/decorators.py:145
 msgid "You have reached your fair use limit."
-msgstr ""
+msgstr "Je hebt je fair-use-limiet bereikt."
 
 #: app/core/decorators.py:152
 #, fuzzy
@@ -939,7 +939,7 @@ msgid "Transcription Language"
 msgstr "Transcriptietaal"
 
 #: app/templates/index.html:77
-msgid "Context prompt"
+msgid "Context Prompt"
 msgstr "Context-Prompt"
 
 #: app/templates/index.html:84
@@ -947,7 +947,7 @@ msgid "Apply Workflow"
 msgstr "Workflow toepassen"
 
 #: app/templates/index.html:97
-msgid "Context prompt (Max 120 words)"
+msgid "Context Prompt (Max 120 words)"
 msgstr "Context-Prompt (Max 120 woorden)"
 
 #: app/templates/index.html:101 app/templates/index.html:102
@@ -1042,7 +1042,7 @@ msgstr "Toont %(length)s van %(total)s items"
 
 #: app/templates/login.html:25
 msgid "Error:"
-msgstr ""
+msgstr "Fout:"
 
 #: app/templates/login.html:102
 #, fuzzy
@@ -1112,7 +1112,7 @@ msgstr "Voer hieronder uw nieuwe wachtwoord in."
 
 #: app/templates/admin/costs.html:87
 msgid "Save Pricing Configuration"
-msgstr ""
+msgstr "Prijsconfiguratie opslaan"
 
 #: app/templates/errors/403.html:10
 msgid "403 - Forbidden"
@@ -1283,7 +1283,7 @@ msgstr " Lees minder"
 
 #: app/templates/layout/scripts/base_bootstrap.html:30
 msgid "Undo"
-msgstr ""
+msgstr "Ongedaan maken"
 
 #: app/templates/layout/scripts/base_bootstrap.html:31
 #, fuzzy

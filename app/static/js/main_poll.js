@@ -113,7 +113,7 @@ function translateBackendErrorMessage(backendMessage) {
              message = "Transcription failed. Please check the API service status or your API key.";
              icon = 'error_outline';
         } else if (lowerErrorContent.includes('context prompt exceeds 120 words')) {
-            message = "Context prompt is too long (max 120 words).";
+            message = "Context Prompt is too long (max 120 words).";
             icon = 'warning'; iconColorClass = 'text-red-600';
         } else { 
             message = `An unexpected error occurred: ${escapeHtml(errorContent)}`;

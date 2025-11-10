@@ -254,9 +254,9 @@ async function checkTranscribeButtonState() {
             lastContextPromptVisibility = canShowContextPromptButton;
             const meta = { api: selectedApiValue, hasContextPermission, supportsContextPrompt };
             if (canShowContextPromptButton) {
-                initLogger.info("Context prompt controls shown.", meta);
+                initLogger.info("Context Prompt controls shown.", meta);
             } else {
-                initLogger.info("Context prompt controls hidden.", meta);
+                initLogger.info("Context Prompt controls hidden.", meta);
             }
         }
 
@@ -272,7 +272,7 @@ async function checkTranscribeButtonState() {
                     contextPromptInput.value = '';
                 }
             }
-            toggleContextPromptBtn.innerHTML = '<i class="material-icons left tiny -ml-0.5 mr-1.5">add_circle_outline</i>Context prompt';
+            toggleContextPromptBtn.innerHTML = '<i class="material-icons left tiny -ml-0.5 mr-1.5">add_circle_outline</i>Context Prompt';
         }
     }
 
@@ -307,7 +307,7 @@ async function checkTranscribeButtonState() {
         if (!disableReason && contextPromptInput.value.trim() !== '') {
             const words = contextPromptInput.value.match(/\S+/g) || [];
             if (words.length > 120) {
-                disableReason = 'ERROR: Context prompt exceeds 120 words.';
+                disableReason = 'ERROR: Context Prompt exceeds 120 words.';
             }
         }
     }
@@ -490,10 +490,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (isHidden) { 
                 if (icon) icon.textContent = 'remove_circle_outline';
-                if (textNode) textNode.textContent = ' Context prompt';
+                if (textNode) textNode.textContent = ' Context Prompt';
             } else { 
                 if (icon) icon.textContent = 'add_circle_outline';
-                if (textNode) textNode.textContent = ' Context prompt';
+                if (textNode) textNode.textContent = ' Context Prompt';
                 if (contextPromptInput) {
                     contextPromptInput.value = '';
                     validateContextPrompt();
