@@ -16,6 +16,8 @@
     surface=True,
     padding_classes='p-8'
 ) %}
-    {{ caller() }}
+    {% if caller is defined %}
+        {{ caller() }}
+    {% endif %}
 {% endcall %}
 {%- endmacro %}

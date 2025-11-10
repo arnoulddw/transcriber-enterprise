@@ -77,7 +77,7 @@ def test_run_workflow_missing_prompt(client_with_workflow_permission):
         "/api/transcriptions/some-id/workflow", json={}
     )
     assert response.status_code == 400
-    assert "Missing prompt" in response.get_json()["error"]
+    assert response.get_json()["error"] == "Please include a workflow prompt before submitting."
 
 
 def test_run_workflow_permission_denied(client_with_workflow_permission):
@@ -104,7 +104,7 @@ def test_run_workflow_usage_limit(client_with_workflow_permission):
         )
     assert response.status_code == 403
     payload = response.get_json()
-    assert payload["error"] == "limit hit"
+    assert payload["error"] == "You have reached your workflow usage limit. Please try again later. Details: limit hit"
     assert payload["code"] == "WORKFLOW_LIMIT_EXCEEDED"
 
 
@@ -128,7 +128,7 @@ def test_edit_workflow_missing_result(client_with_workflow_permission):
         "/api/workflows/operations/99", json={}
     )
     assert response.status_code == 400
-    assert "Missing result" in response.get_json()["error"]
+    assert response.get_json()["error"] == "Please include the updated workflow result in your request."
 
 
 def test_edit_workflow_not_found(client_with_workflow_permission):

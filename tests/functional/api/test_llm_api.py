@@ -60,7 +60,7 @@ def test_generate_llm_text_no_prompt(logged_in_client):
     assert response.status_code == 400
     json_data = response.get_json()
     assert 'error' in json_data
-    assert 'Missing prompt' in json_data['error']
+    assert json_data['error'] == "Please include a prompt before requesting AI text generation."
 
 def test_generate_llm_text_requires_login(client):
     """
@@ -152,7 +152,7 @@ def test_get_llm_operation_status_not_found(logged_in_client, mock_llm_dependenc
     assert response.status_code == 404
     json_data = response.get_json()
     assert 'error' in json_data
-    assert 'not found' in json_data['error']
+    assert json_data['error'] == "We could not find that AI operation."
 
 def test_get_llm_operation_status_access_denied(logged_in_client, mock_llm_dependencies):
     """
@@ -171,7 +171,7 @@ def test_get_llm_operation_status_access_denied(logged_in_client, mock_llm_depen
     assert response.status_code == 403
     json_data = response.get_json()
     assert 'error' in json_data
-    assert 'Access denied' in json_data['error']
+    assert json_data['error'] == "You do not have access to this AI operation."
 
 def test_get_llm_operation_status_requires_login(client):
     """

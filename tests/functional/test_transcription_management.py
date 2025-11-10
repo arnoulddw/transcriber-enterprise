@@ -70,7 +70,7 @@ class TestTranscriptionManagement:
         # Assert that the request was a bad request
         assert response.status_code == 400
         response_data = response.get_json()
-        assert response_data["error"] == "File type not allowed."
+        assert response_data["error"] == "This file type is not supported for transcription."
 
     @patch("app.models.transcription_utils.count_visible_user_transcriptions")
     @patch("app.models.transcription_utils.get_paginated_transcriptions")
