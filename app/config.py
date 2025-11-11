@@ -179,7 +179,9 @@ class Config:
     # --- NEW: Centralized API Limits ---
     API_LIMITS = {
         'gpt-4o-transcribe': {
-            'duration_s': 1500,
+            # OpenAI enforces a hard 1400 second cap on GPT-4o Transcribe uploads.
+            # Stay slightly under the limit so borderline files are chunked automatically.
+            'duration_s': 1380,
             'size_mb': 25,
             'rate_limit_rpm': 500  # requests per minute
         },

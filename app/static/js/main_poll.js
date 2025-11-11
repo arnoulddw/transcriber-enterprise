@@ -33,6 +33,27 @@ function setProgressBarWidth(progressBarElement, value) {
     progressBarElement.style.setProperty('--progress', normalizedValue);
 }
 
+/**
+ * Utility to convert seconds into a compact display string (e.g., "23m 20s").
+ */
+function formatSecondsForDisplay(seconds) {
+    const parsed = Number(seconds);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return null;
+    }
+    const rounded = Math.round(parsed);
+    let remaining = rounded;
+    const hours = Math.floor(remaining / 3600);
+    remaining -= hours * 3600;
+    const minutes = Math.floor(remaining / 60);
+    const secs = remaining - minutes * 60;
+    const parts = [];
+    if (hours) parts.push(`${hours}h`);
+    if (minutes) parts.push(`${minutes}m`);
+    if (secs || parts.length === 0) parts.push(`${secs}s`);
+    return parts.join(' ');
+}
+
 
 /**
  * Updates the progress activity display (icon and message).
@@ -99,10 +120,14 @@ function translateBackendErrorMessage(backendMessage) {
              message = "API rate limit hit. Please wait and try again later.";
              icon = 'history'; iconColorClass = 'text-orange-500';
         } else if (lowerErrorContent.includes('audio duration') && lowerErrorContent.includes('is longer than')) {
-            const durationMatch = lowerErrorContent.match(/longer than (\d+)/);
-            const maxDuration = durationMatch ? parseInt(durationMatch[1], 10) : 1500;
-            const maxDurationMinutes = Math.floor(maxDuration / 60);
-            message = `Audio file is too long for this model. The maximum duration is ${maxDurationMinutes} minutes. The file should be split automatically, but if this error persists, please contact support.`;
+            const durationMatch = errorContent.match(/audio duration\s+(\d+(?:\.\d+)?)\s+seconds\s+is\s+longer\s+than\s+(\d+(?:\.\d+)?)/i);
+            const maxDurationSeconds = durationMatch ? parseFloat(durationMatch[2]) : 1400;
+            const currentDurationSeconds = durationMatch ? parseFloat(durationMatch[1]) : null;
+            const providerLabel = lowerErrorContent.includes('gpt-4o') ? 'OpenAI GPT-4o Transcribe' : 'This model';
+            const limitDisplay = formatSecondsForDisplay(maxDurationSeconds) || `${Math.floor(maxDurationSeconds / 60)} minutes`;
+            const fileDisplay = formatSecondsForDisplay(currentDurationSeconds);
+            const fileDetail = fileDisplay ? ` This upload is about ${fileDisplay}.` : '';
+            message = `${providerLabel} only supports up to ${limitDisplay} per file.${fileDetail} Please trim the audio or switch to Whisper for longer recordings.`;
             icon = 'timer_off';
             iconColorClass = 'text-red-600';
         } else if (lowerErrorContent.includes('could not decode audio') || lowerErrorContent.includes('invalid audio format')) {

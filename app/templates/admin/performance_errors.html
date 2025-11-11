@@ -133,8 +133,8 @@
                                     <tbody class="bg-white divide-y divide-gray-200">
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
+                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -266,8 +266,8 @@
                                     <tbody class="bg-white divide-y divide-gray-200">
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
+                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

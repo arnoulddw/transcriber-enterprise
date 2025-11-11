@@ -5,6 +5,7 @@ and the standard `_call_api` implementation used across models.
 """
 
 from typing import Any, Dict, Optional, Tuple, Type
+import re
 
 from openai import (
     OpenAI,
@@ -109,6 +110,11 @@ class OpenAIBaseTranscriptionClient(BaseTranscriptionClient):
                 raise TranscriptionProcessingError(
                     message, provider=api_name
                 ) from exc
+            user_friendly_error = self._map_bad_request_to_user_message(error_body_str, api_name)
+            if user_friendly_error:
+                raise TranscriptionProcessingError(
+                    user_friendly_error, provider=api_name
+                ) from exc
             raise TranscriptionProcessingError(
                 f"OpenAI API Error: {error_body_str}", provider=api_name
             ) from exc
@@ -129,3 +135,43 @@ class OpenAIBaseTranscriptionClient(BaseTranscriptionClient):
     def _get_retryable_errors(self) -> Tuple[Type[Exception], ...]:
         return (TranscriptionRateLimitError, APIConnectionError)
 
+    def _map_bad_request_to_user_message(self, error_body: str, api_name: str) -> Optional[str]:
+        """
+        Provides tailored, user-facing explanations for known OpenAI BadRequest errors.
+        Returns None when no specialized mapping applies so the caller can fall back
+        to the default error text.
+        """
+        if not error_body:
+            return None
+
+        duration_match = re.search(
+            r"audio duration\s+(\d+(?:\.\d+)?)\s+seconds\s+is\s+longer\s+than\s+(\d+(?:\.\d+)?)\s+seconds",
+            error_body,
+            flags=re.IGNORECASE,
+        )
+        if duration_match:
+            actual_seconds = float(duration_match.group(1))
+            limit_seconds = float(duration_match.group(2))
+            return (
+                f"{api_name} can only process up to {self._format_seconds(limit_seconds)} "
+                f"per file ({limit_seconds:.0f} seconds). This upload is "
+                f"{self._format_seconds(actual_seconds)}. Trim the audio or switch to "
+                "a provider that supports longer recordings (e.g., Whisper)."
+            )
+
+        return None
+
+    @staticmethod
+    def _format_seconds(total_seconds: float) -> str:
+        """Formats seconds as a compact human-friendly string (e.g., '23m 20s')."""
+        seconds_int = max(0, int(round(total_seconds)))
+        minutes, secs = divmod(seconds_int, 60)
+        hours, minutes = divmod(minutes, 60)
+        parts = []
+        if hours:
+            parts.append(f"{hours}h")
+        if minutes:
+            parts.append(f"{minutes}m")
+        if secs or not parts:
+            parts.append(f"{secs}s")
+        return " ".join(parts)

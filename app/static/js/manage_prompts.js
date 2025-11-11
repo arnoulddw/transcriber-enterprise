@@ -400,6 +400,19 @@ function addPromptToList(prompt, prepend = false) {
         ? `<i class="material-icons text-base text-primary align-middle ml-2" title="System defined workflow">flash_on</i>`
         : '';
 
+    const actionButtonsHtml = isSystemDefined
+        ? ''
+        : `<div class="flex-shrink-0 flex space-x-2">
+            <button class="edit-prompt-btn p-1.5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Edit Workflow">
+                <span class="sr-only">Edit</span>
+                <i class="material-icons text-base">edit</i>
+            </button>
+            <button class="delete-prompt-btn p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Workflow">
+                <span class="sr-only">Delete</span>
+                <i class="material-icons text-base">delete</i>
+            </button>
+        </div>`;
+
     listItem.innerHTML = `
         <div class="flex-grow min-w-0 mr-4">
             <div class="flex items-center">
@@ -411,16 +424,7 @@ function addPromptToList(prompt, prepend = false) {
             </div>
             <div class="prompt-text-display mt-1 text-sm text-gray-800 bg-gray-50 p-2 rounded-md max-h-24 overflow-y-auto whitespace-pre-wrap break-words">${escapeHtml(prompt.prompt_text.trim())}</div>
         </div>
-        <div class="flex-shrink-0 flex space-x-2">
-            <button class="edit-prompt-btn p-1.5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Edit Workflow">
-                <span class="sr-only">Edit</span>
-                <i class="material-icons text-base">edit</i>
-            </button>
-            <button class="delete-prompt-btn p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Workflow">
-                <span class="sr-only">Delete</span>
-                <i class="material-icons text-base">delete</i>
-            </button>
-        </div>
+        ${actionButtonsHtml}
     `;
 
     if (prepend) {
