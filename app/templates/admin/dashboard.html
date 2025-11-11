@@ -1,142 +1,89 @@
 <!-- app/templates/admin/dashboard.html -->
-{# Template for the new admin dashboard overview page #}
+{# Admin dashboard overview #}
 {% extends "admin/base_admin.html" %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {% block subtitle %}Dashboard Overview{% endblock %}
 
-{% block admin_head_extra %}
-    {# KPI card styles are now handled by Tailwind utilities directly in the HTML below #}
-    {# Table styles are handled by Tailwind utilities and admin.css for responsive stacking #}
-{% endblock %}
-
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">Quick, high-level snapshot of current activity and health.</p>
+    <p class="text-sm text-text-muted mb-6">{{ _('Quick, high-level snapshot of current activity and health.') }}</p>
 
     {% if metrics.get('error') %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
-            <i class="material-icons left tiny mr-2">warning</i>
-            <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
-        </div>
+        {% call ui.alert(level='danger', title=_('Warning:'), extra_classes='mb-6') %}
+            {{ metrics.error }} {{ _('Some metrics might be unavailable.') }}
+        {% endcall %}
     {% endif %}
 
-    {# KPI Cards Row - Tailwind Grid #}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {# Total Users Card #}
-        <div class="bg-primary-light text-white p-5 rounded-lg shadow-md relative">
-            <i class="material-icons absolute top-4 right-4 text-4xl opacity-50">people</i>
-            <h3 class="text-4xl font-light leading-tight">{{ format_number(metrics.get('total_users', 0), locale=formatting_locale) }}</h3>
-            <p class="text-base opacity-80 mt-1">Total Users</p>
+        <div class="stat-card bg-primary text-white border-none relative overflow-hidden">
+            <i class="material-icons absolute top-4 right-4 text-4xl opacity-30">people</i>
+            <span class="stat-value text-white">{{ format_number(metrics.get('total_users', 0), locale=formatting_locale) }}</span>
+            <p class="text-base opacity-80">{{ _('Total Users') }}</p>
         </div>
-        {# Active Users Card #}
-        <div class="bg-green-500 text-white p-5 rounded-lg shadow-md relative">
-            <i class="material-icons absolute top-4 right-4 text-4xl opacity-50">person_pin</i>
-            <h3 class="text-4xl font-light leading-tight">{{ format_number(metrics.get('active_users', {}).get('24h', 0), locale=formatting_locale) }}</h3>
-            <p class="text-base opacity-80 mt-1">Active Users (24h)</p>
+        <div class="stat-card bg-green-600 text-white border-none relative overflow-hidden">
+            <i class="material-icons absolute top-4 right-4 text-4xl opacity-30">person_pin</i>
+            <span class="stat-value text-white">{{ format_number(metrics.get('active_users', {}).get('24h', 0), locale=formatting_locale) }}</span>
+            <p class="text-base opacity-80">{{ _('Active Users (24h)') }}</p>
         </div>
-        {# Transcriptions Card #}
-        <div class="bg-secondary text-white p-5 rounded-lg shadow-md relative"> {# Using secondary color from config #}
-            <i class="material-icons absolute top-4 right-4 text-4xl opacity-50">graphic_eq</i>
-            <h3 class="text-4xl font-light leading-tight">{{ format_number(metrics.get('jobs_submitted', {}).get('24h', 0), locale=formatting_locale) }}</h3>
-            <p class="text-base opacity-80 mt-1">Transcriptions (24h)</p>
+        <div class="stat-card bg-secondary text-white border-none relative overflow-hidden">
+            <i class="material-icons absolute top-4 right-4 text-4xl opacity-30">graphic_eq</i>
+            <span class="stat-value text-white">{{ format_number(metrics.get('jobs_submitted', {}).get('24h', 0), locale=formatting_locale) }}</span>
+            <p class="text-base opacity-80">{{ _('Transcriptions (24h)') }}</p>
         </div>
-        {# Workflows Run Card #}
-        <div class="bg-purple-500 text-white p-5 rounded-lg shadow-md relative">
-            <i class="material-icons absolute top-4 right-4 text-4xl opacity-50">auto_awesome</i>
-            <h3 class="text-4xl font-light leading-tight">{{ format_number(metrics.get('workflows_run', {}).get('24h', 0), locale=formatting_locale) }}</h3>
-            <p class="text-base opacity-80 mt-1">Workflows Run (24h)</p>
+        <div class="stat-card bg-purple-600 text-white border-none relative overflow-hidden">
+            <i class="material-icons absolute top-4 right-4 text-4xl opacity-30">auto_awesome</i>
+            <span class="stat-value text-white">{{ format_number(metrics.get('workflows_run', {}).get('24h', 0), locale=formatting_locale) }}</span>
+            <p class="text-base opacity-80">{{ _('Workflows Run (24h)') }}</p>
         </div>
     </div>
 
-    {# Data Tables Row - Tailwind Grid #}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {# Active Users Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h6 class="text-gray-700 font-semibold mb-4">Active Users (Submitted Job)</h6>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# data-table class for admin.css responsive stacking #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th> {# Centered header #}
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Users" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('active_users', {}).get('24h', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Users" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('active_users', {}).get('7d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Users" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('active_users', {}).get('30d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Users" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.get('active_users', {}).get('all', 0), locale=formatting_locale) }}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {# Jobs Submitted Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h6 class="text-gray-700 font-semibold mb-4">Jobs Submitted</h6>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table">
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Transcriptions</th> {# Centered header #}
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Workflows</th> {# Centered header #}
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Transcriptions" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('jobs_submitted', {}).get('24h', 0), locale=formatting_locale) }}</td><td data-label="Workflows" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('workflows_run', {}).get('24h', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Transcriptions" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('jobs_submitted', {}).get('7d', 0), locale=formatting_locale) }}</td><td data-label="Workflows" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('workflows_run', {}).get('7d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Transcriptions" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('jobs_submitted', {}).get('30d', 0), locale=formatting_locale) }}</td><td data-label="Workflows" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('workflows_run', {}).get('30d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Transcriptions" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.get('jobs_submitted', {}).get('all', 0), locale=formatting_locale) }}</td><td data-label="Workflows" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.get('workflows_run', {}).get('all', 0), locale=formatting_locale) }}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    {% set period_labels = [('24h', _('Last 24h')), ('7d', _('Last 7 Days')), ('30d', _('Last 30 Days')), ('all', _('All Time'))] %}
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {# Minutes Processed Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h6 class="text-gray-700 font-semibold mb-4">Minutes Processed</h6>
+        <div class="surface-section p-6 rounded-lg">
+            <h6 class="section-title mb-4">{{ _('Active Users (Submitted Job)') }}</h6>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table">
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                <table class="table-shell data-table min-w-full" aria-label="{{ _('Active users by period') }}">
+                    <thead class="hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Minutes</th> {# Centered header #}
+                            <th scope="col">{{ _('Period') }}</th>
+                            <th scope="col" class="text-center">{{ _('Users') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('minutes_processed', {}).get('24h', 0.0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('minutes_processed', {}).get('7d', 0.0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.get('minutes_processed', {}).get('30d', 0.0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Minutes" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.get('minutes_processed', {}).get('all', 0.0), locale=formatting_locale) }}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {# Error Rate Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h6 class="text-gray-700 font-semibold mb-4">Error Rate (%)</h6>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table">
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Transcriptions</th> {# Centered header #}
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Workflows</th> {# Centered header #}
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for period_key in ['24h', '7d', '30d', 'all'] %}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period_key | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
-                            {% set trans_rate = metrics.get('error_rate', {}).get(period_key, 'N/A') %}
-                            <td data-label="Transcriptions Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_percent(metrics.get('error_rate', {}).get(period_key, 0), locale=formatting_locale) }}
+                    <tbody>
+                        {% for key, label in period_labels %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
+                            <td data-label="{{ _('Period') }}" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                                {{ label }}
                             </td>
-                            <td data-label="Workflows Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">
-                                {{ format_percent(metrics.get('workflow_error_rate', {}).get(period_key, 0), locale=formatting_locale) }}
+                            <td data-label="{{ _('Users') }}" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_number(metrics.get('active_users', {}).get(key, 0), locale=formatting_locale) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="surface-section p-6 rounded-lg">
+            <h6 class="section-title mb-4">{{ _('Jobs Submitted') }}</h6>
+            <div class="overflow-x-auto">
+                <table class="table-shell data-table min-w-full" aria-label="{{ _('Jobs submitted by period') }}">
+                    <thead class="hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col">{{ _('Period') }}</th>
+                            <th scope="col" class="text-center">{{ _('Count') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, label in period_labels %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
+                            <td data-label="{{ _('Period') }}" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                                {{ label }}
+                            </td>
+                            <td data-label="{{ _('Count') }}" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_number(metrics.get('jobs_submitted', {}).get(key, 0), locale=formatting_locale) }}
                             </td>
                         </tr>
                         {% endfor %}
@@ -145,8 +92,62 @@
             </div>
         </div>
     </div>
-{% endblock %}
 
-{% block admin_scripts %}
-    {{ super() }}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="surface-section p-6 rounded-lg">
+            <h6 class="section-title mb-4">{{ _('Workflows Run') }}</h6>
+            <div class="overflow-x-auto">
+                <table class="table-shell data-table min-w-full" aria-label="{{ _('Workflows run by period') }}">
+                    <thead class="hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col">{{ _('Period') }}</th>
+                            <th scope="col" class="text-center">{{ _('Count') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, label in period_labels %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
+                            <td data-label="{{ _('Period') }}" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                                {{ label }}
+                            </td>
+                            <td data-label="{{ _('Count') }}" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_number(metrics.get('workflows_run', {}).get(key, 0), locale=formatting_locale) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="surface-section p-6 rounded-lg">
+            <h6 class="section-title mb-4">{{ _('Error Rates') }}</h6>
+            <div class="overflow-x-auto">
+                <table class="table-shell data-table min-w-full" aria-label="{{ _('Error rate by period') }}">
+                    <thead class="hidden sm:table-header-group">
+                        <tr>
+                            <th scope="col">{{ _('Period') }}</th>
+                            <th scope="col" class="text-center">{{ _('Transcriptions') }}</th>
+                            <th scope="col" class="text-center">{{ _('Workflows') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, label in period_labels %}
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
+                            <td data-label="{{ _('Period') }}" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                                {{ label }}
+                            </td>
+                            <td data-label="{{ _('Transcriptions') }}" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                {{ format_percent(metrics.get('error_rate', {}).get(key, 0), locale=formatting_locale) }}
+                            </td>
+                            <td data-label="{{ _('Workflows') }}" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative">
+                                {{ format_percent(metrics.get('workflow_error_rate', {}).get(key, 0), locale=formatting_locale) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}

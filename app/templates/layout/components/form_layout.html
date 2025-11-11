@@ -6,28 +6,36 @@
     centered=False,
     wrapper_classes='w-full',
     title_tag='h2',
-    title_classes='text-2xl font-semibold text-gray-900',
-    description_classes='mt-1 text-sm text-gray-600',
+    title_classes='card-title',
+    description_classes='card-subtitle',
     divider=True,
-    divider_classes='border-b border-gray-200',
-    body_classes='mt-6 space-y-6',
+    divider_classes='surface-divider',
+    body_classes='card-body',
     surface=True,
-    surface_classes='bg-white shadow-lg rounded-lg',
-    padding_classes='p-6 md:p-8'
+    surface_classes='surface-card',
+    padding_classes='p-6 md:p-8',
+    actions=None
 ) -%}
 {# Wrapper handles centering when needed #}
 <div class="{{ 'flex flex-col items-center' if centered else '' }}">
     {# Container toggles between surfaced card and inline section #}
     <div class="{{ wrapper_classes }} {% if surface %}{{ surface_classes }} {{ padding_classes }}{% endif %}">
-        <div>
-            <{{ title_tag }} class="{{ title_classes }}">{{ title }}</{{ title_tag }}>
-            {% if description %}
-                <p class="{{ description_classes }}">{{ description }}</p>
-            {% endif %}
-            {% if divider %}
-                <div class="mt-4 {{ divider_classes }}"></div>
+        <div class="card-header">
+            <div class="flex-1">
+                <{{ title_tag }} class="{{ title_classes }}">{{ title }}</{{ title_tag }}>
+                {% if description %}
+                    <p class="{{ description_classes }}">{{ description }}</p>
+                {% endif %}
+            </div>
+            {% if actions %}
+            <div class="card-actions">
+                {{ actions | safe }}
+            </div>
             {% endif %}
         </div>
+        {% if divider %}
+            <div class="mt-4 {{ divider_classes }}"></div>
+        {% endif %}
         <div class="{{ body_classes }}">
             {{ caller() }}
         </div>
@@ -38,16 +46,16 @@
 {% macro section(title=None, description=None, divider=False, body_classes='space-y-4') -%}
 <section class="space-y-3">
     {% if title %}
-        <h3 class="text-lg font-medium leading-6 text-gray-900">{{ title }}</h3>
+        <h3 class="section-title">{{ title }}</h3>
     {% endif %}
     {% if description %}
-        <p class="text-sm text-gray-500">{{ description }}</p>
+        <p class="section-description">{{ description }}</p>
     {% endif %}
     <div class="{{ body_classes }}">
         {{ caller() }}
     </div>
     {% if divider %}
-        <div class="border-b border-gray-200 pt-3"></div>
+        <div class="surface-divider pt-3"></div>
     {% endif %}
 </section>
 {%- endmacro %}

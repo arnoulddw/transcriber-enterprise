@@ -1,24 +1,11 @@
 <!-- app/templates/layout/components/flash_messages.html -->
+{% import "layout/components/ui_helpers.html" as ui %}
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        <div class="container mx-auto sm:px-6 lg:px-8">
+        <div class="container mx-auto sm:px-6 lg:px-8 space-y-4">
             {% for category, message in messages %}
-                {% set category_color_map = {
-                    'danger': 'bg-alert-error text-white',
-                    'success': 'bg-alert-success text-white',
-                    'warning': 'bg-alert-warning text-gray-800',
-                    'info': 'bg-alert-info text-white'
-                } %}
-                {% set icon_map = {
-                    'danger': 'error_outline',
-                    'success': 'check_circle_outline',
-                    'warning': 'warning_amber',
-                    'info': 'info_outline'
-                } %}
-                <div class="flash-message-box {{ category_color_map.get(category, 'bg-alert-info text-white') }} p-3 rounded-md my-4 flex items-center shadow" role="alert">
-                    <i class="material-icons mr-2">{{ icon_map.get(category, 'info_outline') }}</i>
-                    <span>{{ _(message) }}</span>
-                </div>
+                {% set normalized_category = category if category in ['danger', 'success', 'warning', 'info'] else 'info' %}
+                {{ ui.alert(level=normalized_category, message=_(message)) }}
             {% endfor %}
         </div>
     {% endif %}

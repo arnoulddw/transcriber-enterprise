@@ -2,6 +2,7 @@
 {# Template for creating or editing roles #}
 {% extends "admin/base_admin.html" %}
 {% import "layout/components/form_layout.html" as form_layout %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {# Set the subtitle based on the title passed from the route #}
 {% block subtitle %}{{ title }}{% endblock %}
@@ -13,35 +14,24 @@
 
 {% block admin_content %}
     {% set form_intro = 'Define the details and permissions for the new role.' if 'Create' in title else 'Modify the details and permissions for this role.' %}
-    {% call form_layout.card(
-        title='Role Details',
-        description=form_intro,
-        centered=False,
-        wrapper_classes='w-full',
-        title_tag='h2',
-        title_classes='text-xl font-semibold text-gray-900',
-        description_classes='mt-1 text-sm text-gray-600',
-        divider=True,
-        body_classes='mt-6',
-        surface=False
-    ) %}
+    {% call form_layout.card(title='Role Details', description=form_intro) %}
         <form method="POST" action="" class="space-y-8">
             {{ form.hidden_tag() }}
 
             {% call form_layout.section(title='Basic Role Info', divider=True) %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="{{ form.name.id }}" class="block text-sm font-medium text-gray-700">{{ form.name.label.text }}</label>
-                        {{ form.name(class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.name.errors else ""), required=True, autofocus=True, id=form.name.id) }}
+                        <label for="{{ form.name.id }}" class="form-label">{{ form.name.label.text }}</label>
+                        {{ form.name(class="input-control" + (" border-red-500" if form.name.errors else ""), required=True, autofocus=True, id=form.name.id) }}
                         {% if form.name.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.name.errors[0] }}</p>
+                            <p class="form-error">{{ form.name.errors[0] }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="{{ form.description.id }}" class="block text-sm font-medium text-gray-700">{{ form.description.label.text }}</label>
-                        {{ form.description(class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.description.errors else ""), rows="3", id=form.description.id) }}
+                        <label for="{{ form.description.id }}" class="form-label">{{ form.description.label.text }}</label>
+                        {{ form.description(class="input-textarea" + (" border-red-500" if form.description.errors else ""), rows="3", id=form.description.id) }}
                         {% if form.description.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.description.errors[0] }}</p>
+                            <p class="form-error">{{ form.description.errors[0] }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -54,24 +44,24 @@
             ) %}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label for="{{ form.default_transcription_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_transcription_model.label.text }}</label>
-                        {{ form.default_transcription_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_transcription_model.errors else ""), id=form.default_transcription_model.id) }}
+                        <label for="{{ form.default_transcription_model.id }}" class="form-label">{{ form.default_transcription_model.label.text }}</label>
+                        {{ form.default_transcription_model(class="input-select" + (" border-red-500" if form.default_transcription_model.errors else ""), id=form.default_transcription_model.id) }}
                         {% if form.default_transcription_model.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.default_transcription_model.errors[0] }}</p>
+                            <p class="form-error">{{ form.default_transcription_model.errors[0] }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="{{ form.default_title_generation_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_title_generation_model.label.text }}</label>
-                        {{ form.default_title_generation_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_title_generation_model.errors else ""), id=form.default_title_generation_model.id) }}
+                        <label for="{{ form.default_title_generation_model.id }}" class="form-label">{{ form.default_title_generation_model.label.text }}</label>
+                        {{ form.default_title_generation_model(class="input-select" + (" border-red-500" if form.default_title_generation_model.errors else ""), id=form.default_title_generation_model.id) }}
                         {% if form.default_title_generation_model.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.default_title_generation_model.errors[0] }}</p>
+                            <p class="form-error">{{ form.default_title_generation_model.errors[0] }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        <label for="{{ form.default_workflow_model.id }}" class="block text-sm font-medium text-gray-700">{{ form.default_workflow_model.label.text }}</label>
-                        {{ form.default_workflow_model(class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.default_workflow_model.errors else ""), id=form.default_workflow_model.id) }}
+                        <label for="{{ form.default_workflow_model.id }}" class="form-label">{{ form.default_workflow_model.label.text }}</label>
+                        {{ form.default_workflow_model(class="input-select" + (" border-red-500" if form.default_workflow_model.errors else ""), id=form.default_workflow_model.id) }}
                         {% if form.default_workflow_model.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.default_workflow_model.errors[0] }}</p>
+                            <p class="form-error">{{ form.default_workflow_model.errors[0] }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -81,68 +71,68 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                     {# API Access Column #}
                     <div class="space-y-3">
-                    <h4 class="text-sm font-semibold text-gray-600">API Access</h4>
+                    <h4 class="section-title text-sm text-text-muted">API Access</h4>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.use_api_assemblyai(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.use_api_assemblyai.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.use_api_assemblyai.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.use_api_openai_whisper(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.use_api_openai_whisper.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.use_api_openai_whisper.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.use_api_openai_gpt_4o_transcribe(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.use_api_openai_gpt_4o_transcribe.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.use_api_openai_gpt_4o_transcribe.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.use_api_openai_gpt_4o_transcribe_diarize(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.use_api_openai_gpt_4o_transcribe_diarize.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.use_api_openai_gpt_4o_transcribe_diarize.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.use_api_google_gemini(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.use_api_google_gemini.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.use_api_google_gemini.label.text }}</span>
                     </label>
                 </div>
 
                 {# Feature Access Column #}
                 <div class="space-y-3">
-                    <h4 class="text-sm font-semibold text-gray-600">Feature Access</h4>
+                    <h4 class="section-title text-sm text-text-muted">Feature Access</h4>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_large_files(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_large_files.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_large_files.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_context_prompt(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_context_prompt.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_context_prompt.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_download_transcript(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_download_transcript.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_download_transcript.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_workflows(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_workflows.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_workflows.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_auto_title_generation(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_auto_title_generation.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_auto_title_generation.label.text }}</span>
                     </label>
                 </div>
 
                 {# Account & Admin Column #}
                 <div class="space-y-3">
-                    <h4 class="text-sm font-semibold text-gray-600">Account & Admin</h4>
+                    <h4 class="section-title text-sm text-text-muted">Account & Admin</h4>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.allow_api_key_management(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.allow_api_key_management.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.allow_api_key_management.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.access_admin_panel(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.access_admin_panel.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.access_admin_panel.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.manage_workflow_templates(class="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary") }}
-                        <span class="text-sm text-gray-700">{{ form.manage_workflow_templates.label.text }}</span>
+                        <span class="text-sm text-text-strong">{{ form.manage_workflow_templates.label.text }}</span>
                     </label>
                 </div>
             </div>
@@ -156,54 +146,54 @@
                 <div class="text-sm font-semibold text-gray-600">Monthly Quota</div>
 
                 {# Costs Row #}
-                <div class="text-sm font-medium text-gray-700 self-center">Costs ($)</div>
+                <div class="form-label self-center">Costs ($)</div>
                 <div>
-                    {{ form.limit_daily_cost(type="number", min="0", step="0.01", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_daily_cost.errors else "")) }}
+                    {{ form.limit_daily_cost(type="number", min="0", step="0.01", class="input-control" + (" border-red-500" if form.limit_daily_cost.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_weekly_cost(type="number", min="0", step="0.01", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_weekly_cost.errors else "")) }}
+                    {{ form.limit_weekly_cost(type="number", min="0", step="0.01", class="input-control" + (" border-red-500" if form.limit_weekly_cost.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_monthly_cost(type="number", min="0", step="0.01", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_monthly_cost.errors else "")) }}
+                    {{ form.limit_monthly_cost(type="number", min="0", step="0.01", class="input-control" + (" border-red-500" if form.limit_monthly_cost.errors else "")) }}
                 </div>
 
                 {# Minutes Processed Row #}
-                <div class="text-sm font-medium text-gray-700 self-center">Minutes Processed</div>
+                <div class="form-label self-center">Minutes Processed</div>
                 <div>
-                    {{ form.limit_daily_minutes(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_daily_minutes.errors else "")) }}
+                    {{ form.limit_daily_minutes(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_daily_minutes.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_weekly_minutes(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_weekly_minutes.errors else "")) }}
+                    {{ form.limit_weekly_minutes(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_weekly_minutes.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_monthly_minutes(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_monthly_minutes.errors else "")) }}
+                    {{ form.limit_monthly_minutes(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_monthly_minutes.errors else "")) }}
                 </div>
 
                 {# Workflows Row #}
-                <div class="text-sm font-medium text-gray-700 self-center">Workflows</div>
+                <div class="form-label self-center">Workflows</div>
                 <div>
-                    {{ form.limit_daily_workflows(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_daily_workflows.errors else "")) }}
+                    {{ form.limit_daily_workflows(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_daily_workflows.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_weekly_workflows(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_weekly_workflows.errors else "")) }}
+                    {{ form.limit_weekly_workflows(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_weekly_workflows.errors else "")) }}
                 </div>
                 <div>
-                    {{ form.limit_monthly_workflows(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.limit_monthly_workflows.errors else "")) }}
+                    {{ form.limit_monthly_workflows(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.limit_monthly_workflows.errors else "")) }}
                 </div>
             </div>
             <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
                  <div>
-                    <label for="{{ form.max_history_items.id }}" class="block text-sm font-medium text-gray-700">{{ form.max_history_items.label.text }}</label>
-                    {{ form.max_history_items(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.max_history_items.errors else ""), id=form.max_history_items.id) }}
+                    <label for="{{ form.max_history_items.id }}" class="form-label">{{ form.max_history_items.label.text }}</label>
+                    {{ form.max_history_items(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.max_history_items.errors else ""), id=form.max_history_items.id) }}
                     {% if form.max_history_items.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ form.max_history_items.errors[0] }}</p>
+                        <p class="form-error">{{ form.max_history_items.errors[0] }}</p>
                     {% endif %}
                 </div>
                 <div>
-                    <label for="{{ form.history_retention_days.id }}" class="block text-sm font-medium text-gray-700">{{ form.history_retention_days.label.text }}</label>
-                    {{ form.history_retention_days(type="number", min="0", step="1", class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" + (" border-red-500" if form.history_retention_days.errors else ""), id=form.history_retention_days.id) }}
+                    <label for="{{ form.history_retention_days.id }}" class="form-label">{{ form.history_retention_days.label.text }}</label>
+                    {{ form.history_retention_days(type="number", min="0", step="1", class="input-control" + (" border-red-500" if form.history_retention_days.errors else ""), id=form.history_retention_days.id) }}
                     {% if form.history_retention_days.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ form.history_retention_days.errors[0] }}</p>
+                        <p class="form-error">{{ form.history_retention_days.errors[0] }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -211,14 +201,10 @@
 
         {# Submit Button #}
         <div class="pt-5">
-            <div class="flex justify-start space-x-3">
-                <button type="submit"
-                        class="btn-save">
-                    <i class="material-icons left tiny -ml-1 mr-2">save</i>{{ form.submit.label.text }}
-                </button>
-                <a href="{{ url_for('admin_panel.manage_roles') }}"
-                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                    Cancel
+            <div class="flex justify-start gap-3">
+                {{ ui.button(form.submit.label.text, variant='primary', type='submit', icon='save', icon_position='start') }}
+                <a href="{{ url_for('admin_panel.manage_roles') }}" class="ui-btn ui-btn--secondary">
+                    {{ _('Cancel') }}
                 </a>
             </div>
         </div>

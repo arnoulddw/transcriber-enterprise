@@ -316,14 +316,12 @@ async function _handleSubmitWorkflow() {
         }
 
         if (selectedInfoElem) {
-            selectedInfoElem.textContent = `Workflow: ${promptTitle}`;
-            if (typeof window.getTextColorForBackground === 'function') {
-                selectedInfoElem.style.color = window.getTextColorForBackground(promptColor);
-            } else {
-                selectedInfoElem.style.color = 'black';
-            }
+            selectedInfoElem.textContent = `${window.i18n?.startWorkflow || 'Workflow'}: ${promptTitle}`;
+            selectedInfoElem.classList.remove('hidden');
             selectedInfoElem.style.backgroundColor = promptColor;
-            selectedInfoElem.style.display = 'inline-block';
+            selectedInfoElem.style.color = typeof window.getTextColorForBackground === 'function'
+                ? window.getTextColorForBackground(promptColor)
+                : 'black';
         }
 
         if (applyWorkflowBtn && removeWorkflowBtn) {

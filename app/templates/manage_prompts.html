@@ -1,6 +1,8 @@
 <!-- app/templates/manage_prompts.html -->
 {# Page for users to manage their saved workflow prompts #}
 {% extends "base.html" %}
+{% import "layout/components/form_layout.html" as form_layout %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {% block title %}{{ _('Manage your Workflows') }}{% endblock %}
 
@@ -12,30 +14,23 @@
 
 {% block content %}
 <div class="py-8">
-    {# Main container card for the entire page content #}
-    <div class="bg-white shadow-lg rounded-lg p-6 md:p-8">
-        {# Page Title and Subtitle #}
-        <div>
-            <h1 class="text-3xl font-semibold text-gray-800">{{ _('Manage your Workflows') }}</h1>
-            <p class="mt-1 text-sm text-gray-600">{{ _('Create, edit, or delete your reusable workflow prompts.') }}</p>
-        </div>
-
-        {# Divider #}
-        <div class="border-b border-gray-200 my-6"></div>
-
-        {# Add New Workflow Section (within the main card) #}
-        <div class="mb-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ _('Add New Workflow') }}</h2>
+    {% call form_layout.card(
+        title=_('Manage your Workflows'),
+        description=_('Create, edit, or delete your reusable workflow prompts.'),
+        wrapper_classes='w-full',
+        padding_classes='p-6 md:p-8'
+    ) %}
+        {% call form_layout.section(title=_('Add New Workflow'), body_classes='space-y-6', divider=True) %}
             <form id="addPromptForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                     <div class="md:col-span-2">
-                        <label for="newPromptTitle" class="block text-sm font-medium text-gray-700">{{ _('Workflow Label') }}</label>
+                        <label for="newPromptTitle" class="form-label">{{ _('Workflow Label') }}</label>
                         <input type="text" id="newPromptTitle" name="title" required maxlength="100"
-                               class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                               class="input-control">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ _('Label Color') }}</label>
-                        <div class="mt-1 flex items-center space-x-2" id="newPromptColorOptions">
+                        <label class="form-label">{{ _('Label Color') }}</label>
+                        <div class="mt-1 flex items-center flex-wrap gap-2" id="newPromptColorOptions">
                             {# Color options populated by JS #}
                         </div>
                         <input type="hidden" id="newPromptColor" name="color" value="#ffffff">
@@ -43,92 +38,75 @@
                 </div>
 
                 <div>
-                    <label for="newPromptText" class="block text-sm font-medium text-gray-700">{{ _('Workflow Prompt') }}</label>
+                    <label for="newPromptText" class="form-label">{{ _('Workflow Prompt') }}</label>
                     <textarea id="newPromptText" name="prompt_text" rows="3" required maxlength="1000"
-                              class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"></textarea>
+                              class="input-textarea"></textarea>
                 </div>
 
                 <div>
-                    <button type="submit"
-                            class="btn-create disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="material-icons left tiny -ml-1 mr-2">add</i>{{ _('Add Workflow') }}
-                    </button>
+                    {{ ui.button(
+                        _('Add Workflow'),
+                        variant='success',
+                        type='submit',
+                        icon='add',
+                        icon_position='start',
+                        extra_classes='disabled:opacity-50 disabled:cursor-not-allowed'
+                    ) }}
                 </div>
             </form>
-        </div>
+        {% endcall %}
 
-        {# Divider #}
-        <div class="border-b border-gray-200 my-6"></div>
-
-        {# Saved Workflows List Section (within the main card) #}
-        <div>
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">{{ _('Your Saved Workflows') }}</h2>
-            <ul class="divide-y divide-gray-200 -mx-6 md:-mx-8" id="savedPromptsList"> {# Negative margins to make dividers full-width #}
-                <li class="p-6 text-center text-gray-500" id="prompts-placeholder"
+        {% call form_layout.section(title=_('Your Saved Workflows')) %}
+            <ul class="divide-y divide-border-default -mx-6 md:-mx-8" id="savedPromptsList">
+                <li class="p-6 text-center text-text-muted" id="prompts-placeholder"
                     data-loading-text="{{ _('Loading workflows...') }}"
                     data-empty-text="{{ _('You have no saved workflows yet.') }}"
                     data-error-text="{{ _('Error loading workflows:') }}"
                 >{{ _('Loading workflows...') }}</li>
-                {# Workflows will be loaded here by JS #}
             </ul>
-        </div>
-    </div>
+        {% endcall %}
+    {% endcall %}
 
-    {# Edit Workflow Modal (remains outside the main card flow) #}
-    <div id="editPromptModal"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 ease-in-out opacity-0"
-         role="dialog" aria-modal="true" aria-labelledby="editPromptModalTitle" aria-hidden="true">
-        <div id="editPromptModalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity duration-300 ease-in-out opacity-0"></div>
-        <div id="editPromptModalPanel"
-             class="relative bg-white rounded-lg shadow-xl transform transition-all sm:max-w-lg sm:w-full
-                    max-h-[90vh] flex flex-col
-                    opacity-0 scale-95 duration-300 ease-out">
-            <div class="flex items-start justify-between p-4 border-b border-gray-200 rounded-t">
-                <h3 id="editPromptModalTitle" class="text-xl font-semibold text-gray-900">
-                    {{ _('Edit Workflow') }}
-                </h3>
-                <button type="button" id="editPromptModalCloseButtonHeader"
-                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center"
-                        aria-label="Close modal">
-                    <i class="material-icons">close</i>
-                </button>
-            </div>
-            <div class="p-6 space-y-6 overflow-y-auto">
-                <form id="editPromptForm" class="space-y-6">
-                    <input type="hidden" id="editPromptId" name="prompt_id">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                        <div class="md:col-span-2">
-                            <label for="editPromptTitle" class="block text-sm font-medium text-gray-700">{{ _('Workflow Label') }}</label>
-                            <input type="text" id="editPromptTitle" name="title" required maxlength="100"
-                                   class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ _('Label Color') }}</label>
-                            <div class="mt-1 flex items-center space-x-2" id="editPromptColorOptions">
-                                {# Color options populated by JS #}
-                            </div>
-                            <input type="hidden" id="editPromptColor" name="color" value="#ffffff">
-                        </div>
+    {% call ui.modal_shell('editPromptModal', labelledby='editPromptModalTitle', overlay_id='editPromptModalOverlay', panel_id='editPromptModalPanel', size='md', panel_classes='max-h-[90vh] flex flex-col') %}
+        <div class="modal-header">
+            <h3 id="editPromptModalTitle" class="modal-title">
+                {{ _('Edit Workflow') }}
+            </h3>
+            <button type="button" id="editPromptModalCloseButtonHeader"
+                    class="ui-btn ui-btn--muted px-2 py-2 rounded-full"
+                    aria-label="Close modal">
+                <i class="material-icons">close</i>
+            </button>
+        </div>
+        <div class="modal-body space-y-6 overflow-y-auto">
+            <form id="editPromptForm" class="space-y-6">
+                <input type="hidden" id="editPromptId" name="prompt_id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div class="md:col-span-2">
+                        <label for="editPromptTitle" class="form-label">{{ _('Workflow Label') }}</label>
+                        <input type="text" id="editPromptTitle" name="title" required maxlength="100"
+                               class="input-control">
                     </div>
                     <div>
-                        <label for="editPromptText" class="block text-sm font-medium text-gray-700">{{ _('Workflow Prompt') }}</label>
-                        <textarea id="editPromptText" name="prompt_text" rows="2" required maxlength="1000"
-                                  class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm min-h-[10rem]"></textarea>
+                        <label class="form-label">{{ _('Label Color') }}</label>
+                        <div class="mt-1 flex items-center flex-wrap gap-2" id="editPromptColorOptions">
+                            {# Color options populated by JS #}
+                        </div>
+                        <input type="hidden" id="editPromptColor" name="color" value="#ffffff">
                     </div>
-                </form>
-            </div>
-            <div class="flex items-center justify-end p-4 space-x-2 border-t border-gray-200 rounded-b">
-                <button type="button" id="editPromptModalCloseButtonFooter"
-                        class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
-                    {{ _('Cancel') }}
-                </button>
-                <button class="btn-save disabled:opacity-50 disabled:cursor-not-allowed"
-                        type="submit" form="editPromptForm" id="saveEditPromptBtn">
-                    {{ _('Save Changes') }} <i class="material-icons right text-base ml-2">save</i>
-                </button>
-            </div>
+                </div>
+                <div>
+                    <label for="editPromptText" class="form-label">{{ _('Workflow Prompt') }}</label>
+                    <textarea id="editPromptText" name="prompt_text" rows="2" required maxlength="1000"
+                              class="input-textarea min-h-[10rem]"></textarea>
+                </div>
+            </form>
         </div>
-    </div>
+        <div class="modal-footer">
+            {{ ui.button(_('Cancel'), variant='muted', id='editPromptModalCloseButtonFooter') }}
+            {{ ui.button(_('Save Changes'), variant='primary', type='submit', icon='save', icon_position='end', id='saveEditPromptBtn', attrs='form="editPromptForm"') }}
+        </div>
+    {% endcall %}
 </div>
 {% endblock %}
 

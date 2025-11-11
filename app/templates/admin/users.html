@@ -1,6 +1,7 @@
 <!-- app/templates/admin/users.html -->
 {# Template for managing users in the admin panel #}
 {% extends "admin/base_admin.html" %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {# Set the subtitle for this specific admin page #}
 {% block subtitle %}User Management{% endblock %}
@@ -12,34 +13,33 @@
 
 {# Define the main content for the user management page #}
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">View and manage user accounts for the application.</p>
+    <p class="text-sm text-text-muted mb-6">View and manage user accounts for the application.</p>
 
     {# Display error if loading failed #}
     {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <i class="material-icons left tiny mr-2">warning</i>
-            <strong>Error:</strong> {{ error }}
-        </div>
+        {% call ui.alert(level='danger', title=_('Error:'), extra_classes='mb-4') %}
+            {{ error }}
+        {% endcall %}
     {% endif %}
 
     {# Table to display users #}
-    <div class="shadow border-b border-gray-200 sm:rounded-lg overflow-x-auto mt-4 w-full max-w-full">
-        <table class="min-w-full divide-y divide-gray-200 data-table" id="usersTable"> {# Added data-table class for responsive stacking #}
-            <thead class="bg-gray-50 hidden sm:table-header-group">
+    <div class="surface-section border border-border-default sm:rounded-lg overflow-x-auto mt-4">
+        <table class="table-shell data-table min-w-full" id="usersTable">
+            <thead class="hidden sm:table-header-group">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th> {# Centered header #}
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Transcriptions</th> {# Centered header #}
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Workflows</th> {# Centered header #}
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Minutes Processed</th> {# Centered header #}
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">ID</th> {# Centered header #}
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Username</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Email</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Role</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Language</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Created At</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Total Transcriptions</th> {# Centered header #}
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Total Workflows</th> {# Centered header #}
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Total Minutes Processed</th> {# Centered header #}
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+            <tbody id="usersTableBody" class="bg-surface divide-y divide-border-default">
                 {% if users %}
                     {% for user in users %}
                     {% set is_initial_admin = (user.username == config.ADMIN_USERNAME) %}
@@ -57,7 +57,7 @@
                             <span class="role-display cursor-pointer underline decoration-dotted hover:bg-gray-200 p-1 rounded-sm" data-role-id="{{ user.role_id }}">
                                   {{ user.role_name | e }}
                             </span>
-                            <select class="role-select hidden form-select text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary w-auto" data-user-id="{{ user.id }}"
+                            <select class="role-select hidden input-select w-full sm:w-auto" data-user-id="{{ user.id }}"
                                     {% if is_initial_admin %}disabled{% endif %}>
                                 {% for role in all_roles %}
                                     <option value="{{ role.id }}" {% if role.id == user.role_id %}selected{% endif %}>

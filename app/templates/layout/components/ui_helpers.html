@@ -1,0 +1,90 @@
+<!-- app/templates/layout/components/ui_helpers.html -->
+{# Shared UI macros for buttons, alerts, modals, and tables. Keeps markup consistent. #}
+
+{% macro button(label, variant='primary', type='button', block=False, icon=None, icon_position='end', id=None, extra_classes='', attrs='') -%}
+    {% set variant_map = {
+        'primary': 'ui-btn--primary',
+        'secondary': 'ui-btn--secondary',
+        'muted': 'ui-btn--muted',
+        'danger': 'ui-btn--danger',
+        'success': 'ui-btn--success',
+        'link': 'ui-btn--link'
+    } %}
+    {% set variant_class = variant_map.get(variant, 'ui-btn--primary') %}
+    <button type="{{ type }}"
+            class="ui-btn {{ variant_class }} {{ 'w-full' if block else '' }} {{ extra_classes }}"
+            {% if id %}id="{{ id }}"{% endif %}
+            {{ attrs|safe }}>
+        {% if icon and icon_position == 'start' %}
+            <i class="material-icons text-base mr-2">{{ icon }}</i>
+        {% endif %}
+        <span>{{ label }}</span>
+        {% if icon and icon_position != 'start' %}
+            <i class="material-icons text-base ml-2">{{ icon }}</i>
+        {% endif %}
+    </button>
+{%- endmacro %}
+
+{% macro alert(level='info', title=None, message=None, icon=None, extra_classes='') -%}
+    {% set level_map = {
+        'info': ('alert-info', 'info'),
+        'success': ('alert-success', 'check_circle'),
+        'warning': ('alert-warning', 'warning'),
+        'danger': ('alert-danger', 'error')
+    } %}
+    {% set (level_class, default_icon) = level_map.get(level, ('alert-info', 'info')) %}
+    <div class="alert {{ level_class }} {{ extra_classes }}">
+        <div class="alert-icon">
+            <i class="material-icons">{{ icon or default_icon }}</i>
+        </div>
+        <div class="alert-content">
+            {% if title %}
+                <p class="font-semibold">{{ title }}</p>
+            {% endif %}
+            {% if message %}
+                <p>{{ message }}</p>
+            {% else %}
+                {{ caller() }}
+            {% endif %}
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro modal_shell(id, labelledby=None, describedby=None, overlay_id=None, panel_id=None, size='lg', panel_classes='') -%}
+<div id="{{ id }}"
+     class="modal-shell hidden opacity-0"
+     role="dialog"
+     aria-modal="true"
+     aria-hidden="true"
+     {% if labelledby %}aria-labelledby="{{ labelledby }}"{% endif %}
+     {% if describedby %}aria-describedby="{{ describedby }}"{% endif %}>
+    <div id="{{ overlay_id or id ~ 'Overlay' }}" class="modal-overlay opacity-0"></div>
+    {% set size_class = {
+        'sm': 'sm:max-w-md',
+        'md': 'sm:max-w-xl',
+        'lg': 'sm:max-w-2xl',
+        'xl': 'sm:max-w-4xl'
+    }.get(size, 'sm:max-w-2xl') %}
+    <div id="{{ panel_id or id ~ 'Panel' }}"
+         class="modal-panel opacity-0 scale-95 {{ size_class }} {{ panel_classes }}">
+        {{ caller() }}
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro table(headers, table_classes='table-shell', wrapper_classes='overflow-x-auto surface-section') -%}
+<div class="{{ wrapper_classes }}">
+    <table class="{{ table_classes }}">
+        <thead>
+            <tr>
+                {% for header in headers %}
+                    <th scope="col">{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {{ caller() }}
+        </tbody>
+    </table>
+</div>
+{%- endmacro %}

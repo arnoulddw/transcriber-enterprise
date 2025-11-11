@@ -45,12 +45,75 @@ module.exports = {
         // Specific colors from main.css
         'body-bg': '#f8f9fa',
         'default-text': '#333',
+
+        // Semantic aliases so templates stay descriptive
+        'surface': '#ffffff',
+        'surface-alt': '#fefefe',
+        'surface-muted': '#f3f4f6',
+        'border-default': '#e5e7eb',
+        'border-strong': '#d1d5db',
+        'text-muted': '#6b7280',
+        'text-strong': '#111827',
+        'accent': '#5c6ac4',
+        'accent-soft': '#eef2ff',
+        'accent-border': '#c7d2fe',
+        'danger': '#d32f2f',
+        'warning': '#ffb347',
+        'success': '#2e7d32',
+        'info': '#1976d2',
+        'workflow-label': {
+          'default': '#ffffff',
+          'pink': '#ffd1dc',
+          'bluegray': '#aec6cf',
+          'mint': '#cfffd1',
+          'lemon': '#fffacd',
+          'lavender': '#e6e6fa',
+          'orange': '#ffb347',
+        },
       },
       fontFamily: {
         // Using a common system font stack similar to Materialize
         sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif', ...defaultTheme.fontFamily.sans],
         // Add 'mono' if you use monospace fonts, e.g., for code blocks
         // mono: ['Courier New', 'Courier', 'monospace', ...defaultTheme.fontFamily.mono],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1.1rem' }],
+        'sm': ['0.85rem', { lineHeight: '1.3rem' }],
+        'base': ['1rem', { lineHeight: '1.5rem' }],
+        'lg': ['1.125rem', { lineHeight: '1.65rem' }],
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+      },
+      borderRadius: {
+        'xs': '0.125rem',
+        'sm': '0.25rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'xl': '1rem',
+        'pill': '9999px',
+      },
+      spacing: {
+        '13': '3.25rem',
+        '15': '3.75rem',
+        '18': '4.5rem',
+        '25': '6.25rem',
+        '30': '7.5rem',
+      },
+      boxShadow: {
+        'surface': '0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06)',
+        'surface-xl': '0 10px 15px rgba(15, 23, 42, 0.15), 0 4px 6px rgba(15, 23, 42, 0.1)',
+        'focus': '0 0 0 3px rgba(25, 118, 210, 0.35)',
+      },
+      maxWidth: {
+        'content': '64rem',
+        'narrow': '36rem',
+      },
+      transitionTimingFunction: {
+        'swift': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      transitionDuration: {
+        '250': '250ms',
       },
       // You can extend spacing, breakpoints, etc. here if needed
       // Example:

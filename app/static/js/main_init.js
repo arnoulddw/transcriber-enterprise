@@ -538,9 +538,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedInfoElem = document.getElementById("selectedWorkflowInfo");
             if (selectedInfoElem) {
                 selectedInfoElem.textContent = '';
-                selectedInfoElem.style.display = 'none';
-                selectedInfoElem.style.backgroundColor = ''; // Reset background
-                selectedInfoElem.style.color = ''; // Reset text color
+                selectedInfoElem.classList.add('hidden');
+                selectedInfoElem.style.backgroundColor = '';
+                selectedInfoElem.style.color = '';
             }
 
             // Revert button appearance

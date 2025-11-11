@@ -80,7 +80,7 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
     const metaText = metaSegments.map(segment => window.escapeHtml(segment)).join(' | ');
 
     const downloadButtonHtml = canDownload ? `
-        <button class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Download Transcript">
+        <button type="button" class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="Download Transcript">
             <i class="material-icons text-base">download</i>
         </button>
     ` : '';
@@ -100,7 +100,7 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
     if (canRunWorkflow && !hadPendingWorkflow) {
         startWorkflowButtonHtml = `
             <div class="start-workflow-action text-right mt-2.5">
-                <button class="start-workflow-btn bg-primary-light hover:bg-primary text-white text-xs px-2.5 py-1 rounded-full inline-flex items-center focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-light">
+                <button type="button" class="start-workflow-btn ui-btn ui-btn--primary text-xs px-2.5 py-1 rounded-full inline-flex items-center">
                     <i class="material-icons tiny -ml-0.5 mr-1">auto_awesome</i>${window.i18n.startWorkflow || 'Start Workflow'}
                 </button>
             </div>
@@ -128,12 +128,12 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
                             ${transcription.status === 'error' ? '<span class="text-red-600"> (Failed)</span>' : ''}
                         </p>
                     </div>
-                    <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-0.5">
-                        <button class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Copy Transcript">
+                    <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-1">
+                        <button type="button" class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="Copy Transcript">
                             <i class="material-icons text-base">content_copy</i>
                         </button>
                         ${downloadButtonHtml}
-                        <button class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center" title="Delete Transcript">
+                        <button type="button" class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center" title="Delete Transcript">
                             <i class="material-icons text-base">delete</i>
                         </button>
                     </div>

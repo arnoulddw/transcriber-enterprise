@@ -1,29 +1,18 @@
 <!-- app/templates/index.html -->
 {# Main application page template: Upload form and transcription history. #}
 {% extends "base.html" %}
+{% import "layout/components/form_layout.html" as form_layout %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {% block title %}{{ _('Compass Platform') }}{% endblock %}
 
-{% block head_extra %}
-{{ super() }}
-<style>
-    /* Custom animation for title updates - kept as minimal custom CSS */
-    .title-wrapper { display: flex; align-items: center; }
-    .title-wrapper b { margin-bottom: 0 !important; }
-    @keyframes titleFadeIn { from { opacity: 0.5; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
-    .title-updated { animation: titleFadeIn 0.5s ease-out; }
-</style>
-{% endblock %}
-
 {% block content %}
-<div>
-    {# Upload Form Section #}
-    <div class="bg-white shadow-xl rounded-lg p-6 md:p-8">
-        <h1 class="text-2xl font-semibold text-gray-800 mb-6">{{ _('Upload Audio File') }}</h1>
+<div class="space-y-8">
+    {% call form_layout.card(title=_('Upload Audio File')) %}
         <form id="transcription-form" enctype="multipart/form-data" class="space-y-6">
             {# File Input #}
             <div>
-                <label for="audioFile" class="block text-sm font-medium text-gray-700 mb-1">{{ _('Audio File') }}</label>
+                <label for="audioFile" class="form-label mb-1">{{ _('Audio File') }}</label>
                 <div class="mt-1 flex items-center">
                     <label for="audioFile"
                            class="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary inline-flex items-center">
@@ -37,15 +26,15 @@
                           data-placeholder-long="{{ _('Select an audio file (mp3, wav, m4a...)') }}"
                           data-placeholder-short="{{ _('Select audio file…') }}">{{ _('Select an audio file (mp3, wav, m4a...)') }}</span>
                 </div>
-                <p class="mt-1 text-xs text-gray-500">{{ _('Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA, MPEG.') }}</p>
+                <p class="form-hint">{{ _('Max file size: 200 MB. Supported formats: MP3, M4A, WAV, OGG, WEBM, MPGA, MPEG.') }}</p>
             </div>
 
             {# API Select #}
             <div>
-                <label for="apiSelect" class="block text-sm font-medium text-gray-700">{{ _('Transcription Model') }}</label>
+                <label for="apiSelect" class="form-label">{{ _('Transcription Model') }}</label>
                 <div class="mt-1">
                     <select id="apiSelect" name="api_choice"
-                            class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                            class="input-select">
                         {% for model in transcription_models %}
                             {% set required_perm = model.permission_key %}
                             {% if not required_perm or user_permissions.get(required_perm) %}
@@ -57,11 +46,11 @@
             </div>
 
             {# Language Select #}
-            <div class="mt-4">
-                <label for="languageSelect" class="block text-sm font-medium text-gray-700">{{ _('Transcription Language') }}</label>
+            <div>
+                <label for="languageSelect" class="form-label">{{ _('Transcription Language') }}</label>
                 <div class="mt-1">
                     <select id="languageSelect" name="language_code"
-                            class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                            class="input-select">
                         {% for code, name in supported_languages.items() %}
                             <option value="{{ code }}" {% if code == effective_default_language %}selected{% endif %}>{{ name }}</option>
                         {% endfor %}
@@ -73,20 +62,19 @@
             <div class="flex flex-wrap items-center gap-3 mt-4">
                 {% if user_permissions.allow_context_prompt %}
                 <button type="button" id="toggleContextPromptBtn"
-                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        class="ui-btn ui-btn--secondary text-xs rounded-full px-3 py-1.5 focus:ring-offset-2">
                     <i class="material-icons tiny -ml-0.5 mr-1.5">add_circle_outline</i>{{ _('Context Prompt') }}
                 </button>
                 {% endif %}
                 {% if user_permissions.allow_workflows %}
                 <button type="button" id="applyWorkflowBtn"
-                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        class="ui-btn ui-btn--secondary text-xs rounded-full px-3 py-1.5 focus:ring-offset-2 transition">
                     <i class="material-icons tiny -ml-0.5 mr-1.5" id="applyWorkflowBtnIcon">add_circle_outline</i>
                     <span id="applyWorkflowBtnText">{{ _('Apply Workflow') }}</span>
-                    <span id="removeWorkflowBtn" class="ml-1.5 hidden cursor-pointer text-current hover:text-red-500 hover:bg-red-100 rounded-sm p-0.5 leading-none text-sm" title="Remove applied workflow">×</span>
+                    <span id="removeWorkflowBtn" class="ml-1.5 hidden cursor-pointer text-current hover:text-red-500 hover:bg-red-100 rounded-sm p-0.5 leading-none text-sm" title="{{ _('Remove applied workflow') }}">×</span>
                 </button>
                 <span id="selectedWorkflowInfo"
-                      class="text-xs font-medium rounded-full px-2.5 py-1"
-                      style="display: none;"></span>
+                      class="badge badge-primary hidden text-xs font-medium"></span>
                 {% endif %}
             </div>
 
@@ -94,15 +82,15 @@
             {% if user_permissions.allow_context_prompt %}
             <div id="contextPromptSection" class="hidden mt-4">
                 <div>
-                    <label for="contextPrompt" class="block text-sm font-medium text-gray-700">{{ _('Context Prompt (Max 120 words)') }}</label>
+                    <label for="contextPrompt" class="form-label">{{ _('Context Prompt (Max 120 words)') }}</label>
                     <div class="mt-1">
                         <textarea id="contextPrompt" name="context_prompt" rows="3"
-                                  class="form-textarea block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                  class="input-textarea"
                                   placeholder="{{ _('(Optional) Provide context like names or jargon...') }}"
                                   data-placeholder-long="{{ _('(Optional) Provide context like names or jargon...') }}"
                                   data-placeholder-short="{{ _('(Optional) Add context...') }}"></textarea>
                     </div>
-                    <p id="contextPromptError" class="mt-1 text-xs text-gray-500 text-right">0/120 {{ _('words') }}</p>
+                    <p id="contextPromptError" class="form-hint text-right">0/120 {{ _('words') }}</p>
                 </div>
             </div>
             {% endif %}
@@ -115,18 +103,15 @@
 
             {# Submit Button #}
             <div class="mt-6">
-                <button type="button" id="transcribeBtn" disabled
-                        class="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                    {{ _('TRANSCRIBE') }} <i class="material-icons text-base ml-2">send</i>
-                </button>
-                <p id="transcribeBtnStatus" class="mt-2 text-xs text-red-600 text-center"></p>
+                {{ ui.button(_('TRANSCRIBE'), variant='primary', icon='send', block=True, id='transcribeBtn', attrs='disabled') }}
+                <p id="transcribeBtnStatus" class="form-error text-center"></p>
             </div>
         </form>
 
         {# Progress Display #}
         <div id="progressContainer" class="hidden mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div id="progressBarContainer" class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                <div id="progressBar" class="bg-primary h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+                <div id="progressBar" class="progress-bar"></div>
             </div>
             <p class="text-center text-sm font-medium text-primary mb-2"><strong id="progressPercentage">0%</strong></p>
             <div id="progressActivity" class="flex items-center justify-center text-sm text-blue-700 min-h-[24px]">
@@ -134,26 +119,16 @@
             </div>
             <div class="mt-4 text-center">
                 <button type="button" id="stopBtn"
-                        class="hidden inline-flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        class="hidden ui-btn ui-btn--danger px-4">
                     {{ _('STOP') }} <i class="material-icons text-base ml-2">cancel</i>
                 </button>
             </div>
         </div>
-    </div>
+    {% endcall %}
 
-    {# Transcription History Section #}
-    <div class="mt-8 bg-white shadow-xl rounded-lg">
-        <div class="p-6 md:p-8">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                 <h2 class="text-xl font-semibold text-gray-800 mb-2 sm:mb-0">{{ _('Transcription History') }}</h2>
-                 {% if transcriptions %}
-                 <button id="clearAllBtn"
-                         class="px-4 py-2 border border-red-500 text-red-500 rounded-md text-sm font-medium hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 flex items-center">
-                     {{ _('Clear All') }} <i class="material-icons text-base ml-2">delete_forever</i>
-                 </button>
-                 {% endif %}
-            </div>
-            <ul class="divide-y divide-gray-200" id="transcriptionHistory">
+    {% set history_actions = ui.button(_('Clear All'), variant='secondary', id='clearAllBtn', icon='delete_forever', extra_classes='px-4 text-red-600 border border-red-500 hover:bg-red-50 focus:ring-red-400') if transcriptions else '' %}
+    {% call form_layout.card(title=_('Transcription History'), actions=history_actions) %}
+        <ul class="divide-y divide-gray-200" id="transcriptionHistory">
                 {% if transcriptions %}
                     {% for transcription in transcriptions %}
                         <li class="py-4"
@@ -198,16 +173,16 @@
                                                 {% if transcription.status == 'error' %}<span class="text-red-600"> {{ _('(Failed)') }}</span>{% endif %}
                                             </p>
                                         </div>
-                                        <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-0.5">
-                                            <button class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Copy Transcript">
+                                        <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-1">
+                                            <button type="button" class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Copy Transcript') }}">
                                                 <i class="material-icons text-base">content_copy</i>
                                             </button>
                                             {% if user_permissions.allow_download_transcript %}
-                                            <button class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 flex items-center" title="Download Transcript">
+                                            <button type="button" class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Download Transcript') }}">
                                                 <i class="material-icons text-base">download</i>
                                             </button>
                                             {% endif %}
-                                            <button class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center" title="Delete Transcript">
+                                            <button type="button" class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center" title="{{ _('Delete Transcript') }}">
                                                 <i class="material-icons text-base">delete</i>
                                             </button>
                                         </div>
@@ -216,7 +191,7 @@
                                     {% if user_permissions.allow_workflows %}
                                     {# MODIFICATION: Removed conditional hidden class #}
                                     <div class="start-workflow-action text-right mt-2.5">
-                                        <button class="start-workflow-btn bg-primary-light hover:bg-primary text-white text-xs px-2.5 py-1 rounded-full inline-flex items-center focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary-light">
+                                        <button type="button" class="start-workflow-btn ui-btn ui-btn--primary text-xs px-2.5 py-1 rounded-full inline-flex items-center">
                                             <i class="material-icons tiny -ml-0.5 mr-1">auto_awesome</i>{{ _('Start Workflow') }}
                                         </button>
                                     </div>
@@ -341,7 +316,7 @@
             </div>
             {% endif %}
         </div>
-    </div>
+    {% endcall %}
 </div>
 {% endblock %}
 

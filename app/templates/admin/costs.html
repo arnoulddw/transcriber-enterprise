@@ -1,26 +1,27 @@
 {% extends "admin/base_admin.html" %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {% block subtitle %}Costs{% endblock %}
 
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">Manage the costs of the different services and view cost analytics.</p>
-    <!-- Pricing Configuration -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-2xl font-semibold mb-6">Pricing Configuration</h2>
+    <p class="text-sm text-text-muted mb-6">{{ _('Manage the costs of the different services and view cost analytics.') }}</p>
+
+    <div class="surface-section p-6 rounded-lg mb-8">
+        <h2 class="section-title text-2xl mb-6">{{ _('Pricing Configuration') }}</h2>
         <form id="pricing-form" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="flex flex-col md:flex-row md:space-x-8 space-y-8 md:space-y-0">
                 <!-- Transcription Models -->
                 <div class="flex-1">
-                    <h3 class="text-lg font-medium">Transcription Models</h3>
+                    <h3 class="section-title text-lg">{{ _('Transcription Models') }}</h3>
                     <div class="text-right mb-2">
                         <span class="text-sm text-gray-500">Price per Minute ($)</span>
                     </div>
                     <div class="space-y-2">
                         {% for key, name in transcription_models.items()|sort %}
                         <div class="flex items-center justify-between">
-                            <label for="transcription-{{ key.upper() }}" class="text-gray-700">{{ key }}</label>
-                            <input type="number" step="0.00001" id="transcription-{{ key.upper() }}" name="transcription-{{ key.upper() }}" class="form-input w-32 text-right sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" data-type="transcription">
+                            <label for="transcription-{{ key.upper() }}" class="text-text-strong">{{ key }}</label>
+                            <input type="number" step="0.00001" id="transcription-{{ key.upper() }}" name="transcription-{{ key.upper() }}" class="input-control w-32 text-right" data-type="transcription">
                         </div>
                         {% endfor %}
                     </div>
@@ -31,7 +32,7 @@
 
                 <!-- Title Generations -->
                 <div class="flex-1">
-                    <h3 class="text-lg font-medium">Title Generations</h3>
+                    <h3 class="section-title text-lg">{{ _('Title Generations') }}</h3>
                     <div class="text-right mb-2">
                         <span class="text-sm text-gray-500">Price per Execution ($)</span>
                     </div>
@@ -40,10 +41,10 @@
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="title_generation-{{ model_id }}" class="text-gray-700">{{ model_id }}</label>
+                                    <label for="title_generation-{{ model_id }}" class="text-text-strong">{{ model_id }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <input type="number" step="0.00001" id="title_generation-{{ model_id }}" name="title_generation-{{ model_id }}" class="form-input w-32 text-right sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" data-type="title_generation">
+                                    <input type="number" step="0.00001" id="title_generation-{{ model_id }}" name="title_generation-{{ model_id }}" class="input-control w-32 text-right" data-type="title_generation">
                                 </div>
                             </div>
                             {% endfor %}
@@ -56,7 +57,7 @@
 
                 <!-- Workflows -->
                 <div class="flex-1">
-                    <h3 class="text-lg font-medium">Workflows</h3>
+                    <h3 class="section-title text-lg">{{ _('Workflows') }}</h3>
                     <div class="text-right mb-2">
                         <span class="text-sm text-gray-500">Price per Execution ($)</span>
                     </div>
@@ -65,10 +66,10 @@
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="workflow-{{ model_id }}" class="text-gray-700">{{ model_id }}</label>
+                                    <label for="workflow-{{ model_id }}" class="text-text-strong">{{ model_id }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <input type="number" step="0.00001" id="workflow-{{ model_id }}" name="workflow-{{ model_id }}" class="form-input w-32 text-right sm:text-sm rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" data-type="workflow">
+                                    <input type="number" step="0.00001" id="workflow-{{ model_id }}" name="workflow-{{ model_id }}" class="input-control w-32 text-right" data-type="workflow">
                                 </div>
                             </div>
                             {% endfor %}
@@ -77,21 +78,20 @@
                 </div>
             </div>
             <div class="text-right mt-6">
-                <button type="submit" class="btn-save">
-                    {{ _('Save Pricing Configuration') }} <i class="material-icons text-base ml-2">save</i>
+                <button type="submit" class="ui-btn ui-btn--primary inline-flex items-center gap-2">
+                    <i class="material-icons text-base">save</i>{{ _('Save Pricing Configuration') }}
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- Cost Analytics -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold mb-6">Cost Analytics</h2>
+    <div class="surface-section p-6 rounded-lg">
+        <h2 class="section-title text-2xl mb-6">{{ _('Cost Analytics') }}</h2>
 
         <!-- By Component -->
-        <h3 class="text-lg font-medium mb-4">By Component</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 data-table mb-8">
+        <h3 class="section-title text-lg mb-4">{{ _('By Component') }}</h3>
+        <div class="overflow-x-auto surface-section rounded-md mb-8">
+            <table class="table-shell data-table min-w-full">
                 <thead class="bg-gray-50 hidden sm:table-header-group">
                     <tr>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Component</th>
@@ -103,7 +103,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for component in ['transcriptions', 'title_generations', 'workflows'] %}
-                    <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
                         <td data-label="Component" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ component.replace('_', ' ')|title }}</td>
                         <td data-label="Last 24 hours" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_component['24h'][component], 'USD', locale=formatting_locale) }}</td>
                         <td data-label="Last 7 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_component['7d'][component], 'USD', locale=formatting_locale) }}</td>
@@ -116,9 +116,9 @@
         </div>
 
         <!-- By Role -->
-        <h3 class="text-lg font-medium mb-4">By Role</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 data-table">
+        <h3 class="section-title text-lg mb-4">{{ _('By Role') }}</h3>
+        <div class="overflow-x-auto surface-section rounded-md">
+            <table class="table-shell data-table min-w-full">
                 <thead class="bg-gray-50 hidden sm:table-header-group">
                     <tr>
                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
@@ -131,7 +131,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for role, data in metrics.by_role['all'].items()|sort %}
-                    <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0 table-row-interactive">
                         <td data-label="Role" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ role }}</td>
                         <td data-label="Last 24 hours" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_role['24h'].get(role, {}).get('total_cost', 0.00), 'USD', locale=formatting_locale) }}</td>
                         <td data-label="Last 7 days" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.by_role['7d'].get(role, {}).get('total_cost', 0.00), 'USD', locale=formatting_locale) }}</td>

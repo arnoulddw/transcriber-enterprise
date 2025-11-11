@@ -1,6 +1,7 @@
 <!-- app/templates/admin/template_prompts.html -->
 {# Template for managing template prompts in the admin panel #}
 {% extends "admin/base_admin.html" %}
+{% import "layout/components/ui_helpers.html" as ui %}
 
 {% block subtitle %}Manage Workflow Templates{% endblock %}
 
@@ -12,20 +13,29 @@
 {% block admin_content %}
     <p class="text-sm text-gray-600 mb-6">Create and manage reusable workflow templates.</p>
 
+    {% set label_color_class_map = {
+        '#ffffff': 'bg-workflow-label-default',
+        '#ffd1dc': 'bg-workflow-label-pink',
+        '#aec6cf': 'bg-workflow-label-bluegray',
+        '#cfffd1': 'bg-workflow-label-mint',
+        '#fffacd': 'bg-workflow-label-lemon',
+        '#e6e6fa': 'bg-workflow-label-lavender',
+        '#ffb347': 'bg-workflow-label-orange'
+    } %}
+
     {# Button to create a new template #}
     <div class="mb-6">
         <a href="{{ url_for('admin_panel.create_template_workflow') }}"
-           class="btn-create">
-            <i class="material-icons left tiny -ml-1 mr-2">add</i>Create New Workflow Template
+           class="ui-btn ui-btn--success inline-flex items-center gap-2">
+            <i class="material-icons text-base">add</i>{{ _('Create New Workflow Template') }}
         </a>
     </div>
 
     {# Display error if loading failed #}
     {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert">
-            <i class="material-icons left tiny mr-2">warning</i> {# Added mr-2 for spacing #}
-            <strong>Error:</strong> {{ error }}
-        </div>
+        {% call ui.alert(level='danger', title=_('Error:'), extra_classes='mb-4') %}
+            {{ error }}
+        {% endcall %}
     {% endif %}
 
     {# Table to display templates #}
@@ -58,7 +68,8 @@
                         </td>
                         <td data-label="Label Color" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             <div class="flex items-center sm:justify-start justify-end"> {# Wrapper for flex alignment #}
-                                <span class="inline-block w-4 h-4 rounded-full mr-2 border border-gray-300 flex-shrink-0" {% if template.color %}style="background-color: {{ template.color | e }};"{% endif %}></span>
+                                {% set color_class = label_color_class_map.get(template.color, 'bg-workflow-label-default') %}
+                                <span class="color-indicator mr-2 {{ color_class }}"></span>
                                 <span>{{ COLOR_NAME_MAP.get(template.color, template.color) | e }}</span>
                             </div>
                         </td>
@@ -78,7 +89,7 @@
                                    title="Edit Workflow Template">
                                     <i class="material-icons text-base">edit</i>
                                 </a>
-                                <form method="POST" action="{{ url_for('admin_panel.delete_template_workflow', prompt_id=template.id) }}" style="display: inline;" class="delete-template-form">
+                                <form method="POST" action="{{ url_for('admin_panel.delete_template_workflow', prompt_id=template.id) }}" class="delete-template-form inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit"
                                             class="p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"

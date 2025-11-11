@@ -25,6 +25,14 @@ function setJobFinishedOrErrored(value) {
 }
 window.setJobFinishedOrErrored = setJobFinishedOrErrored;
 
+function setProgressBarWidth(progressBarElement, value) {
+    if (!progressBarElement) {
+        return;
+    }
+    const normalizedValue = typeof value === 'number' ? `${value}%` : value;
+    progressBarElement.style.setProperty('--progress', normalizedValue);
+}
+
 
 /**
  * Updates the progress activity display (icon and message).
@@ -291,7 +299,7 @@ function pollProgress(jobId) {
             lastProgressValue = progress;
 
             if (progressBar && progressPercentage) {
-                progressBar.style.width = progress + '%';
+                setProgressBarWidth(progressBar, progress);
                 progressPercentage.textContent = progress + '%';
             }
 
@@ -415,20 +423,20 @@ function resetTranscribeUI(keepProgressBox = false, isErrorState = false) {
         const isCancellationPending = window.cancellationRequestedForJobId === currentJobId;
         if (isCancellationPending) {
             if (progressActivity) updateProgressActivity('cancel', 'Cancellation requested. Waiting for process to stop...', 'text-orange-500');
-            if (progressBar) progressBar.style.width = `${lastProgressValue}%`;
+            if (progressBar) setProgressBarWidth(progressBar, lastProgressValue);
             if (progressPercentage) progressPercentage.textContent = `${lastProgressValue}%`;
         } else if (!jobIsFinishedOrErrored) {
-            if (progressBar) progressBar.style.width = '0%';
+            if (progressBar) setProgressBarWidth(progressBar, 0);
             if (progressPercentage) progressPercentage.textContent = '0%';
             if (progressActivity) updateProgressActivity('info_outline', 'Ready for next job.', 'text-blue-600');
         } else if (isErrorState) {
-            if (progressBar) progressBar.style.width = `${lastProgressValue}%`;
+            if (progressBar) setProgressBarWidth(progressBar, lastProgressValue);
             if (progressPercentage) progressPercentage.textContent = `${lastProgressValue}%`;
         } else if (jobIsFinishedOrErrored && !isErrorState && currentPhase === 'finished') {
-             if (progressBar) progressBar.style.width = '100%';
+             if (progressBar) setProgressBarWidth(progressBar, 100);
              if (progressPercentage) progressPercentage.textContent = '100%';
         } else if (jobIsFinishedOrErrored && !isErrorState && currentPhase === 'cancelled') {
-             if (progressBar) progressBar.style.width = `${lastProgressValue}%`;
+             if (progressBar) setProgressBarWidth(progressBar, lastProgressValue);
              if (progressPercentage) progressPercentage.textContent = `${lastProgressValue}%`;
         }
     }

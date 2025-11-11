@@ -49,6 +49,14 @@ const timeFormulas = {
     }
 };
 
+function setProgressBarWidth(progressBarElement, value) {
+    if (!progressBarElement) {
+        return;
+    }
+    const normalizedValue = typeof value === 'number' ? `${value}%` : value;
+    progressBarElement.style.setProperty('--progress', normalizedValue);
+}
+
 function calculateExpectedProgressData(apiChoice, fileSizeMB, audioLengthMin, scenario) {
     const formulas = timeFormulas[apiChoice]?.[scenario];
 
@@ -177,7 +185,7 @@ async function handleTranscribeSubmit() {
     stopBtn.innerHTML = 'STOP <i class="material-icons right">cancel</i>';
 
     progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
+    setProgressBarWidth(progressBar, 0);
     progressPercentage.textContent = '0%';
     jobFilename = file.name;
     jobApiName = window.API_NAME_MAP_FRONTEND[apiSelect.value] || apiSelect.value;
@@ -307,7 +315,12 @@ async function handleTranscribeSubmit() {
         if (pendingWorkflowPromptTitleElem) pendingWorkflowPromptTitleElem.value = "";
         if (pendingWorkflowPromptColorElem) pendingWorkflowPromptColorElem.value = "";
         const selectedInfoElem = document.getElementById('selectedWorkflowInfo');
-        if (selectedInfoElem) selectedInfoElem.style.display = 'none';
+        if (selectedInfoElem) {
+            selectedInfoElem.textContent = '';
+            selectedInfoElem.classList.add('hidden');
+            selectedInfoElem.style.backgroundColor = '';
+            selectedInfoElem.style.color = '';
+        }
         actionsLogger.debug("Cleared pending workflow fields from main form.");
     });
 }
