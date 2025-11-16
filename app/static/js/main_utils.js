@@ -149,7 +149,7 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
     }
 
     // Base Tailwind classes for all notifications
-    notificationDiv.className = 'w-full max-w-full px-4 py-3 rounded-lg shadow-lg flex items-start sm:items-center gap-3 text-sm transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
+    notificationDiv.className = 'w-full max-w-full px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
 
     // Type-specific Tailwind classes and icons
     let bgColorClass, textColorClass, iconName, iconColorClass;
@@ -185,7 +185,7 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
 
     // Icon element
     const iconElement = document.createElement('i');
-    iconElement.className = `material-icons mr-3 ${iconColorClass}`;
+    iconElement.className = `material-icons mr-3 flex-shrink-0 self-center leading-none ${iconColorClass}`;
     iconElement.textContent = iconName;
 
     // Message content element
@@ -200,7 +200,7 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
     if (persistent || duration === 0 || duration > 10000) {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
-        closeButton.className = `ml-auto -mr-1 flex-shrink-0 p-1 rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-white ${textColorClass}`;
+        closeButton.className = `ml-auto -mr-1 flex-shrink-0 self-center p-1 rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-white ${textColorClass}`;
         closeButton.setAttribute('aria-label', 'Close notification');
         closeButton.innerHTML = '<i class="material-icons text-base">close</i>';
         closeButton.addEventListener('click', () => dismissNotification(notificationDiv));

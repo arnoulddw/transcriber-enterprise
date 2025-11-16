@@ -43,7 +43,7 @@ module.exports = {
           '950': '#1a1a1a',
         },
         // Specific colors from main.css
-        'body-bg': '#f8f9fa',
+        'body-bg': '#ffffff',
         'default-text': '#333',
 
         // Semantic aliases so templates stay descriptive

@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">Create and manage reusable workflow templates.</p>
+    <p class="text-sm text-text-muted mb-6">Create and manage reusable workflow templates.</p>
 
     {% set label_color_class_map = {
         '#ffffff': 'bg-workflow-label-default',
@@ -39,60 +39,60 @@
     {% endif %}
 
     {# Table to display templates #}
-    <div class="shadow border-b border-gray-200 sm:rounded-lg overflow-x-auto mt-4">
-        <table class="min-w-full divide-y divide-gray-200 data-table" id="templatesTable"> {# Added data-table class for responsive stacking via admin.css #}
-            <thead class="bg-gray-50 hidden sm:table-header-group">
+    <div class="table-card overflow-x-auto mt-4">
+        <table class="table-shell min-w-full divide-y divide-border-default data-table" id="templatesTable"> {# Added data-table class for responsive stacking via admin.css #}
+            <thead class="bg-surface-muted hidden sm:table-header-group">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th> {# Centered header #}
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label Color</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unique Users</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Runs</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prompt Text (Preview)</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">ID</th> {# Centered header #}
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Label</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Language</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Label Color</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Unique Users</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Total Runs</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Prompt Text (Preview)</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody id="templatesTableBody" class="bg-white divide-y divide-gray-200">
+            <tbody id="templatesTableBody" class="bg-surface divide-y divide-border-default">
                 {% if templates %}
                     {% for template in templates %}
                     <tr data-prompt-id="{{ template.id }}" class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                        <td data-label="ID" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data #}
+                        <td data-label="ID" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data #}
                             {{ template.id }}
                         </td>
-                        <td data-label="Label" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Label" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.title | e }}
                         </td>
-                        <td data-label="Language" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Language" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.language | upper if template.language else 'All' }}
                         </td>
-                        <td data-label="Label Color" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Label Color" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             <div class="flex items-center sm:justify-start justify-end"> {# Wrapper for flex alignment #}
                                 {% set color_class = label_color_class_map.get(template.color, 'bg-workflow-label-default') %}
                                 <span class="color-indicator mr-2 {{ color_class }}"></span>
                                 <span>{{ COLOR_NAME_MAP.get(template.color, template.color) | e }}</span>
                             </div>
                         </td>
-                        <td data-label="Unique Users" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Unique Users" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.unique_user_count or 0 }}
                         </td>
-                        <td data-label="Total Runs" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Total Runs" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.total_usage_count or 0 }}
                         </td>
-                        <td data-label="Prompt Text (Preview)" class="px-6 py-4 text-sm text-gray-500 max-w-md whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <td data-label="Prompt Text (Preview)" class="px-6 py-4 text-sm text-text-muted max-w-md whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                             {{ template.prompt_text | e | truncate(150) }}
                         </td>
                         <td data-label="Actions" class="px-6 py-4 whitespace-nowrap text-sm font-medium block sm:table-cell text-right sm:text-left relative">
                             <div class="flex items-center sm:justify-start justify-end space-x-1"> {# Reduced space-x-2 to space-x-1 #}
                                 <a href="{{ url_for('admin_panel.edit_template_workflow', prompt_id=template.id) }}"
-                                   class="p-1.5 rounded-full text-gray-400 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   class="p-1.5 rounded-full text-text-muted hover:text-primary hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-primary"
                                    title="Edit Workflow Template">
                                     <i class="material-icons text-base">edit</i>
                                 </a>
                                 <form method="POST" action="{{ url_for('admin_panel.delete_template_workflow', prompt_id=template.id) }}" class="delete-template-form inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit"
-                                            class="p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            class="p-1.5 rounded-full text-text-muted hover:text-danger hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-danger"
                                             data-prompt-id="{{ template.id }}" data-prompt-title="{{ template.title | e }}"
                                             title="Delete Workflow Template">
                                         <i class="material-icons text-base">delete</i>
@@ -104,7 +104,7 @@
                     {% endfor %}
                 {% elif not error %}
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">No template workflows found.</td> {# Adjusted colspan #}
+                        <td colspan="8" class="px-6 py-4 text-center text-text-muted">No template workflows found.</td> {# Adjusted colspan #}
                     </tr>
                 {% endif %}
             </tbody>

@@ -10,33 +10,34 @@
 {% endblock %}
 
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">Understand the user base demographics and behavior, especially regarding signups and usage limits.</p>
+    <section class="page-section space-y-6">
+        <p class="text-sm text-gray-600">Understand the user base demographics and behavior, especially regarding signups and usage limits.</p>
 
-    {# Display error if metrics loading failed #}
-    {% if metrics.get('error') %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert"> {# Increased mb-4 to mb-6 #}
-            <i class="material-icons left tiny mr-2">warning</i> {# Added mr-2 for spacing #}
-            <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
-        </div>
-    {% endif %}
+        {# Display error if metrics loading failed #}
+        {% if metrics.get('error') %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <i class="material-icons left tiny mr-2">warning</i>
+                <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
+            </div>
+        {% endif %}
 
-    {# Signup Metrics #}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"> {# Use grid for layout #}
+        {# Signup Metrics #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> {# Use grid for layout #}
         <div class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-gray-700 font-semibold text-lg mb-4">New User Sign-ups</h2> {# Changed h6 to h2, added text-lg #}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class for responsive stacking #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table"> {# Added data-table class for responsive stacking #}
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Signups</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Period</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Signups</th> {# Centered header #}
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('24h', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('7d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('30d', 0), locale=formatting_locale) }}</td></tr>
-                        <tr class="block sm:table-row"><td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Signups" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative">{{ format_number(metrics.new_signups.get('all', 0), locale=formatting_locale) }}</td></tr>
+                    <tbody class="bg-surface divide-y divide-border-default">
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 24h</td><td data-label="Signups" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('24h', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 7 Days</td><td data-label="Signups" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('7d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0"><td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Last 30 Days</td><td data-label="Signups" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.new_signups.get('30d', 0), locale=formatting_locale) }}</td></tr>
+                        <tr class="block sm:table-row"><td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative">All Time</td><td data-label="Signups" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative">{{ format_number(metrics.new_signups.get('all', 0), locale=formatting_locale) }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -46,31 +47,33 @@
              <h2 class="text-gray-700 font-semibold text-lg mb-4">Additional Insights (Placeholder)</h2>
              <p class="text-gray-500">More user insights can be displayed here.</p>
         </div>
-    </div>
+        </div>
+    </section>
 
     {# Users Hitting Limits #}
+    <section class="page-section space-y-6">
     <div class="bg-white shadow-md rounded-lg p-6">
         <h2 class="text-gray-700 font-semibold text-lg mb-4">Users Currently Hitting Limits</h2> {# Changed h6 to h2, added text-lg #}
         {% if metrics.users_hitting_limits %}
             <p class="text-sm text-gray-600 mb-2">Users who have reached at least one monthly or total transcription/minute/workflow limit based on their role.</p>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table"> {# Added data-table class #}
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th> {# Centered header #}
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Limit(s) Hit</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">User ID</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Username</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Role</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Limit(s) Hit</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-surface divide-y divide-border-default">
                         {% for user_limit in metrics.users_hitting_limits %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="User ID" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">{{ user_limit.id }}</td>
-                            <td data-label="Username" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                            <td data-label="User ID" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ user_limit.id }}</td>
+                            <td data-label="Username" class="px-6 py-4 whitespace-nowrap text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
                                 <a href="{{ url_for('admin_panel.user_details', user_id=user_limit.id) }}" class="text-primary hover:text-primary-dark">{{ user_limit.username | e }}</a>
                             </td>
-                            <td data-label="Role" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ user_limit.role_name | e }}</td>
+                            <td data-label="Role" class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ user_limit.role_name | e }}</td>
                             <td data-label="Limit(s) Hit" class="px-6 py-4 whitespace-normal text-sm text-red-600 block sm:table-cell text-right sm:text-left relative border-b sm:border-none text-xs">
                                <ul class="list-disc list-inside">
                                    {% for limit in user_limit.limits_hit %}
@@ -87,6 +90,7 @@
             <p class="text-gray-500">No users are currently hitting their defined usage limits.</p>
         {% endif %}
     </div>
+    </section>
 
 {% endblock %}
 

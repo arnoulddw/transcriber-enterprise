@@ -17,7 +17,7 @@
     actions=None
 ) -%}
 {# Wrapper handles centering when needed #}
-<div class="{{ 'flex flex-col items-center' if centered else '' }}">
+<div class="page-section {{ 'flex flex-col items-center' if centered else '' }}">
     {# Container toggles between surfaced card and inline section #}
     <div class="{{ wrapper_classes }} {% if surface %}{{ surface_classes }} {{ padding_classes }}{% endif %}">
         <div class="card-header">

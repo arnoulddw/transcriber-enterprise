@@ -34,7 +34,7 @@
 
         {# Admin Sidebar Navigation #}
         <aside id="admin-sidebar"
-               class="fixed inset-y-0 left-0 bg-white w-64 shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-30
+               class="fixed inset-y-0 left-0 bg-surface w-64 shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-30
                       lg:translate-x-0 lg:block lg:flex-shrink-0 lg:pt-16"> {# REMOVED lg:static, lg:inset-0. lg:pt-16 ensures content is below header for fixed sidebar #}
             <div class="flex flex-col h-full">
                 {# Sidebar Header (visible on mobile, part of main nav on desktop) #}
@@ -48,53 +48,53 @@
                 <nav class="flex-grow p-2 space-y-1 overflow-y-auto">
                     <a href="{{ url_for('admin_panel.dashboard') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.dashboard' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.dashboard' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">dashboard</i>Dashboard
                     </a>
                     <a href="{{ url_for('admin_panel.usage_analytics') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.usage_analytics' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.usage_analytics' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">analytics</i>Usage Analytics
                     </a>
                     <a href="{{ url_for('admin_panel.user_insights') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.user_insights' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.user_insights' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">supervised_user_circle</i>User Insights
                     </a>
                     <a href="{{ url_for('admin_panel.performance_errors') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.performance_errors' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.performance_errors' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">error_outline</i>Performance
                     </a>
                     <a href="{{ url_for('admin_panel.costs') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.costs' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.costs' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">monetization_on</i>Costs
                     </a>
  
-                     <div class="border-t border-gray-200 my-2"></div>
+                     <div class="border-t border-border-default my-2"></div>
  
                     <a href="{{ url_for('admin_panel.manage_users') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint == 'admin_panel.manage_users' or request.endpoint == 'admin_panel.user_details' %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint == 'admin_panel.manage_users' or request.endpoint == 'admin_panel.user_details' %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">people</i>Users
                     </a>
                     <a href="{{ url_for('admin_panel.manage_roles') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint.startswith('admin_panel.manage_roles') or request.endpoint.startswith('admin_panel.create_role') or request.endpoint.startswith('admin_panel.edit_role') %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint.startswith('admin_panel.manage_roles') or request.endpoint.startswith('admin_panel.create_role') or request.endpoint.startswith('admin_panel.edit_role') %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">assignment_ind</i>Roles
                     </a>
                     {% if current_user.role.manage_workflow_templates %}
                     <a href="{{ url_for('admin_panel.manage_template_workflows') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium
-                              {% if request.endpoint.startswith('admin_panel.manage_template_workflows') or request.endpoint.startswith('admin_panel.create_template_workflow') or request.endpoint.startswith('admin_panel.edit_template_workflow') %}bg-primary text-white{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                              {% if request.endpoint.startswith('admin_panel.manage_template_workflows') or request.endpoint.startswith('admin_panel.create_template_workflow') or request.endpoint.startswith('admin_panel.edit_template_workflow') %}bg-primary text-white{% else %}text-text-strong hover:bg-surface-muted hover:text-text-strong{% endif %}">
                         <i class="material-icons mr-3">post_add</i>Workflows
                     </a>
                     {% endif %}
 
-                    <div class="mt-auto border-t border-gray-200 pt-2">
+                    <div class="mt-auto border-t border-border-default pt-2">
                         <a href="{{ url_for('main.index') }}"
-                           class="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                           class="flex items-center px-3 py-2 rounded-md text-sm font-medium text-text-strong hover:bg-surface-muted hover:text-text-strong">
                             <i class="material-icons mr-3">arrow_back</i>Back to App
                         </a>
                     </div>
@@ -106,9 +106,9 @@
         {# Main Admin Content Area #}
         <main class="flex-grow min-w-0 py-4 px-0 sm:px-4 lg:ml-64 lg:pt-20">
             <div class="container mx-auto">
-                <div class="surface-card p-6">
-                    <h1 class="text-2xl font-semibold text-gray-800 mb-1">{% block subtitle %}Panel{% endblock %}</h1>
-                    <div class="border-b border-gray-200 mb-6"></div>
+                <div class="p-6">
+                    <h1 class="text-2xl font-semibold text-text-strong mb-1">{% block subtitle %}Panel{% endblock %}</h1>
+                    <div class="border-b border-border-default mb-6"></div>
                     {% block admin_content %}{% endblock %}
                 </div>
             </div>
@@ -118,9 +118,9 @@
 {% else %}
     {# Fallback for non-admin users trying to access admin pages #}
     <div class="flex flex-col items-center justify-center text-center mt-12 p-5">
-        <i class="material-icons text-7xl text-red-600">lock_outline</i>
-        <h4 class="text-2xl font-semibold text-red-600 mt-4">Access Denied</h4>
-        <p class="text-lg text-gray-700 mt-2">Sorry, you do not have permission to access the admin panel.</p>
+        <i class="material-icons text-7xl text-danger">lock_outline</i>
+        <h4 class="text-2xl font-semibold text-danger mt-4">Access Denied</h4>
+        <p class="text-lg text-text-strong mt-2">Sorry, you do not have permission to access the admin panel.</p>
         <a href="{{ url_for('main.index') }}" class="mt-5 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
             <i class="material-icons -ml-1 mr-2">home</i>Go Home
         </a>

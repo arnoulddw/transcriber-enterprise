@@ -10,35 +10,36 @@
 {% endblock %}
 
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">Monitor the reliability of the transcription process and workflow analysis.</p>
+    <section class="page-section space-y-6">
+        <p class="text-sm text-gray-600">Monitor the reliability of the transcription process and workflow analysis.</p>
 
-    {% if metrics.get('error') %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert"> {# Increased mb-4 to mb-6 #}
-            <i class="material-icons left tiny mr-2">warning</i> {# Added mr-2 for spacing #}
-            <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
-        </div>
-    {% endif %}
+        {% if metrics.get('error') %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <i class="material-icons left tiny mr-2">warning</i>
+                <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
+            </div>
+        {% endif %}
 
-    {# Transcription Error Metrics #}
-    <h2 class="text-xl font-semibold text-gray-700 mb-4">Transcription Performance</h2> {# Changed h5 to h2 #}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {# Transcription Error Metrics #}
+        <h2 class="text-xl font-semibold text-gray-800">Transcription Performance</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {# Overall Transcription Error Rate Table #}
         <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Transcription Error Rate (%)</h3> {# Changed h6 to h3, added text-lg #}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class for responsive stacking #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Transcription Error Rate (%)</h3>
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table">
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Period</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Rate</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-surface divide-y divide-border-default">
                         {% set periods_data = ['24h', '7d', '30d', 'all'] %}
                         {% for period in periods_data %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
-                            <td data-label="Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Rate" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                 {{ format_percent(metrics.get('overall_transcription_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>
                         </tr>
@@ -49,25 +50,25 @@
         </div>
         {# API-Specific Transcription Error Rates Table #}
         <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">API-Specific Transcription Error Rates (%)</h3> {# Changed h6 to h3, added text-lg #}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">API-Specific Transcription Error Rates (%)</h3>
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table">
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal leading-tight">API</th>
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 24h</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7d</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30d</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">All Time</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider whitespace-normal leading-tight">API</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 24h</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 7d</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 30d</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">All Time</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-surface divide-y divide-border-default">
                         {% set periods_data_api = ['24h', '7d', '30d', 'all'] %}
                         {% for api_name, display_name in {'gpt-4o-transcribe': 'GPT-4o', 'whisper': 'Whisper', 'assemblyai': 'AssemblyAI'}.items() %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="API" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
+                            <td data-label="API" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
                             {% for period in periods_data_api %}
-                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                     {{ format_percent(metrics.get('api_transcription_error_rates', {}).get(period, {}).get(api_name, 0), locale=formatting_locale) }}
                                 </td>
                             {% endfor %}
@@ -81,7 +82,7 @@
 
     {# Common Transcription Error Types #}
     <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Transcription Error Messages (Top 10)</h3> {# Changed h6 to h3, added text-lg #}
+        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Transcription Error Messages (Top 10)</h3>
         <div class="tab-group" id="transcriptionErrorTabGroup">
             <div role="tablist" aria-label="Transcription Error Periods" class="border-b border-gray-200">
                 <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
@@ -122,19 +123,19 @@
                         class="tab-panel {{ 'hidden' if not loop.first }}"
                     >
                         {% if errors %}
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 common-errors-table data-table"> {# Added data-table class #}
-                                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                            <div class="table-card overflow-x-auto mt-4">
+                                <table class="table-shell min-w-full divide-y divide-border-default common-errors-table data-table">
+                                    <thead class="bg-surface-muted hidden sm:table-header-group">
                                         <tr>
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error Message</th>
-                                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th> {# Centered header #}
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Error Message</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Count</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
+                                    <tbody class="bg-surface divide-y divide-border-default">
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
+                                            <td data-label="Error Message" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -147,30 +148,30 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
+    </section>
 
     {# Workflow Error Metrics #}
-    <div class="border-t border-gray-200 my-6"></div>
-    <h2 class="text-xl font-semibold text-gray-700 mb-4 mt-6">Workflow Performance</h2> {# Changed h5 to h2 #}
+    <section class="page-section space-y-6">
+    <h2 class="text-xl font-semibold text-gray-800">Workflow Performance</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {# Overall Workflow Error Rate Table #}
         <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Workflow Error Rate (%)</h3> {# Changed h6 to h3, added text-lg #}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Workflow Error Rate (%)</h3>
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table">
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Period</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Rate</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-surface divide-y divide-border-default">
                         {% set periods_data_wf_overall = ['24h', '7d', '30d', 'all'] %}
                         {% for period in periods_data_wf_overall %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Period" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
-                            <td data-label="Rate" class="px-4 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Rate" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                 {{ format_percent(metrics.get('overall_workflow_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>
                         </tr>
@@ -182,25 +183,25 @@
         </div>
         {# Workflow Model-Specific Error Rates Table #}
         <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Workflow Model Error Rates (%)</h3> {# Changed h6 to h3, added text-lg #}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 data-table"> {# Added data-table class #}
-                    <thead class="bg-gray-50 hidden sm:table-header-group">
+            <h3 class="text-gray-700 font-semibold text-lg mb-4">Workflow Model Error Rates (%)</h3>
+            <div class="table-card overflow-x-auto mt-4">
+                <table class="table-shell min-w-full divide-y divide-border-default data-table">
+                    <thead class="bg-surface-muted hidden sm:table-header-group">
                         <tr>
-                            <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal leading-tight">Model</th>
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 24h</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 7d</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Last 30d</th> {# Centered header #}
-                            <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">All Time</th> {# Centered header #}
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider whitespace-normal leading-tight">Model</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 24h</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 7d</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 30d</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">All Time</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-surface divide-y divide-border-default">
                         {% set periods_data_wf_model = ['24h', '7d', '30d', 'all'] %}
                         {% for model_id, display_name in supported_workflow_models.items() %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Model" class="px-2 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
+                            <td data-label="Model" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
                             {% for period in periods_data_wf_model %}
-                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-2 py-3 text-sm text-gray-500 block sm:table-cell sm:text-center relative border-b sm:border-none">
+                                <td data-label="{{ period|replace('h', 'h Rate')|replace('d', 'd Rate')|replace('all', 'All Rate') }}" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                     {{ format_percent(metrics.get('workflow_model_error_rates', {}).get(period, {}).get(model_id, 0), locale=formatting_locale) }}
                                 </td>
                             {% endfor %}
@@ -214,7 +215,7 @@
 
     {# Common Workflow Error Types #}
     <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Workflow Error Messages (Top 10)</h3> {# Changed h6 to h3, added text-lg #}
+        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Workflow Error Messages (Top 10)</h3>
         <div class="tab-group" id="workflowErrorTabGroup">
             <div role="tablist" aria-label="Workflow Error Periods" class="border-b border-gray-200">
                 <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
@@ -255,19 +256,19 @@
                         class="tab-panel {{ 'hidden' if not loop.first }}"
                     >
                         {% if errors %}
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 common-errors-table data-table"> {# Added data-table class #}
-                                    <thead class="bg-gray-50 hidden sm:table-header-group">
+                            <div class="table-card overflow-x-auto mt-4">
+                                <table class="table-shell min-w-full divide-y divide-border-default common-errors-table data-table">
+                                    <thead class="bg-surface-muted hidden sm:table-header-group">
                                         <tr>
-                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error Message</th>
-                                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th> {# Centered header #}
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Error Message</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Count</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
+                                    <tbody class="bg-surface divide-y divide-border-default">
                                         {% for error in errors %}
                                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                                            <td data-label="Error Message" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
-                                            <td data-label="Count" class="px-4 py-3 text-sm text-gray-900 block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
+                                            <td data-label="Error Message" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none max-w-md whitespace-normal break-words">{{ error.error_message | e }}</td>
+                                            <td data-label="Count" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative">{{ format_number(error.count, locale=formatting_locale) }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -280,7 +281,7 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
+    </section>
 
 {% endblock %}
 
