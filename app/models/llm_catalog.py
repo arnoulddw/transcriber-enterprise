@@ -43,7 +43,7 @@ _DEFAULT_MODEL_METADATA: Dict[str, Dict[str, Optional[str]]] = {
         "sort_order": 20,
     },
     "gpt-4o": {
-        "display_name": "GPT-4o",
+        "display_name": "OpenAI GPT-4o",
         "provider": "OPENAI",
         "sort_order": 10,
     },
@@ -82,6 +82,16 @@ def seed_from_config() -> None:
     _seed_models_from_config()
 
 
+def _apply_display_name_override(code: Optional[str], db_value: Optional[str]) -> Optional[str]:
+    """
+    Returns the configured display override for an LLM code while preserving DB values.
+    """
+    if not code:
+        return db_value
+    name_map: Dict[str, str] = current_app.config.get("API_PROVIDER_NAME_MAP", {}) or {}
+    return name_map.get(code, db_value)
+
+
 def get_active_models() -> List[Dict[str, Optional[str]]]:
     """
     Returns active LLM models sorted by configured order.
@@ -109,12 +119,13 @@ def get_active_models() -> List[Dict[str, Optional[str]]]:
     rows = cursor.fetchall() or []
     models: List[Dict[str, Optional[str]]] = []
     for row in rows:
+        display_name = _apply_display_name_override(row["code"], row["display_name"])
         models.append(
             {
                 "code": row["code"],
                 "provider": row.get("provider"),
                 "provider_display_name": row.get("provider_display_name"),
-                "display_name": row["display_name"],
+                "display_name": display_name,
                 "permission_key": row.get("permission_key"),
                 "required_api_key": row.get("required_api_key"),
                 "is_default": bool(row.get("is_default", False)),
@@ -149,11 +160,12 @@ def get_model_by_code(code: str) -> Optional[Dict[str, Optional[str]]]:
     row = cursor.fetchone()
     if not row:
         return None
+    display_name = _apply_display_name_override(row["code"], row["display_name"])
     return {
         "code": row["code"],
         "provider": row.get("provider"),
         "provider_display_name": row.get("provider_display_name"),
-        "display_name": row["display_name"],
+        "display_name": display_name,
         "permission_key": row.get("permission_key"),
         "required_api_key": row.get("required_api_key"),
         "is_default": bool(row.get("is_default", False)),
@@ -409,4 +421,3 @@ def _coerce_string(value: Optional[str]) -> Optional[str]:
     if value is None:
         return None
     return str(value)
-

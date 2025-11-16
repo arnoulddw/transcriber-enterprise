@@ -20,23 +20,6 @@ const timeFormulas = {
         'parallel': { upload: (s) => 0.5 + s * 0.1, processing: (l) => 2 + l * 0.1,  transcription: (l) => 5 + l * 1.5 },
         'series':   { upload: (s) => 0.5 + s * 0.1, processing: (l) => 2 + l * 0.1,  transcription: (l) => 5 + l * 3.5 }
     },
-    'gpt-4o-transcribe-diarize': {
-        'no_split': {
-            upload: (s) => 0.5 + s * 0.09,
-            processing: (l) => 2.2 + l * 0.18,
-            transcription: (l) => 18 + l * 4.5
-        },
-        'parallel': {
-            upload: (s) => 0.45 + s * 0.08,
-            processing: (l) => 1.5 + l * 0.12,
-            transcription: (l) => 25 + l * 8.0
-        },
-        'series': {
-            upload: (s) => 0.45 + s * 0.08,
-            processing: (l) => 2.8 + l * 0.25,
-            transcription: (l) => 32 + l * 10.5
-        }
-    },
     'whisper': {
         'no_split': { upload: (s) => 0.5 + s * 0.1, processing: (l) => 1 + l * 0.05, transcription: (l) => 2 + l * 0.2 },
         'parallel': { upload: (s) => 0.5 + s * 0.1, processing: (l) => 2 + l * 0.1,  transcription: (l) => 5 + l * 1.5 },

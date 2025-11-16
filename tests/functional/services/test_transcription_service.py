@@ -88,7 +88,8 @@ def test_process_transcription_success(
                 original_filename='test.mp3',
                 context_prompt="",
                 cancel_event=ANY,
-                audio_length_seconds=60.0
+                audio_length_seconds=60.0,
+                extra_options=None
             )
 
             # 5. Check that the temp file was removed
@@ -96,6 +97,43 @@ def test_process_transcription_success(
 
             # 6. Check that the title generation task was spawned
             mock_title_task.assert_called_once()
+
+
+def test_process_transcription_with_speaker_diarization(
+    app: Flask, logged_in_client_with_permissions, mock_audio_file
+):
+    """Ensure speaker diarization flag is forwarded to the API client when AssemblyAI is used."""
+    with app.app_context():
+        user = get_user_by_username('testuser_permissions')
+    job_id = str(uuid.uuid4())
+
+    with patch('app.services.transcription_service.get_transcription_client') as mock_get_client, \
+         patch('app.services.transcription_service.file_service.get_audio_duration', return_value=(45.0, 0.75)), \
+         patch('app.services.transcription_service.role_model.increment_usage'), \
+         patch('app.services.transcription_service.transcription_model'), \
+         patch('app.services.transcription_service.generate_title_task'), \
+         patch('app.services.transcription_service.file_service.remove_files', return_value=1), \
+         patch('app.services.transcription_service.get_decrypted_api_key', return_value='fake_api_key'):
+
+        mock_client = MagicMock()
+        mock_client.transcribe.return_value = ("Sample text", "en")
+        mock_get_client.return_value = mock_client
+
+        with patch('app.services.transcription_service.user_model.get_user_by_id', return_value=user):
+            transcription_service.process_transcription(
+                app=app,
+                job_id=job_id,
+                user_id=user.id,
+                temp_filename=mock_audio_file,
+                language_code='en',
+                api_choice='assemblyai',
+                original_filename='test.mp3',
+                speaker_diarization_enabled=True
+            )
+
+            assert mock_client.transcribe.call_count == 1
+            kwargs = mock_client.transcribe.call_args.kwargs
+            assert kwargs.get('extra_options') == {'speaker_diarization_enabled': True}
 
 
 def test_process_transcription_api_error(

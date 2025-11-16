@@ -52,7 +52,7 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
     # --- Implementation of Abstract Methods ---
 
     def _get_api_name(self) -> str:
-        return "AssemblyAI"
+        return "AssemblyAI Universal"
 
     def _initialize_client(self, api_key: str) -> None:
         """Configures the AssemblyAI SDK."""
@@ -66,9 +66,13 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
             # Let the Base Class __init__ handle raising TranscriptionConfigurationError
             raise ValueError(f"AssemblyAI SDK configuration failed: {e}") from e
 
-    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str, is_chunk: bool) -> Dict[str, Any]:
+    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str,
+                            is_chunk: bool, extra_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Prepare the TranscriptionConfig parameters for AssemblyAI."""
-        config_params = {}
+        # Ensure we always route to AssemblyAI's multilingual Universal model.
+        config_params: Dict[str, Any] = {
+            'speech_models': ['universal'],
+        }
         log_lang_param_desc = ""
         ui_lang_msg = ""
 
@@ -99,6 +103,13 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
             language_code = 'auto' # Update effective code
 
         # Report language choice progress only once per file/chunk set
+        enable_speaker_labels = bool(extra_options and extra_options.get('speaker_diarization_enabled'))
+        if enable_speaker_labels:
+            config_params['speaker_labels'] = True
+            self.logger.info("Speaker diarization (speaker_labels) enabled for this transcription.")
+            if not is_chunk:
+                self._report_progress("Identifying speakers in the transcript...", False)
+
         if not is_chunk: # AssemblyAI handles splitting internally, only report once
             if ui_lang_msg:
                 self._report_progress(ui_lang_msg, False)
@@ -135,24 +146,24 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
 
         except TranscriptError as aai_error:
             error_msg = str(aai_error)
-            self.logger.error("AssemblyAI API Error: %s", error_msg, exc_info=True)
+            self.logger.error("AssemblyAI Universal API Error: %s", error_msg, exc_info=True)
             # Attempt to map AssemblyAI errors to our custom exceptions
             if "authorization" in error_msg.lower() or "authentication" in error_msg.lower():
-                raise TranscriptionAuthenticationError(f"AssemblyAI: {error_msg}", provider=self._get_api_name()) from aai_error
+                raise TranscriptionAuthenticationError(f"AssemblyAI Universal: {error_msg}", provider=self._get_api_name()) from aai_error
             # Add more specific error mappings if needed (e.g., for rate limits if identifiable)
             else:
-                raise TranscriptionProcessingError(f"AssemblyAI: {error_msg}", provider=self._get_api_name()) from aai_error
+                raise TranscriptionProcessingError(f"AssemblyAI Universal: {error_msg}", provider=self._get_api_name()) from aai_error
         except FileNotFoundError as fnf:
             self.logger.error("File not found during API call: %s", fnf, exc_info=True)
             raise fnf # Re-raise FileNotFoundError
         except Exception as e:
             self.logger.error("Unexpected error during API call: %s", e, exc_info=True)
             # Wrap unexpected errors in our custom exception
-            raise TranscriptionProcessingError(f"Unexpected error during AssemblyAI API call: {e}", provider=self._get_api_name()) from e
+            raise TranscriptionProcessingError(f"Unexpected error during AssemblyAI Universal API call: {e}", provider=self._get_api_name()) from e
 
     def _process_response(self, response: Any, response_format: str) -> Tuple[str, Optional[str]]:
         """
-        Parse the AssemblyAI Transcript object.
+        Parse the AssemblyAI Universal Transcript object.
         Raises:
             TranscriptionProcessingError: If the transcript status is 'error'.
         """
@@ -161,13 +172,27 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         detected_language: Optional[str] = None
 
         if transcript.status == TranscriptStatus.error:
-            error_detail = transcript.error or "Unknown AssemblyAI error"
-            raise TranscriptionProcessingError(f"AssemblyAI transcription failed: {error_detail}", provider=self._get_api_name())
+            error_detail = transcript.error or "Unknown AssemblyAI Universal error"
+            raise TranscriptionProcessingError(f"AssemblyAI Universal transcription failed: {error_detail}", provider=self._get_api_name())
 
         if transcript.status != TranscriptStatus.completed:
-            raise TranscriptionProcessingError(f"AssemblyAI transcription finished with unexpected status: {transcript.status}", provider=self._get_api_name())
+            raise TranscriptionProcessingError(f"AssemblyAI Universal transcription finished with unexpected status: {transcript.status}", provider=self._get_api_name())
 
         transcription_text = transcript.text
+        diarized_utterances = getattr(transcript, 'utterances', None)
+        if diarized_utterances:
+            diarized_lines = []
+            for utterance in diarized_utterances:
+                speaker_label = getattr(utterance, 'speaker', '') or ''
+                utterance_text = getattr(utterance, 'text', '').strip()
+                if not utterance_text:
+                    continue
+                prefix = f"Speaker {speaker_label}: " if speaker_label else ""
+                diarized_lines.append(f"{prefix}{utterance_text}")
+            diarized_text = "\n".join(diarized_lines).strip()
+            if diarized_text:
+                transcription_text = diarized_text
+                self.logger.info("Using diarized transcript with %d utterances.", len(diarized_lines))
         detected_lang_val = getattr(transcript, 'language_code', None)
         if detected_lang_val:
             detected_language = str(detected_lang_val)

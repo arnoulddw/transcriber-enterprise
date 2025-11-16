@@ -54,7 +54,6 @@ def get_user_readiness():
                 'use_api_openai_whisper': role.has_permission('use_api_openai_whisper'),
                 'use_api_openai_gpt_4o_transcribe': role.has_permission('use_api_openai_gpt_4o_transcribe'),
                 'use_api_google_gemini': role.has_permission('use_api_google_gemini'),
-                'use_api_openai_gpt_4o_transcribe_diarize': role.has_permission('use_api_openai_gpt_4o_transcribe_diarize'),
                 'allow_large_files': role.has_permission('allow_large_files'),
                 'allow_context_prompt': role.has_permission('allow_context_prompt'),
                 'allow_download_transcript': role.has_permission('allow_download_transcript'),
@@ -62,7 +61,8 @@ def get_user_readiness():
                 'access_admin_panel': role.has_permission('access_admin_panel'), 
                 'allow_workflows': role.has_permission('allow_workflows'), 
                 'manage_workflow_templates': role.has_permission('manage_workflow_templates'), 
-                'allow_auto_title_generation': role.has_permission('allow_auto_title_generation')
+                'allow_auto_title_generation': role.has_permission('allow_auto_title_generation'),
+                'allow_speaker_diarization': role.has_permission('allow_speaker_diarization')
             }
             limits = {
                 'max_transcriptions_monthly': role.get_limit('max_transcriptions_monthly'),

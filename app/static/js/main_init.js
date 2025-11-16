@@ -4,7 +4,14 @@
 const mainInitLogPrefix = "[MainInitJS]";
 const initLogger = window.logger.scoped("MainInitJS");
 const LARGE_FILE_THRESHOLD_MB = 25; 
-const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe', 'gpt-4o-transcribe-diarize'];
+const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe'];
+const SPEAKER_DIARIZATION_SUPPORTED_APIS = ['assemblyai'];
+const SPEAKER_BTN_DEFAULT_CLASSES = ['bg-white', 'text-gray-700', 'hover:bg-gray-50', 'border-gray-300'];
+const SPEAKER_BTN_ACTIVE_CLASSES = ['bg-green-600', 'text-white', 'hover:bg-green-700', 'border-green-600'];
+
+let speakerDiarizationBtnRef = null;
+let speakerDiarizationInputRef = null;
+let isSpeakerDiarizationActive = false;
 
 // --- Readiness Cache ---
 let readinessCache = null;
@@ -114,6 +121,9 @@ async function fetchReadinessData() {
                 use_api_google_gemini: true,
                 allow_large_files: true, allow_context_prompt: true, allow_download_transcript: true,
                 allow_workflows: true,
+                manage_workflow_templates: true,
+                allow_auto_title_generation: true,
+                allow_speaker_diarization: true,
             },
             limits: {},
             usage: {}
@@ -243,6 +253,7 @@ async function checkTranscribeButtonState() {
     const selectedApiOption = apiSelect.selectedOptions[0];
     const apiKeyRequired = selectedApiOption ? selectedApiOption.dataset.keyRequired : null;
     const isFileSelected = fileInput.files.length > 0;
+    updateSpeakerDiarizationVisibility(selectedApiValue, permissions);
 
     if (toggleContextPromptBtn) {
         const currentPermissions = readinessData.permissions || {};
@@ -294,7 +305,6 @@ async function checkTranscribeButtonState() {
         if (selectedApiValue === 'gpt-4o-transcribe') canUseSelectedApi = permissions.use_api_openai_gpt_4o_transcribe;
         else if (selectedApiValue === 'whisper') canUseSelectedApi = permissions.use_api_openai_whisper;
         else if (selectedApiValue === 'assemblyai') canUseSelectedApi = permissions.use_api_assemblyai;
-        else if (selectedApiValue === 'gpt-4o-transcribe-diarize') canUseSelectedApi = permissions.use_api_openai_gpt_4o_transcribe_diarize;
 
         if (!canUseSelectedApi || (selectedApiOption && selectedApiOption.disabled)) {
             const apiName = window.API_NAME_MAP_FRONTEND[selectedApiValue] || selectedApiValue;
@@ -435,6 +445,44 @@ function updateApiKeyNotificationVisibility(keyStatus, permissions) {
 }
 window.updateApiKeyNotificationVisibility = updateApiKeyNotificationVisibility;
 
+function applySpeakerButtonStyles(isActive) {
+    if (!speakerDiarizationBtnRef) return;
+    const classesToRemove = isActive ? SPEAKER_BTN_DEFAULT_CLASSES : SPEAKER_BTN_ACTIVE_CLASSES;
+    const classesToAdd = isActive ? SPEAKER_BTN_ACTIVE_CLASSES : SPEAKER_BTN_DEFAULT_CLASSES;
+    speakerDiarizationBtnRef.classList.remove(...classesToRemove);
+    speakerDiarizationBtnRef.classList.add(...classesToAdd);
+    speakerDiarizationBtnRef.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+}
+
+function setSpeakerDiarizationState(isActive) {
+    isSpeakerDiarizationActive = Boolean(isActive);
+    if (speakerDiarizationInputRef) {
+        speakerDiarizationInputRef.value = isSpeakerDiarizationActive ? '1' : '';
+    }
+    applySpeakerButtonStyles(isSpeakerDiarizationActive);
+}
+
+function updateSpeakerDiarizationVisibility(selectedApi, permissions = {}) {
+    if (!speakerDiarizationBtnRef) return;
+    const supportsApi = selectedApi && SPEAKER_DIARIZATION_SUPPORTED_APIS.includes(selectedApi);
+    const hasAssemblyPermission = permissions.use_api_assemblyai !== false;
+    const hasDiarizationPermission = permissions.allow_speaker_diarization === true || (!window.IS_MULTI_USER && permissions.allow_speaker_diarization !== false);
+    const shouldShow = supportsApi && hasAssemblyPermission && hasDiarizationPermission;
+
+    if (shouldShow) {
+        speakerDiarizationBtnRef.classList.remove('hidden');
+    } else {
+        if (!speakerDiarizationBtnRef.classList.contains('hidden')) {
+            initLogger.info("Speaker diarization button hidden.", { api: selectedApi, hasPermission });
+        }
+        speakerDiarizationBtnRef.classList.add('hidden');
+        if (isSpeakerDiarizationActive) {
+            setSpeakerDiarizationState(false);
+        }
+    }
+}
+window.updateSpeakerDiarizationVisibility = updateSpeakerDiarizationVisibility;
+
 document.addEventListener('DOMContentLoaded', function() {
     const apiSelect = document.getElementById('apiSelect');
     const contextPromptInput = document.getElementById('contextPrompt');
@@ -446,6 +494,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyWorkflowBtn = document.getElementById('applyWorkflowBtn');
     const workflowModal = document.getElementById('workflowModal'); 
     const removeWorkflowBtn = document.getElementById('removeWorkflowBtn');
+    speakerDiarizationBtnRef = document.getElementById('speakerDiarizationBtn');
+    speakerDiarizationInputRef = document.getElementById('speakerDiarizationInput');
 
 
     if (apiSelect) {
@@ -564,6 +614,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+
+    if (speakerDiarizationBtnRef && speakerDiarizationInputRef) {
+        setSpeakerDiarizationState(false);
+        speakerDiarizationBtnRef.addEventListener('click', function() {
+            if (speakerDiarizationBtnRef.classList.contains('hidden')) {
+                return;
+            }
+            const nextState = !isSpeakerDiarizationActive;
+            setSpeakerDiarizationState(nextState);
+            initLogger.info("Speaker diarization toggled.", { enabled: nextState });
+        });
+    }
 
     if (window.IS_MULTI_USER) {
         const initialKeys = window.API_KEY_STATUS || {};

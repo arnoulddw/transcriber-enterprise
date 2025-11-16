@@ -208,7 +208,7 @@ function fetchApiKeyStatus() {
         if (canUseAssemblyAI && assemblyaiStatusElem && assemblyaiActionsElem) {
             updateStatusElement(assemblyaiStatusElem, assemblyaiActionsElem, null, 'assemblyai', 'Checking...');
         } else if (canUseAssemblyAI) {
-             window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping initial reset.");
+            window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping initial reset.");
         }
 
         if (canUseGemini && geminiStatusElem && geminiActionsElem) {
@@ -239,7 +239,7 @@ function fetchApiKeyStatus() {
             if (canUseAssemblyAI && assemblyaiStatusElem && assemblyaiActionsElem) {
                 updateStatusElement(assemblyaiStatusElem, assemblyaiActionsElem, data.assemblyai, 'assemblyai');
             } else if (canUseAssemblyAI) {
-                 window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping update.");
+                window.logger.debug(userSettingsLogPrefix, "AssemblyAI status elements not found (but permission exists), skipping update.");
             }
 
             if (canUseGemini && geminiStatusElem && geminiActionsElem) {
@@ -438,7 +438,7 @@ function handleApiKeyDelete(button) {
 
     let serviceDisplayName = service.charAt(0).toUpperCase() + service.slice(1);
     if (service === 'openai') serviceDisplayName = 'OpenAI';
-    else if (service === 'assemblyai') serviceDisplayName = 'AssemblyAI';
+    else if (service === 'assemblyai') serviceDisplayName = 'AssemblyAI (Universal)';
     else if (service === 'gemini') serviceDisplayName = 'Google Gemini';
 
     if (!confirm(`Are you sure you want to delete the API key for ${serviceDisplayName}?`)) {

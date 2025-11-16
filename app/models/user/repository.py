@@ -443,6 +443,7 @@ def update_user_role(user_id: int, new_role_id: int) -> bool:
                     'use_api_openai_whisper': new_role.use_api_openai_whisper,
                     'allow_workflows': new_role.allow_workflows,
                     'allow_auto_title_generation': new_role.allow_auto_title_generation,
+                    'allow_speaker_diarization': new_role.allow_speaker_diarization,
                 }
         except Exception as name_err:
             logger.debug(f"[DB:User] update_user_role post-fetch failed to resolve role name for role_id {new_role_id}: {name_err}", exc_info=True)

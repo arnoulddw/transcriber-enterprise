@@ -208,10 +208,6 @@ msgstr "OpenAI (Whisper/GPT-4o)"
 msgid "Use OpenAI GPT-4o Transcribe API"
 msgstr "Usar la API de transcripción de OpenAI GPT-4o"
 
-#: app/forms.py:281
-msgid "Use OpenAI GPT-4o Diarize API"
-msgstr "Usar la API de diarización de OpenAI GPT-4o"
-
 #: app/forms.py:283
 #, fuzzy
 msgid "Use Google Gemini API"
@@ -1190,8 +1186,8 @@ msgstr "OpenAI (Whisper/GPT-4o)"
 
 #: app/templates/layout/modals/api_key_modal.html:38
 #: app/templates/layout/modals/api_key_modal.html:64
-msgid "AssemblyAI"
-msgstr "AssemblyAI"
+msgid "AssemblyAI (Universal)"
+msgstr "AssemblyAI (Universal)"
 
 #: app/templates/layout/modals/api_key_modal.html:39
 #: app/templates/layout/modals/api_key_modal.html:73

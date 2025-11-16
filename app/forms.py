@@ -76,7 +76,7 @@ class ApiKeyForm(FlaskForm):
         choices=[
             ('', '-- Select Service --'),
             ('openai', 'OpenAI (Whisper/GPT-4o)'),
-            ('assemblyai', 'AssemblyAI'),
+            ('assemblyai', 'AssemblyAI (Universal)'),
             ('gemini', 'Google (Gemini)') # Added Gemini
         ],
         validators=[DataRequired(message="Please select an API service.")]
@@ -278,7 +278,6 @@ class AdminRoleForm(FlaskForm):
     use_api_assemblyai = BooleanField(_('Use AssemblyAI API'))
     use_api_openai_whisper = BooleanField(_('Use OpenAI Whisper API'))
     use_api_openai_gpt_4o_transcribe = BooleanField(_('Use OpenAI GPT-4o Transcribe API'))
-    use_api_openai_gpt_4o_transcribe_diarize = BooleanField(_('Use OpenAI GPT-4o Diarize API'))
     # --- MODIFIED: Add use_api_google_gemini field ---
     use_api_google_gemini = BooleanField(_('Use Google Gemini API'))
     # --- END MODIFIED ---
@@ -290,6 +289,7 @@ class AdminRoleForm(FlaskForm):
     allow_workflows = BooleanField(_('Allow Workflows'))
     manage_workflow_templates = BooleanField(_('Manage Workflow Templates (Admin)'))
     allow_auto_title_generation = BooleanField(_('Allow Automatic Title Generation'))
+    allow_speaker_diarization = BooleanField(_('Allow Speaker Diarization (AssemblyAI)'))
 
     # Limits
     limit_daily_cost = FloatField(_('Daily Quota'), validators=[NumberRange(min=0)], default=0.0)

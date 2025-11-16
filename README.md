@@ -2,7 +2,7 @@
 
 **A powerful, self-hostable transcription solution designed for small to medium-sized businesses (SMBs), teams and individuals who need full control over their data and transcription workflow.**
 
-Transcriber Platform turns audio into accurate organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **AssemblyAI**, **OpenAI Whisper** and **OpenAI GPT-4o Transcribe**. It intelligently handles large files, supports single and multi-user modes and includes powerful administrative tools for managing users, costs and custom AI workflows.
+Transcriber Platform turns audio into accurate organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **AssemblyAI Universal** (from AssemblyAI), **OpenAI Whisper** and **OpenAI GPT-4o Transcribe**. It intelligently handles large files, supports single and multi-user modes and includes powerful administrative tools for managing users, costs and custom AI workflows.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/arnoulddw/transcriber-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -22,7 +22,7 @@ Transcriber Platform turns audio into accurate organized text through a user-fri
 ## ✨ Key Features
 
 ### Core Functionality
--   **Multiple Transcription APIs:** Choose from AssemblyAI, OpenAI Whisper or OpenAI GPT-4o Transcribe.
+-   **Multiple Transcription APIs:** Choose from AssemblyAI Universal, OpenAI Whisper or OpenAI GPT-4o Transcribe.
 -   **Large File Handling:** Automatically splits files over 25MB into chunks for seamless processing.
 -   **AI-Powered Title Generation:** Automatically generates a concise title for each transcription.
 -   **Custom AI Workflows:** Execute custom prompts (ex. summarize, extract action items) on transcribed text using LLMs like Google Gemini or OpenAI models.
@@ -85,7 +85,7 @@ This section provides more detailed setup instructions.
 ### Prerequisites
 
 -   **API Keys:** You need API keys for the services you plan to use:
-    -   [AssemblyAI](https://www.assemblyai.com/)
+-   [AssemblyAI (Universal model)](https://www.assemblyai.com/)
     -   [OpenAI](https://platform.openai.com/) (for Whisper, GPT-4o Transcribe and LLM workflows)
     -   [Google Gemini](https://ai.google.dev/) (for title generation and LLM workflows)
 -   **Docker & Docker Compose:** Required for the recommended installation method.

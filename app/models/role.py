@@ -74,10 +74,7 @@ class Role:
     use_api_assemblyai: bool
     use_api_openai_whisper: bool
     use_api_openai_gpt_4o_transcribe: bool
-    use_api_openai_gpt_4o_transcribe_diarize: bool
-    # --- MODIFIED: Added use_api_google_gemini ---
     use_api_google_gemini: bool
-    # --- END MODIFIED ---
     # Feature Permissions
     access_admin_panel: bool
     allow_large_files: bool
@@ -87,6 +84,7 @@ class Role:
     allow_workflows: bool
     manage_workflow_templates: bool
     allow_auto_title_generation: bool
+    allow_speaker_diarization: bool
     # Usage Limits
     limit_daily_cost: float
     limit_weekly_cost: float
@@ -113,16 +111,13 @@ class Role:
         self.default_title_generation_model = kwargs.get('default_title_generation_model') or None
         self.default_workflow_model = kwargs.get('default_workflow_model') or None
         # Process boolean fields
-        # --- MODIFIED: Added use_api_google_gemini to bool_fields ---
         bool_fields = [
             'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
-            'use_api_openai_gpt_4o_transcribe_diarize',
-            'use_api_google_gemini', # Added
+            'use_api_google_gemini',
             'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
             'allow_api_key_management', 'allow_download_transcript', 'allow_workflows',
-            'manage_workflow_templates', 'allow_auto_title_generation'
+            'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization'
         ]
-        # --- END MODIFIED ---
         defaults = {field: (1 if field == 'allow_download_transcript' else 0) for field in bool_fields}
         for field in bool_fields:
             setattr(self, field, bool(kwargs.get(field, defaults[field])))
@@ -148,10 +143,6 @@ class Role:
         return f'<Role {self.name} (ID: {self.id})>'
 
     def has_permission(self, permission_name: str) -> bool:
-        # --- HOTFIX: Alias old diarize permission to new one to handle caching issues ---
-        if permission_name == 'use_api_openai_gpt_4o_diarize':
-            permission_name = 'use_api_openai_gpt_4o_transcribe_diarize'
-        # --- END HOTFIX ---
         # --- MODIFIED: Added use_api_google_gemini to valid prefixes (implicitly handled by use_) ---
         if not permission_name.startswith(('use_', 'allow_', 'access_', 'manage_')):
         # --- END MODIFIED ---
@@ -169,10 +160,6 @@ class Role:
 
 def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
     if row:
-        # --- MODIFIED: Added detailed diagnostic log ---
-        diarize_perm_value = row.get('use_api_openai_gpt_4o_transcribe_diarize', 'NOT_FOUND')
-        logging.debug(f"Mapping DB row to Role object. Role Name: '{row.get('name')}'. Diarize Permission Raw Value: '{diarize_perm_value}' (Type: {type(diarize_perm_value)}).")
-        # --- END MODIFIED ---
         if 'max_seconds_monthly' in row:
             row['max_minutes_monthly'] = row.pop('max_seconds_monthly')
         if 'max_seconds_total' in row:
@@ -180,8 +167,6 @@ def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
         # --- MODIFIED: Ensure use_api_google_gemini is present ---
         if 'use_api_google_gemini' not in row:
             row['use_api_google_gemini'] = 0
-        if 'use_api_openai_gpt_4o_transcribe_diarize' not in row:
-            row['use_api_openai_gpt_4o_transcribe_diarize'] = 0
         # --- END MODIFIED ---
         if 'default_transcription_model' not in row:
             row['default_transcription_model'] = None
@@ -191,6 +176,8 @@ def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
             row['default_workflow_model'] = None
         if 'allow_auto_title_generation' not in row:
             row['allow_auto_title_generation'] = 0
+        if 'allow_speaker_diarization' not in row:
+            row['allow_speaker_diarization'] = 0
         return Role(**row)
     return None
 
@@ -212,7 +199,6 @@ def init_roles_table() -> None:
                 use_api_assemblyai BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_openai_whisper BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_openai_gpt_4o_transcribe BOOLEAN NOT NULL DEFAULT FALSE,
-                use_api_openai_gpt_4o_transcribe_diarize BOOLEAN NOT NULL DEFAULT FALSE,
                 use_api_google_gemini BOOLEAN NOT NULL DEFAULT FALSE,
                 access_admin_panel BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_large_files BOOLEAN NOT NULL DEFAULT FALSE,
@@ -222,6 +208,7 @@ def init_roles_table() -> None:
                 allow_workflows BOOLEAN NOT NULL DEFAULT FALSE,
                 manage_workflow_templates BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_auto_title_generation BOOLEAN NOT NULL DEFAULT FALSE,
+                allow_speaker_diarization BOOLEAN NOT NULL DEFAULT FALSE,
                 limit_daily_cost DECIMAL(10, 4) NOT NULL DEFAULT 0.0000,
                 limit_weekly_cost DECIMAL(10, 4) NOT NULL DEFAULT 0.0000,
                 limit_monthly_cost DECIMAL(10, 4) NOT NULL DEFAULT 0.0000,
@@ -257,6 +244,8 @@ def init_roles_table() -> None:
 
         _ensure_column(cursor, "roles", None, "allow_auto_title_generation",
                        "BOOLEAN NOT NULL DEFAULT FALSE", after="manage_workflow_templates", log_prefix=log_prefix)
+        _ensure_column(cursor, "roles", None, "allow_speaker_diarization",
+                       "BOOLEAN NOT NULL DEFAULT FALSE", after="allow_auto_title_generation", log_prefix=log_prefix)
 
         _ensure_column(cursor, "roles", None, "default_transcription_model",
                        "VARCHAR(100) DEFAULT NULL", after="description", log_prefix=log_prefix)
@@ -268,8 +257,6 @@ def init_roles_table() -> None:
         # --- MODIFIED: Add use_api_google_gemini column idempotently ---
         _ensure_column(cursor, "roles", None, "use_api_google_gemini",
                        "BOOLEAN NOT NULL DEFAULT FALSE", after="use_api_openai_gpt_4o_transcribe", log_prefix=log_prefix)
-        _ensure_column(cursor, "roles", None, "use_api_openai_gpt_4o_transcribe_diarize",
-                          "BOOLEAN NOT NULL DEFAULT FALSE", after="use_api_openai_gpt_4o_transcribe", log_prefix=log_prefix)
         # --- END MODIFIED ---
 
         get_db().commit()
@@ -295,11 +282,10 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
     # --- MODIFIED: Add use_api_google_gemini to valid columns ---
     valid_permission_columns = [
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
-        'use_api_openai_gpt_4o_transcribe_diarize',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
         'allow_api_key_management', 'allow_download_transcript',
-        'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation',
+        'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization',
         'default_transcription_model', 'default_title_generation_model', 'default_workflow_model',
         'limit_daily_cost', 'limit_weekly_cost', 'limit_monthly_cost',
         'limit_daily_minutes', 'limit_weekly_minutes', 'limit_monthly_minutes',
@@ -469,11 +455,10 @@ def update_role(role_id: int, role_data: Dict[str, Any]) -> bool:
     updatable_columns = [
         'name', 'description',
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
-        'use_api_openai_gpt_4o_transcribe_diarize',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
         'allow_api_key_management', 'allow_download_transcript',
-        'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation',
+        'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization',
         'default_transcription_model', 'default_title_generation_model', 'default_workflow_model',
         'limit_daily_cost', 'limit_weekly_cost', 'limit_monthly_cost',
         'limit_daily_minutes', 'limit_weekly_minutes', 'limit_monthly_minutes',

@@ -20,7 +20,7 @@
                     <div class="space-y-2">
                         {% for key, name in transcription_models.items()|sort %}
                         <div class="flex items-center justify-between">
-                            <label for="transcription-{{ key.upper() }}" class="text-gray-800">{{ key }}</label>
+                            <label for="transcription-{{ key.upper() }}" class="text-gray-800">{{ name }}</label>
                             <input type="number" step="0.00001" id="transcription-{{ key.upper() }}" name="transcription-{{ key.upper() }}" class="input-control w-32 text-right" data-type="transcription">
                         </div>
                         {% endfor %}
@@ -41,7 +41,7 @@
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="title_generation-{{ model_id }}" class="text-gray-800">{{ model_id }}</label>
+                                    <label for="title_generation-{{ model_id }}" class="text-gray-800">{{ model_name }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input type="number" step="0.00001" id="title_generation-{{ model_id }}" name="title_generation-{{ model_id }}" class="input-control w-32 text-right" data-type="title_generation">
@@ -66,7 +66,7 @@
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="workflow-{{ model_id }}" class="text-gray-800">{{ model_id }}</label>
+                                    <label for="workflow-{{ model_id }}" class="text-gray-800">{{ model_name }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input type="number" step="0.00001" id="workflow-{{ model_id }}" name="workflow-{{ model_id }}" class="input-control w-32 text-right" data-type="workflow">

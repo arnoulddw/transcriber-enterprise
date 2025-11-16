@@ -211,7 +211,6 @@ def create_role():
                 'use_api_assemblyai': form.use_api_assemblyai.data,
                 'use_api_openai_whisper': form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': form.use_api_openai_gpt_4o_transcribe.data,
-                'use_api_openai_gpt_4o_transcribe_diarize': form.use_api_openai_gpt_4o_transcribe_diarize.data,
                 'use_api_google_gemini': form.use_api_google_gemini.data, # Added
                 'access_admin_panel': form.access_admin_panel.data,
                 'allow_large_files': form.allow_large_files.data,
@@ -219,6 +218,7 @@ def create_role():
                 'allow_api_key_management': form.allow_api_key_management.data,
                 'allow_download_transcript': form.allow_download_transcript.data,
                 'allow_workflows': form.allow_workflows.data,
+                'allow_speaker_diarization': form.allow_speaker_diarization.data,
                 'manage_workflow_templates': form.manage_workflow_templates.data,
                 'allow_auto_title_generation': form.allow_auto_title_generation.data,
                 'limit_daily_cost': form.limit_daily_cost.data or 0.0,
@@ -282,7 +282,6 @@ def edit_role(role_id):
                 'use_api_assemblyai': temp_form.use_api_assemblyai.data,
                 'use_api_openai_whisper': temp_form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': temp_form.use_api_openai_gpt_4o_transcribe.data,
-                'use_api_openai_gpt_4o_transcribe_diarize': temp_form.use_api_openai_gpt_4o_transcribe_diarize.data,
                 'use_api_google_gemini': temp_form.use_api_google_gemini.data,
                 'access_admin_panel': temp_form.access_admin_panel.data,
                 'allow_large_files': temp_form.allow_large_files.data,
@@ -290,6 +289,7 @@ def edit_role(role_id):
                 'allow_api_key_management': temp_form.allow_api_key_management.data,
                 'allow_download_transcript': temp_form.allow_download_transcript.data,
                 'allow_workflows': temp_form.allow_workflows.data,
+                'allow_speaker_diarization': temp_form.allow_speaker_diarization.data,
                 'manage_workflow_templates': temp_form.manage_workflow_templates.data,
                 'allow_auto_title_generation': temp_form.allow_auto_title_generation.data,
                 'limit_daily_cost': temp_form.limit_daily_cost.data or 0.0,
@@ -331,7 +331,6 @@ def edit_role(role_id):
                 'use_api_assemblyai': form.use_api_assemblyai.data,
                 'use_api_openai_whisper': form.use_api_openai_whisper.data,
                 'use_api_openai_gpt_4o_transcribe': form.use_api_openai_gpt_4o_transcribe.data,
-                'use_api_openai_gpt_4o_transcribe_diarize': form.use_api_openai_gpt_4o_transcribe_diarize.data,
                 'use_api_google_gemini': form.use_api_google_gemini.data, # Added
                 'access_admin_panel': form.access_admin_panel.data,
                 'allow_large_files': form.allow_large_files.data,
@@ -339,6 +338,7 @@ def edit_role(role_id):
                 'allow_api_key_management': form.allow_api_key_management.data,
                 'allow_download_transcript': form.allow_download_transcript.data,
                 'allow_workflows': form.allow_workflows.data,
+                'allow_speaker_diarization': form.allow_speaker_diarization.data,
                 'manage_workflow_templates': form.manage_workflow_templates.data,
                 'allow_auto_title_generation': form.allow_auto_title_generation.data,
                 'limit_daily_cost': form.limit_daily_cost.data or 0.0,
@@ -469,7 +469,20 @@ def costs():
             flash(f"Warning: Could not load all cost metrics. {metrics['error']}", "warning")
 
         catalog_models = transcription_catalog_model.get_active_models()
-        transcription_models = {model['code']: model['display_name'] for model in catalog_models}
+        catalog_display_map = {model['code']: model['display_name'] for model in catalog_models}
+        provider_codes = current_app.config.get('TRANSCRIPTION_PROVIDERS', [])
+        name_fallbacks = current_app.config.get('API_PROVIDER_NAME_MAP', {})
+
+        transcription_models = {}
+        for code in provider_codes:
+            normalized_code = (code or "").strip()
+            if not normalized_code:
+                continue
+            transcription_models[normalized_code] = (
+                catalog_display_map.get(normalized_code)
+                or name_fallbacks.get(normalized_code)
+                or normalized_code
+            )
         
         # --- FINAL CORRECTED LOGIC ---
         # Create a nested structure: { 'Provider Display Name': { 'model_id': 'model_display_name' } }

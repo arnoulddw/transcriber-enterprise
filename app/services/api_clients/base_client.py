@@ -55,7 +55,8 @@ class BaseTranscriptionClient(ABC):
         pass
 
     @abstractmethod
-    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str, is_chunk: bool) -> Dict[str, Any]:
+    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str,
+                            is_chunk: bool, extra_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Prepare the dictionary of parameters for the API call, excluding the file handle.
         Args:
@@ -63,6 +64,7 @@ class BaseTranscriptionClient(ABC):
             context_prompt: User-provided context.
             response_format: Desired response format ('text', 'json', 'verbose_json', etc.).
             is_chunk: Boolean indicating if this is for a chunk (True) or a single file (False).
+            extra_options: Optional dictionary of provider-specific switches.
         Returns:
             Dictionary of API parameters.
         """
@@ -103,7 +105,7 @@ class BaseTranscriptionClient(ABC):
 
     @abstractmethod
     def _get_api_name(self) -> str:
-        """Return the display name of the API (e.g., "OpenAI Whisper", "AssemblyAI")."""
+        """Return the display name of the API (e.g., "OpenAI Whisper", "AssemblyAI Universal")."""
         pass
 
     # --- Common Workflow Methods ---
@@ -139,7 +141,8 @@ class BaseTranscriptionClient(ABC):
                    progress_callback: ProgressCallback = None,
                    context_prompt: str = "",
                    original_filename: Optional[str] = None,
-                   cancel_event: Optional[threading.Event] = None # Accept cancel event
+                   cancel_event: Optional[threading.Event] = None,
+                   extra_options: Optional[Dict[str, Any]] = None
                    ) -> Tuple[Optional[str], Optional[str]]:
         """
         Transcribes the audio file using the specific API implementation. Handles splitting.
@@ -151,6 +154,7 @@ class BaseTranscriptionClient(ABC):
             context_prompt: Optional context/prompt string.
             original_filename: Original name of the file for logging.
             cancel_event: Optional threading.Event to signal cancellation.
+            extra_options: Optional provider-specific flags (e.g., diarization).
 
         Returns:
             Tuple (transcription_text, detected_language).
@@ -181,7 +185,7 @@ class BaseTranscriptionClient(ABC):
                 mode = "PARALLEL (no prompt)" if not context_prompt else "SEQUENTIAL (prompt provided)"
                 self._report_progress(f"File size ({file_size / 1024 / 1024:.2f}MB) exceeds limit. Starting {mode} chunked transcription.")
                 # Delegate to splitting method
-                return self._split_and_transcribe(audio_file_path, requested_language, context_prompt, display_filename)
+                return self._split_and_transcribe(audio_file_path, requested_language, context_prompt, display_filename, extra_options=extra_options)
             else:
                 # Process single file
                 self._report_progress(f"File size ({file_size / 1024 / 1024:.2f}MB) within limit. Processing as single file.")
@@ -203,7 +207,8 @@ class BaseTranscriptionClient(ABC):
                     language_code=requested_language,
                     context_prompt=context_prompt,
                     response_format=response_format,
-                    is_chunk=False
+                    is_chunk=False,
+                    extra_options=extra_options
                 )
                 # Update response_format based on what _prepare_api_params decided
                 response_format = api_params.get("response_format", response_format)
@@ -274,12 +279,14 @@ class BaseTranscriptionClient(ABC):
 
     def _split_and_transcribe(self, audio_file_path: str, language_code: str,
                              context_prompt: str = "",
-                             display_filename: Optional[str] = None
+                             display_filename: Optional[str] = None,
+                             extra_options: Optional[Dict[str, Any]] = None
                              ) -> Tuple[Optional[str], Optional[str]]:
         """
         Handles splitting large files and transcribing chunks.
         Uses parallel execution if no context prompt is provided, otherwise sequential.
-        Relies on the stored progress_callback and cancel_event.
+        Relies on the stored progress_callback and cancel_event. The extra_options dict
+        is forwarded to provider-specific parameter preparation.
         """
         requested_language = language_code # Store the original request
         mode_log = "Parallel" if not context_prompt else "Sequential"
@@ -338,7 +345,8 @@ class BaseTranscriptionClient(ABC):
                             # Pass base response format, _prepare_api_params will refine it
                             response_format=response_format,
                             context_prompt="", # No prompt for parallel
-                            log_prefix=chunk_log_prefix
+                            log_prefix=chunk_log_prefix,
+                            extra_options=extra_options
                             # max_retries is handled by the method default
                             # cancel_event and progress_callback are accessed via self
                         )
@@ -390,7 +398,8 @@ class BaseTranscriptionClient(ABC):
                             language_code=current_chunk_lang_param,
                             response_format=response_format,
                             context_prompt=context_prompt,
-                            log_prefix=chunk_log_prefix
+                            log_prefix=chunk_log_prefix,
+                            extra_options=extra_options
                             # cancel_event and progress_callback are accessed via self
                         )
                         results[chunk_num] = chunk_result
@@ -490,7 +499,8 @@ class BaseTranscriptionClient(ABC):
 
     def _transcribe_single_chunk_with_retry(self, chunk_path: str, idx: int, total_chunks: int,
                                             language_code: str, response_format: str,
-                                            context_prompt: str = "", log_prefix: str = "", max_retries: int = 3
+                                            context_prompt: str = "", log_prefix: str = "", max_retries: int = 3,
+                                            extra_options: Optional[Dict[str, Any]] = None
                                             ) -> Tuple[str, Optional[str]]:
         """
         Transcribes a single audio chunk with retry logic.
@@ -505,6 +515,7 @@ class BaseTranscriptionClient(ABC):
             context_prompt: Context prompt string.
             log_prefix: Prefix for console logging.
             max_retries: Maximum number of retry attempts.
+            extra_options: Optional provider-specific feature flags.
 
         Returns:
             Tuple (transcription_text, detected_language).
@@ -534,7 +545,8 @@ class BaseTranscriptionClient(ABC):
                     language_code=language_code,
                     context_prompt=context_prompt,
                     response_format=response_format,
-                    is_chunk=True
+                    is_chunk=True,
+                    extra_options=extra_options
                 )
                 actual_response_format = api_params.get("response_format", response_format)
 

@@ -66,6 +66,13 @@
                     <i class="material-icons tiny -ml-0.5 mr-1.5">add_circle_outline</i>{{ _('Context Prompt') }}
                 </button>
                 {% endif %}
+                {% if user_permissions.use_api_assemblyai and user_permissions.allow_speaker_diarization %}
+                <button type="button" id="speakerDiarizationBtn"
+                        class="ui-btn ui-btn--secondary text-xs rounded-full px-3 py-1.5 focus:ring-offset-2 transition hidden"
+                        aria-pressed="false">
+                    <i class="material-icons tiny -ml-0.5 mr-1.5">record_voice_over</i>{{ _('Identify Speakers') }}
+                </button>
+                {% endif %}
                 {% if user_permissions.allow_workflows %}
                 <button type="button" id="applyWorkflowBtn"
                         class="ui-btn ui-btn--secondary text-xs rounded-full px-3 py-1.5 focus:ring-offset-2 transition">
@@ -100,6 +107,7 @@
             <input type="hidden" id="pendingWorkflowPromptTitle" name="pending_workflow_prompt_title">
             <input type="hidden" id="pendingWorkflowPromptColor" name="pending_workflow_prompt_color">
             <input type="hidden" id="pendingWorkflowOriginPromptId" name="pending_workflow_origin_prompt_id">
+            <input type="hidden" id="speakerDiarizationInput" name="speaker_diarization" value="">
 
             {# Submit Button #}
             <div class="mt-6">

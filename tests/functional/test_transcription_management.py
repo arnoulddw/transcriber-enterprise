@@ -124,14 +124,14 @@ class TestTranscriptionManagement:
         assert response.data.count(b"test_") == 2
 
     @patch("app.api.transcriptions.transcription_service.process_transcription")
-    def test_successful_diarization_upload(self, mock_process_transcription, logged_in_client):
+    def test_successful_gpt4o_upload(self, mock_process_transcription, logged_in_client):
         """
-        Test case for a successful file upload with diarization.
+        Test case for a successful file upload using GPT-4o Transcribe.
         """
         mock_process_transcription.return_value = None
 
         data = {
-            "api_choice": "gpt-4o-transcribe-diarize",
+            "api_choice": "gpt-4o-transcribe",
             "language_code": "en",
             "audio_file": (io.BytesIO(b"test audio data"), SUCCESS_TEST_FILENAME),
         }

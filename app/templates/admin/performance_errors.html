@@ -11,6 +11,7 @@
 
 {% block admin_content %}
     <section class="page-section space-y-6">
+        {% set period_labels = {'24h': 'Last 24h', '7d': 'Last 7 Days', '30d': 'Last 30 Days', 'all': 'All Time'} %}
         <p class="text-sm text-gray-600">Monitor the reliability of the transcription process and workflow analysis.</p>
 
         {% if metrics.get('error') %}
@@ -38,7 +39,7 @@
                         {% set periods_data = ['24h', '7d', '30d', 'all'] %}
                         {% for period in periods_data %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period_labels.get(period, period) }}</td>
                             <td data-label="Rate" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                 {{ format_percent(metrics.get('overall_transcription_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>
@@ -64,7 +65,7 @@
                     </thead>
                     <tbody class="bg-surface divide-y divide-border-default">
                         {% set periods_data_api = ['24h', '7d', '30d', 'all'] %}
-                        {% for api_name, display_name in {'gpt-4o-transcribe': 'GPT-4o', 'whisper': 'Whisper', 'assemblyai': 'AssemblyAI'}.items() %}
+                        {% for api_name, display_name in {'gpt-4o-transcribe': 'GPT-4o', 'whisper': 'Whisper', 'assemblyai': 'AssemblyAI Universal'}.items() %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
                             <td data-label="API" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ display_name }}</td>
                             {% for period in periods_data_api %}
@@ -170,7 +171,7 @@
                         {% set periods_data_wf_overall = ['24h', '7d', '30d', 'all'] %}
                         {% for period in periods_data_wf_overall %}
                         <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period | replace('h', ' Hours') | replace('d', ' Days') | replace('all', 'All Time') }}</td>
+                            <td data-label="Period" class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ period_labels.get(period, period) }}</td>
                             <td data-label="Rate" class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
                                 {{ format_percent(metrics.get('overall_workflow_error_rate', {}).get(period, 0), locale=formatting_locale) }}
                             </td>

@@ -122,7 +122,7 @@ class BaseTranscriptionClient(ABC):
 
     @abstractmethod
     def _get_api_name(self) -> str:
-        """Return the display name of the API (e.g., "OpenAI Whisper", "AssemblyAI")."""
+        """Return the display name of the API (e.g., "OpenAI Whisper", "AssemblyAI Universal")."""
         pass
 
     @abstractmethod
@@ -131,7 +131,8 @@ class BaseTranscriptionClient(ABC):
         pass
 
     @abstractmethod
-    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str, is_chunk: bool) -> Dict[str, Any]:
+    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str,
+                            is_chunk: bool, extra_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Prepare the dictionary of parameters for the API call, excluding the file handle.
         Args:
@@ -139,6 +140,7 @@ class BaseTranscriptionClient(ABC):
             context_prompt: User-provided context.
             response_format: Desired response format ('text', 'json', 'verbose_json', etc.).
             is_chunk: Boolean indicating if this is for a chunk (True) or a single file (False).
+            extra_options: Optional provider-specific settings (e.g., diarization toggle).
         Returns:
             Dictionary of API parameters.
         """
@@ -249,7 +251,8 @@ class BaseTranscriptionClient(ABC):
                    context_prompt: str = "",
                    original_filename: Optional[str] = None,
                    cancel_event: Optional[threading.Event] = None,
-                   audio_length_seconds: Optional[float] = None
+                   audio_length_seconds: Optional[float] = None,
+                   extra_options: Optional[Dict[str, Any]] = None
                    ) -> Tuple[Optional[str], Optional[str]]:
         """
         Transcribes the audio file using the specific API implementation. Handles splitting.
@@ -262,6 +265,7 @@ class BaseTranscriptionClient(ABC):
             original_filename: Original name of the file for logging.
             cancel_event: Optional threading.Event to signal cancellation.
             audio_length_seconds: Optional duration of the audio in seconds.
+            extra_options: Optional provider-specific options (e.g., diarization flags).
 
         Returns:
             Tuple (transcription_text, detected_language).
@@ -310,7 +314,7 @@ class BaseTranscriptionClient(ABC):
                 mode = "PARALLEL (no prompt)" if not context_prompt else "SEQUENTIAL (prompt provided)"
                 self._report_progress(f"File exceeds processing limit ({reason_text}). Starting {mode} chunked transcription.")
                 # Delegate to splitting method
-                return self._split_and_transcribe(audio_file_path, requested_language, context_prompt, display_filename)
+                return self._split_and_transcribe(audio_file_path, requested_language, context_prompt, display_filename, extra_options=extra_options)
             else:
                 # Process single file
                 self._report_progress(f"File size ({file_size / 1024 / 1024:.2f}MB) and duration ({duration_seconds:.1f}s) within limit. Processing as single file.")
@@ -326,7 +330,8 @@ class BaseTranscriptionClient(ABC):
                     language_code=requested_language,
                     context_prompt=context_prompt,
                     response_format="verbose_json" if requested_language == 'auto' else "text",
-                    is_chunk=False
+                    is_chunk=False,
+                    extra_options=extra_options
                 )
                 response_format = api_params.get("response_format")
 
@@ -338,8 +343,6 @@ class BaseTranscriptionClient(ABC):
                 raw_response: Optional[Any] = None
 
                 self._report_progress(f"Transcribing with {api_name}...")
-                if "Diarize" in api_name:
-                    self._report_progress("Diarized transcription can take longer than standard transcription. Waiting for provider response...", False)
 
                 for attempt in range(single_file_max_retries + 1):
                     try:
@@ -411,12 +414,14 @@ class BaseTranscriptionClient(ABC):
 
     def _split_and_transcribe(self, audio_file_path: str, language_code: str,
                              context_prompt: str = "",
-                             display_filename: Optional[str] = None
+                             display_filename: Optional[str] = None,
+                             extra_options: Optional[Dict[str, Any]] = None
                              ) -> Tuple[Optional[str], Optional[str]]:
         """
         Handles splitting large files and transcribing chunks.
         Uses parallel execution if no context prompt is provided, otherwise sequential.
-        Relies on the stored progress_callback and cancel_event.
+        Relies on the stored progress_callback and cancel_event. Forwards any extra_options
+        so provider-specific settings (e.g., diarization) apply to chunked requests.
 
         Raises:
             InterruptedError: If the job is cancelled during processing.
@@ -467,7 +472,8 @@ class BaseTranscriptionClient(ABC):
                             self._transcribe_single_chunk_with_retry,
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
                             language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
-                            context_prompt="", log_prefix=chunk_log_prefix, max_retries=chunk_max_retries
+                            context_prompt="", log_prefix=chunk_log_prefix, max_retries=chunk_max_retries,
+                            extra_options=extra_options
                         )
                         futures.append((chunk_num, future))
 
@@ -503,7 +509,8 @@ class BaseTranscriptionClient(ABC):
                         chunk_result = self._transcribe_single_chunk_with_retry(
                             chunk_path=chunk_path, idx=chunk_num, total_chunks=total_chunks,
                             language_code=current_chunk_lang_param, response_format="verbose_json" if requested_language == 'auto' else "text",
-                            context_prompt=context_prompt, log_prefix=chunk_log_prefix, max_retries=chunk_max_retries
+                            context_prompt=context_prompt, log_prefix=chunk_log_prefix, max_retries=chunk_max_retries,
+                            extra_options=extra_options
                         )
                         results[chunk_num] = chunk_result
                         self.logger.info(f"{chunk_log_prefix} completed successfully.")
@@ -587,11 +594,15 @@ class BaseTranscriptionClient(ABC):
 
     def _transcribe_single_chunk_with_retry(self, chunk_path: str, idx: int, total_chunks: int,
                                             language_code: str, response_format: str,
-                                            context_prompt: str = "", log_prefix: str = "", max_retries: int = 3
+                                            context_prompt: str = "", log_prefix: str = "", max_retries: int = 3,
+                                            extra_options: Optional[Dict[str, Any]] = None
                                             ) -> Tuple[str, Optional[str]]:
         """
         Transcribes a single audio chunk with retry logic.
         Relies on the stored progress_callback and cancel_event from the instance.
+
+        Args:
+            extra_options: Optional provider-specific options applied to each chunk.
 
         Raises:
             InterruptedError: If cancellation is detected.
@@ -616,7 +627,7 @@ class BaseTranscriptionClient(ABC):
 
                 api_params = self._prepare_api_params(
                     language_code=language_code, context_prompt=context_prompt,
-                    response_format=response_format, is_chunk=True
+                    response_format=response_format, is_chunk=True, extra_options=extra_options
                 )
                 actual_response_format = api_params.get("response_format", response_format)
 

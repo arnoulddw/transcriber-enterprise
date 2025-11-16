@@ -1,6 +1,6 @@
 annotated-types==0.7.0
 anyio==4.10.0
-assemblyai==0.43.1
+assemblyai==0.46.0
 babel==2.17.0
 bcrypt==4.3.0
 CacheControl==0.14.3

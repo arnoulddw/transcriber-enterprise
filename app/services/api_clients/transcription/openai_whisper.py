@@ -31,7 +31,8 @@ class OpenAIWhisperTranscriptionAPI(OpenAIBaseTranscriptionClient):
     def _get_api_name(self) -> str:
         return "OpenAI Whisper" # Updated name
 
-    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str, is_chunk: bool) -> Dict[str, Any]:
+    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str,
+                            is_chunk: bool, extra_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Prepare the dictionary of parameters for the Whisper API call."""
         api_params: Dict[str, Any] = {
             "model": self.MODEL_NAME,

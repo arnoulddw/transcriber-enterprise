@@ -112,10 +112,11 @@ def create_default_roles() -> None:
         'admin': {
             'description': 'Administrator role with all permissions',
             'permissions': {
-                'use_api_assemblyai': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True,
+                'use_api_assemblyai': True, 'use_api_openai_whisper': True, 'use_api_openai_gpt_4o_transcribe': True,
                 'use_api_google_gemini': True, 'access_admin_panel': True, 'allow_large_files': True, 'allow_context_prompt': True,
                 'allow_api_key_management': True, 'allow_download_transcript': True,
                 'allow_workflows': True, 'manage_workflow_templates': True,
+                'allow_auto_title_generation': True, 'allow_speaker_diarization': True,
                 'limit_daily_cost': 0, 'limit_weekly_cost': 0, 'limit_monthly_cost': 0,
                 'limit_daily_minutes': 0, 'limit_weekly_minutes': 0, 'limit_monthly_minutes': 0,
                 'limit_daily_workflows': 0, 'limit_weekly_workflows': 0, 'limit_monthly_workflows': 0,
@@ -130,6 +131,7 @@ def create_default_roles() -> None:
                 'allow_large_files': True, 'allow_context_prompt': True,
                 'allow_api_key_management': True, 'allow_download_transcript': True,
                 'allow_workflows': True, 'manage_workflow_templates': False,
+                'allow_auto_title_generation': True, 'allow_speaker_diarization': False,
                 'limit_daily_cost': 0, 'limit_weekly_cost': 0, 'limit_monthly_cost': 0,
                 'limit_daily_minutes': 0, 'limit_weekly_minutes': 0, 'limit_monthly_minutes': 0,
                 'limit_daily_workflows': 0, 'limit_weekly_workflows': 0, 'limit_monthly_workflows': 50,
@@ -153,16 +155,6 @@ def create_default_roles() -> None:
                 logger.debug(f"{log_prefix} Role '{name}' already exists.")
                 roles_existed_count += 1
         
-        # --- DIAGNOSTIC SELF-CHECK ---
-        if 'admin' in default_roles:
-            admin_role = role_model.get_role_by_name('admin')
-            if admin_role:
-                diarize_perm = admin_role.has_permission('use_api_openai_gpt_4o_transcribe_diarize')
-                logger.debug(f"Self-check after role creation. Admin role 'use_api_openai_gpt_4o_transcribe_diarize' = {diarize_perm}")
-            else:
-                logger.error("Self-check failed. Could not fetch 'admin' role after creation/check.")
-        # --- END DIAGNOSTIC ---
-
         summary = f"Role creation check complete. Created: {roles_created_count}, Existed: {roles_existed_count}."
         logger.info(f"{log_prefix} {summary}")
     except Exception as e:

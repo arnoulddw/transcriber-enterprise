@@ -196,10 +196,6 @@ msgstr ""
 msgid "Use OpenAI GPT-4o Transcribe API"
 msgstr ""
 
-#: app/forms.py:281
-msgid "Use OpenAI GPT-4o Diarize API"
-msgstr ""
-
 #: app/forms.py:283
 msgid "Use Google Gemini API"
 msgstr ""
@@ -1095,7 +1091,7 @@ msgstr ""
 
 #: app/templates/layout/modals/api_key_modal.html:38
 #: app/templates/layout/modals/api_key_modal.html:64
-msgid "AssemblyAI"
+msgid "AssemblyAI (Universal)"
 msgstr ""
 
 #: app/templates/layout/modals/api_key_modal.html:39

@@ -30,7 +30,8 @@ class OpenAIGPT4OTranscribeClient(OpenAIBaseTranscriptionClient):
     def _get_api_name(self) -> str:
         return "OpenAI GPT-4o Transcribe"
 
-    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str, is_chunk: bool) -> Dict[str, Any]:
+    def _prepare_api_params(self, language_code: str, context_prompt: str, response_format: str,
+                            is_chunk: bool, extra_options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Prepare the dictionary of parameters for the OpenAI transcriptions API call."""
         api_params: Dict[str, Any] = {
             "model": self.API_MODEL_PARAM,

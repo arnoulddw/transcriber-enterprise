@@ -29,7 +29,7 @@
                 <select id="apiKeyServiceSelect" name="service" class="input-select">
                     <option value="" disabled selected>{{ _('Choose service') }}</option>
                     <option value="openai">{{ _('OpenAI (Whisper/GPT-4o)') }}</option>
-                    <option value="assemblyai">{{ _('AssemblyAI') }}</option>
+                    <option value="assemblyai">{{ _('AssemblyAI (Universal)') }}</option>
                     <option value="gemini">{{ _('Google (Gemini)') }}</option>
                 </select>
             </div>
@@ -53,7 +53,7 @@
             {% endif %}
             {% if user_permissions.use_api_assemblyai %}
             <li class="py-3 flex justify-between items-center">
-                <span class="text-sm text-text-strong">{{ _('AssemblyAI') }}</span>
+                <span class="text-sm text-text-strong">{{ _('AssemblyAI (Universal)') }}</span>
                 <div class="flex items-center">
                     <span id="assemblyaiKeyStatus" class="text-sm text-text-muted mr-3">{{ _('Checking...') }}</span>
                     <span id="assemblyaiKeyActions"></span>

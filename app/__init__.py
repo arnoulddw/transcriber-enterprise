@@ -426,7 +426,6 @@ def create_app(config_class=Config) -> Flask:
                     'use_api_assemblyai': role.use_api_assemblyai,
                     'use_api_openai_whisper': role.use_api_openai_whisper,
                     'use_api_openai_gpt_4o_transcribe': role.use_api_openai_gpt_4o_transcribe,
-                    'use_api_openai_gpt_4o_transcribe_diarize': role.use_api_openai_gpt_4o_transcribe_diarize,
                     'use_api_google_gemini': role.use_api_google_gemini,
                     'allow_large_files': role.allow_large_files,
                     'allow_context_prompt': role.allow_context_prompt,
@@ -435,7 +434,8 @@ def create_app(config_class=Config) -> Flask:
                     'access_admin_panel': role.access_admin_panel,
                     'allow_workflows': role.allow_workflows,
                     'manage_workflow_templates': role.manage_workflow_templates,
-                    'allow_auto_title_generation': role.allow_auto_title_generation
+                    'allow_auto_title_generation': role.allow_auto_title_generation,
+                    'allow_speaker_diarization': role.allow_speaker_diarization
                 }
         elif not is_multi:
              initial_key_status = {
@@ -445,11 +445,12 @@ def create_app(config_class=Config) -> Flask:
              }
              user_permissions = {
                  'use_api_assemblyai': True, 'use_api_openai_whisper': True,
-                 'use_api_openai_gpt_4o_transcribe': True, 'use_api_openai_gpt_4o_transcribe_diarize': True, 'use_api_google_gemini': True,
+                 'use_api_openai_gpt_4o_transcribe': True, 'use_api_google_gemini': True,
                  'allow_large_files': True, 'allow_context_prompt': True,
                  'allow_download_transcript': True, 'allow_api_key_management': False,
                  'access_admin_panel': False, 'allow_workflows': True,
-                 'manage_workflow_templates': False, 'allow_auto_title_generation': True
+                 'manage_workflow_templates': False, 'allow_auto_title_generation': True,
+                 'allow_speaker_diarization': True
              }
 
         display_name = user.first_name if user and user.first_name else user.username if user else None

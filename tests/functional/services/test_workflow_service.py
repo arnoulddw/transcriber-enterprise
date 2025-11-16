@@ -32,6 +32,7 @@ def workflow_user(app, logged_in_client_with_permissions):
                 "use_api_openai_whisper": True,
                 "allow_auto_title_generation": True,
                 "allow_download_transcript": True,
+                "allow_speaker_diarization": True,
             },
         )
         if workflow_role:

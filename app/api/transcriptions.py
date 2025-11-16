@@ -159,8 +159,17 @@ def transcribe_audio():
                 parsed_pending_workflow_origin_id = int(pending_workflow_origin_prompt_id_str)
             except (ValueError, TypeError): # Added TypeError
                 logging.warning(f"{job_log_prefix} Invalid pending_workflow_origin_prompt_id received: '{pending_workflow_origin_prompt_id_str}'. Ignoring.")
+        diarization_flag_raw = request.form.get('speaker_diarization', '')
+        speaker_diarization_enabled = str(diarization_flag_raw).strip().lower() in ('1', 'true', 'yes', 'on')
+        if api_choice != 'assemblyai':
+            if speaker_diarization_enabled:
+                logging.info(f"{job_log_prefix} Speaker diarization requested but API '{api_choice}' does not support it. Ignoring flag.")
+            speaker_diarization_enabled = False
+        elif speaker_diarization_enabled and not check_permission(user, 'allow_speaker_diarization'):
+            logging.warning(f"{job_log_prefix} User lacks permission to enable speaker diarization. Blocking request.")
+            return jsonify({'error': _('You do not have permission to identify speakers for this model.')}), 403
         
-        logging.debug(f"{job_log_prefix} Params - API: {api_choice}, Lang: {language_code}, Context: {'Yes' if context_prompt else 'No'}, Pending WF Text: {'Set' if pending_workflow_prompt_text else 'Not Set'}, Pending WF Origin ID: {parsed_pending_workflow_origin_id}")
+        logging.debug(f"{job_log_prefix} Params - API: {api_choice}, Lang: {language_code}, Context: {'Yes' if context_prompt else 'No'}, Pending WF Text: {'Set' if pending_workflow_prompt_text else 'Not Set'}, Pending WF Origin ID: {parsed_pending_workflow_origin_id}, Speaker Diarization: {speaker_diarization_enabled}")
 
 
         if api_choice not in active_model_codes:
@@ -230,6 +239,8 @@ def transcribe_audio():
                 pending_workflow_prompt_title,
                 pending_workflow_prompt_color,
                 parsed_pending_workflow_origin_id # Already passed here
+                ,
+                speaker_diarization_enabled
             ),
             daemon=True
         )

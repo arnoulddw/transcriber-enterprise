@@ -87,6 +87,7 @@ def logged_in_client_with_permissions(app, clean_db):
                         current_user.role.allow_workflows = True
                         current_user.role.manage_workflow_templates = True
                         current_user.role.allow_auto_title_generation = True
+                        current_user.role.allow_speaker_diarization = True
                 app._test_workflow_permission_hook = True
             
             # Verify clean state - no roles should exist after clean_db
@@ -113,10 +114,10 @@ def logged_in_client_with_permissions(app, clean_db):
                 'allow_workflows': True,
                 'use_api_openai_whisper': True,
                 'use_api_openai_gpt_4o_transcribe': True,
-                'use_api_openai_gpt_4o_transcribe_diarize': True,
                 'use_api_google_gemini': True,
                 'allow_api_key_management': True,
                 'allow_auto_title_generation': True,
+                'allow_speaker_diarization': True,
                 'allow_download_transcript': True,
                 'access_admin_panel': True,
                 'allow_large_files': True,

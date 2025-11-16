@@ -24,12 +24,6 @@ _DEFAULT_MODEL_METADATA: Dict[str, Dict[str, Optional[str]]] = {
         "required_api_key": "openai",
         "sort_order": 20,
     },
-    "gpt-4o-transcribe-diarize": {
-        "display_name": "OpenAI GPT-4o Diarize",
-        "permission_key": "use_api_openai_gpt_4o_transcribe_diarize",
-        "required_api_key": "openai",
-        "sort_order": 30,
-    },
     "whisper": {
         "display_name": "OpenAI Whisper",
         "permission_key": "use_api_openai_whisper",
@@ -37,7 +31,7 @@ _DEFAULT_MODEL_METADATA: Dict[str, Dict[str, Optional[str]]] = {
         "sort_order": 10,
     },
     "assemblyai": {
-        "display_name": "AssemblyAI",
+        "display_name": "AssemblyAI Universal",
         "permission_key": "use_api_assemblyai",
         "required_api_key": "assemblyai",
         "sort_order": 40,
@@ -80,6 +74,17 @@ def seed_from_config() -> None:
     _seed_languages_from_config()
 
 
+def _apply_display_name_override(code: Optional[str], db_value: Optional[str]) -> Optional[str]:
+    """
+    Returns the configured display override for a model code when available.
+    Falls back to the DB value to avoid mutating stored records.
+    """
+    if not code:
+        return db_value
+    name_map: Dict[str, str] = current_app.config.get("API_PROVIDER_NAME_MAP", {}) or {}
+    return name_map.get(code, db_value)
+
+
 def get_active_models() -> List[Dict[str, Optional[str]]]:
     """
     Returns active transcription models sorted by configured order.
@@ -98,10 +103,12 @@ def get_active_models() -> List[Dict[str, Optional[str]]]:
     rows = cursor.fetchall() or []
     models: List[Dict[str, Optional[str]]] = []
     for row in rows:
+        code = row["code"]
+        display_name = _apply_display_name_override(code, row["display_name"])
         models.append(
             {
-                "code": row["code"],
-                "display_name": row["display_name"],
+                "code": code,
+                "display_name": display_name,
                 "permission_key": row.get("permission_key"),
                 "required_api_key": row.get("required_api_key"),
                 "is_default": bool(row.get("is_default", False)),
@@ -124,9 +131,10 @@ def get_model_by_code(code: str) -> Optional[Dict[str, Optional[str]]]:
     row = cursor.fetchone()
     if not row:
         return None
+    display_name = _apply_display_name_override(row["code"], row["display_name"])
     return {
         "code": row["code"],
-        "display_name": row["display_name"],
+        "display_name": display_name,
         "permission_key": row.get("permission_key"),
         "required_api_key": row.get("required_api_key"),
         "is_default": bool(row.get("is_default", False)),
@@ -225,8 +233,10 @@ def _ensure_languages_table(cursor) -> None:
 
 def _seed_models_from_config() -> None:
     config = current_app.config
-    codes: List[str] = config.get("TRANSCRIPTION_PROVIDERS", [])
-    default_code: Optional[str] = config.get("DEFAULT_TRANSCRIPTION_PROVIDER")
+    raw_codes: List[str] = config.get("TRANSCRIPTION_PROVIDERS", [])
+    codes: List[str] = [code.strip() for code in raw_codes if isinstance(code, str) and code.strip()]
+    default_code_raw: Optional[str] = config.get("DEFAULT_TRANSCRIPTION_PROVIDER")
+    default_code: Optional[str] = default_code_raw.strip() if isinstance(default_code_raw, str) else default_code_raw
     name_map: Dict[str, str] = config.get("API_PROVIDER_NAME_MAP", {})
 
     if not codes:
@@ -251,6 +261,7 @@ def _seed_models_from_config() -> None:
 
     if default_code:
         _set_default_model(default_code)
+    _deactivate_missing_models(codes)
 
 
 def _seed_languages_from_config() -> None:
@@ -354,6 +365,22 @@ def _set_default_model(default_code: str) -> None:
         f"UPDATE {MODELS_TABLE} SET is_default = CASE WHEN code = %s THEN TRUE ELSE FALSE END",
         (default_code,),
     )
+    get_db().commit()
+
+
+def _deactivate_missing_models(active_codes: List[str]) -> None:
+    """
+    Marks catalog models that are no longer configured as inactive so they no longer
+    appear in dropdowns or pricing tables (e.g., removed providers like diarize).
+    """
+    cursor = get_cursor()
+    if not active_codes:
+        cursor.execute(f"UPDATE {MODELS_TABLE} SET is_active = 0")
+        get_db().commit()
+        return
+    placeholders = ", ".join(["%s"] * len(active_codes))
+    sql = f"UPDATE {MODELS_TABLE} SET is_active = 0 WHERE code NOT IN ({placeholders})"
+    cursor.execute(sql, tuple(active_codes))
     get_db().commit()
 
 

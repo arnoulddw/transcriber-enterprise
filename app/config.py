@@ -36,10 +36,9 @@ class Config:
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') # Used for Gemini LLM
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY') # Placeholder for future LLM
     OPENAI_HTTP_TIMEOUT = 120
-    OPENAI_HTTP_TIMEOUT_DIARIZE = 240
 
     # --- Provider Configuration (NEW) ---
-    TRANSCRIPTION_PROVIDERS = os.environ.get('TRANSCRIPTION_PROVIDERS', "assemblyai,whisper,gpt-4o-transcribe,gpt-4o-transcribe-diarize").split(',')
+    TRANSCRIPTION_PROVIDERS = os.environ.get('TRANSCRIPTION_PROVIDERS', "assemblyai,whisper,gpt-4o-transcribe").split(',')
     LLM_PROVIDERS = ["GEMINI", "OPENAI"]
     # Default providers
     DEFAULT_TRANSCRIPTION_PROVIDER = os.environ.get('DEFAULT_TRANSCRIPTION_PROVIDER', 'gpt-4o-transcribe')
@@ -59,17 +58,16 @@ class Config:
 
     API_PROVIDER_NAME_MAP = {
         # Transcription Providers
-        "assemblyai": "AssemblyAI",
+        "assemblyai": "AssemblyAI Universal",
         "whisper": "OpenAI Whisper",
         "gpt-4o-transcribe": "OpenAI GPT-4o Transcribe",
-        "gpt-4o-transcribe-diarize": "OpenAI GPT-4o Diarize",
         # LLM Providers
         "GEMINI": "Google Gemini",
         "OPENAI": "OpenAI",
         # Specific Models (add more as needed for display)
         "gemini-2.0-flash": "Gemini 2.0 Flash",
         "gemini-3.0-flash": "gemini-3.0-flash",
-        "gpt-4o": "gpt-4o",
+        "gpt-4o": "OpenAI GPT-4o",
     }
     # --- END MODIFIED ---
 
@@ -184,16 +182,6 @@ class Config:
             'duration_s': 1380,
             'size_mb': 25,
             'rate_limit_rpm': 500  # requests per minute
-        },
-        'gpt-4o-transcribe-diarize': {
-            'duration_s': 2400, # 40 minutes, but chunking is required over 30s
-            'size_mb': 25,
-            'rate_limit_rpm': 500,
-            'openai_client_max_retries': 0,
-            'single_file_max_retries': 3,
-            'chunk_max_retries': 3,
-            'single_file_retry_delays': [12, 30, 75],
-            'chunk_retry_delays': [12, 30, 75]
         },
         'whisper': {
             'duration_s': None,
