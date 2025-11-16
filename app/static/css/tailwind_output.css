@@ -3307,11 +3307,6 @@ body.admin-panel .toast-container {
   color: rgb(66 66 66 / var(--tw-text-opacity, 1));
 }
 
-.text-gray-900 {
-  --tw-text-opacity: 1;
-  color: rgb(33 33 33 / var(--tw-text-opacity, 1));
-}
-
 .text-green-600 {
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
@@ -3923,29 +3918,14 @@ body.admin-panel .toast-container {
   border-color: transparent;
 }
 
-.ui-not-selected\:text-text-muted[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
-  --tw-text-opacity: 1;
-  color: rgb(107 114 128 / var(--tw-text-opacity, 1));
-}
-
 .ui-not-selected\:text-gray-500[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
   --tw-text-opacity: 1;
   color: rgb(158 158 158 / var(--tw-text-opacity, 1));
 }
 
-.ui-not-selected\:hover\:border-border-default:hover[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
-  --tw-border-opacity: 1;
-  border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
-}
-
 .ui-not-selected\:hover\:border-gray-300:hover[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
   --tw-border-opacity: 1;
   border-color: rgb(224 224 224 / var(--tw-border-opacity, 1));
-}
-
-.ui-not-selected\:hover\:text-text-strong:hover[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
-  --tw-text-opacity: 1;
-  color: rgb(17 24 39 / var(--tw-text-opacity, 1));
 }
 
 .ui-not-selected\:hover\:text-gray-700:hover[data-headlessui-state]:not([data-headlessui-state~="selected"]) {
@@ -3957,29 +3937,14 @@ body.admin-panel .toast-container {
   border-color: transparent;
 }
 
-:where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:text-text-muted:not([data-headlessui-state]) {
-  --tw-text-opacity: 1;
-  color: rgb(107 114 128 / var(--tw-text-opacity, 1));
-}
-
 :where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:text-gray-500:not([data-headlessui-state]) {
   --tw-text-opacity: 1;
   color: rgb(158 158 158 / var(--tw-text-opacity, 1));
 }
 
-:where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:hover\:border-border-default:hover:not([data-headlessui-state]) {
-  --tw-border-opacity: 1;
-  border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
-}
-
 :where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:hover\:border-gray-300:hover:not([data-headlessui-state]) {
   --tw-border-opacity: 1;
   border-color: rgb(224 224 224 / var(--tw-border-opacity, 1));
-}
-
-:where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:hover\:text-text-strong:hover:not([data-headlessui-state]) {
-  --tw-text-opacity: 1;
-  color: rgb(17 24 39 / var(--tw-text-opacity, 1));
 }
 
 :where([data-headlessui-state]:not([data-headlessui-state~="selected"])) .ui-not-selected\:hover\:text-gray-700:hover:not([data-headlessui-state]) {
@@ -4125,11 +4090,6 @@ body.admin-panel .toast-container {
 
   .md\:border-t-0 {
     border-top-width: 0px;
-  }
-
-  .md\:border-border-default {
-    --tw-border-opacity: 1;
-    border-color: rgb(229 231 235 / var(--tw-border-opacity, 1));
   }
 
   .md\:border-gray-200 {
