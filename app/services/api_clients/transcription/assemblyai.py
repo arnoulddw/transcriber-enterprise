@@ -2,10 +2,11 @@
 # Client for interacting with the AssemblyAI transcription API.
 
 import os
-from typing import Tuple, Optional, Dict, Any, Type
+import re
+from typing import Tuple, Optional, Dict, Any, Type, List
 
 import assemblyai as aai # Official AssemblyAI SDK
-from assemblyai.types import TranscriptError, TranscriptStatus, LanguageCode
+from assemblyai.types import TranscriptError, TranscriptStatus, LanguageCode, WordBoost
 
 # Import Base Class and project config/exceptions
 from .base_transcription_client import BaseTranscriptionClient
@@ -29,6 +30,10 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
     # The base class will still use this value if its _split_and_transcribe is called,
     # but for AssemblyAI, it's more of a formality as the SDK manages it.
     # We override the max_concurrent_chunks in the __init__ for this client.
+
+    MAX_CONTEXT_PROMPT_WORDS = 120
+    WORD_BOOST_MAX_TERMS = 20
+    WORD_BOOST_MAX_WORDS_PER_TERM = 4
 
     def __init__(self, api_key: str, config: Dict[str, Any]) -> None:
         """Initializes the client and sets API-specific limits from config."""
@@ -76,9 +81,15 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         log_lang_param_desc = ""
         ui_lang_msg = ""
 
-        if context_prompt:
-            self.logger.warning("Context prompt provided but not directly used by AssemblyAI standard transcription.")
-            # Could potentially use word_boost here if needed in the future
+        context_terms = self._extract_context_terms(context_prompt)
+        if context_terms:
+            config_params['keyterms_prompt'] = context_terms
+            config_params['word_boost'] = context_terms
+            config_params['boost_param'] = WordBoost.high
+            self.logger.info(
+                "Context prompt forwarded to AssemblyAI via keyterms_prompt/word_boost (terms: %d).",
+                len(context_terms)
+            )
 
         if language_code == 'auto':
             config_params['language_detection'] = True
@@ -207,3 +218,41 @@ class AssemblyAITranscriptionAPI(BaseTranscriptionClient):
         # AssemblyAI SDK handles many retries internally.
         # We might add specific TranscriptError cases here if needed, but start with none.
         return ()
+
+    def _extract_context_terms(self, raw_prompt: str) -> List[str]:
+        """
+        Parse the raw context prompt and extract short vocab terms that can be passed
+        to AssemblyAI via keyterms_prompt / word_boost.
+        """
+        if not raw_prompt:
+            return []
+
+        tokens = re.split(r'[\n,;]+', raw_prompt)
+        vocab_terms: List[str] = []
+        seen = set()
+        for token in tokens:
+            candidate = token.strip()
+            if not candidate:
+                continue
+            words = re.findall(r'\S+', candidate)
+            if not words:
+                continue
+            if len(words) > self.MAX_CONTEXT_PROMPT_WORDS:
+                words = words[:self.MAX_CONTEXT_PROMPT_WORDS]
+                candidate = " ".join(words)
+            word_count = len(words)
+            if word_count == 0 or word_count > self.WORD_BOOST_MAX_WORDS_PER_TERM:
+                # For long phrases, try to capture the final WORD_BOOST_MAX_WORDS_PER_TERM tokens
+                candidate = " ".join(words[-self.WORD_BOOST_MAX_WORDS_PER_TERM:])
+                word_count = len(candidate.split())
+                if word_count == 0:
+                    continue
+            lower_candidate = candidate.lower()
+            if lower_candidate in seen:
+                continue
+            seen.add(lower_candidate)
+            vocab_terms.append(candidate)
+            if len(vocab_terms) >= self.WORD_BOOST_MAX_TERMS:
+                break
+
+        return vocab_terms

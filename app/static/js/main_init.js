@@ -4,7 +4,7 @@
 const mainInitLogPrefix = "[MainInitJS]";
 const initLogger = window.logger.scoped("MainInitJS");
 const LARGE_FILE_THRESHOLD_MB = 25; 
-const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe'];
+const CONTEXT_PROMPT_SUPPORTED_APIS = ['gpt-4o-transcribe', 'assemblyai'];
 const SPEAKER_DIARIZATION_SUPPORTED_APIS = ['assemblyai'];
 const SPEAKER_BTN_DEFAULT_CLASSES = ['bg-white', 'text-gray-700', 'hover:bg-gray-50', 'border-gray-300'];
 const SPEAKER_BTN_ACTIVE_CLASSES = ['bg-green-600', 'text-white', 'hover:bg-green-700', 'border-green-600'];
@@ -473,7 +473,12 @@ function updateSpeakerDiarizationVisibility(selectedApi, permissions = {}) {
         speakerDiarizationBtnRef.classList.remove('hidden');
     } else {
         if (!speakerDiarizationBtnRef.classList.contains('hidden')) {
-            initLogger.info("Speaker diarization button hidden.", { api: selectedApi, hasPermission });
+            initLogger.info("Speaker diarization button hidden.", {
+                api: selectedApi,
+                hasAssemblyPermission,
+                hasDiarizationPermission,
+                supportsApi
+            });
         }
         speakerDiarizationBtnRef.classList.add('hidden');
         if (isSpeakerDiarizationActive) {
