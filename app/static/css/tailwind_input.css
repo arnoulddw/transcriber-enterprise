@@ -135,6 +135,12 @@ These are processed by PostCSS with the Tailwind plugin.
     .badge-muted {
         @apply bg-gray-100 text-gray-700;
     }
+    .flash-messages-wrapper {
+        @apply px-4 sm:px-6 lg:px-8;
+    }
+    body.admin-panel .flash-messages-wrapper {
+        @apply lg:pl-64;
+    }
 
     .alert {
         @apply rounded-lg px-4 py-3 flex items-center gap-3 border;
