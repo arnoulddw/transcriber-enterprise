@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 from flask_babel import gettext as _, lazy_gettext as _l
 
 # Import extensions and application components
-from app.extensions import limiter # Import limiter instance
+from app.extensions import limiter, csrf # Import limiter instance and CSRF extension
 from app.forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
 from app.services import auth_service, email_service
 from app.services.auth_service import AuthServiceError # Specific exception
@@ -273,6 +273,7 @@ def reset_password_request(token):
 # --- Google Sign-In Callback --- # <<< NEW ROUTE
 
 @auth_bp.route('/api/auth/google-callback', methods=['POST'])
+@csrf.exempt # Google posts the ID token directly, so skip default CSRF validation
 @limiter.limit(limit_oauth_attempts) # Apply rate limiting
 def google_callback():
     """Handles the callback from Google Sign-In (receives ID token)."""
@@ -287,13 +288,23 @@ def google_callback():
         logging.error(f"{log_prefix} Attempted Google Sign-In callback, but GOOGLE_CLIENT_ID is not configured.")
         return jsonify({'success': False, 'error': _('Google Sign-In is not configured on the server.')}), 500
 
-    # Get the ID token from the JSON payload sent by the frontend JS
-    data = request.get_json()
-    if not data or 'id_token' not in data:
-        logging.error(f"{log_prefix} Invalid request: Missing 'id_token' in JSON payload.")
-        return jsonify({'success': False, 'error': _('Invalid request payload.')}), 400
+    # Get the ID token from the request payload (Google may post JSON or form data)
+    id_token_str = None
+    payload_source = None
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        id_token_str = data.get('id_token') or data.get('credential')
+        payload_source = 'json' if id_token_str else None
+    if not id_token_str and request.form:
+        id_token_str = request.form.get('id_token') or request.form.get('credential')
+        payload_source = payload_source or 'form'
 
-    id_token_str = data['id_token']
+    if not id_token_str:
+        logging.error(
+            f"{log_prefix} Invalid request: Missing ID token. "
+            f"Content-Type={request.content_type}, payload_source={payload_source}"
+        )
+        return jsonify({'success': False, 'error': _('Invalid request payload.')}), 400
 
     try:
         # Verify the token and get user info
@@ -335,7 +346,17 @@ def google_callback():
         elif next_page:
             logging.warning(f"{log_prefix} Invalid 'next' parameter during OAuth callback: {next_page}. Redirecting home.")
 
-        return jsonify({'success': True, 'message': _('Login successful.'), 'redirect': redirect_url}), 200
+        wants_json = (
+            request.is_json
+            or request.accept_mimetypes.best == 'application/json'
+            or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        )
+
+        if wants_json:
+            return jsonify({'success': True, 'message': _('Login successful.'), 'redirect': redirect_url}), 200
+
+        # Default browser POST (e.g., from Google redirect) should navigate to the target page.
+        return redirect(redirect_url)
 
     except AuthServiceError as e:
         logging.error(f"{log_prefix} Authentication service error: {e}")
