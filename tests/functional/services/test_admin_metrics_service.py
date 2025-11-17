@@ -24,7 +24,8 @@ MOCK_TIME_PERIODS = {
 def mock_db_utils():
     """Mocks database utility functions to isolate service logic."""
     with patch('app.services.admin_metrics_service.user_utils', autospec=True) as mock_user_utils, \
-         patch('app.services.admin_metrics_service.transcription_utils', autospec=True) as mock_transcription_utils:
+         patch('app.services.admin_metrics_service.transcription_utils', autospec=True) as mock_transcription_utils, \
+         patch('app.services.admin_metrics_service.display_mapping_service.get_workflow_model_display_map') as mock_workflow_display_map:
         
         # Default return values
         mock_user_utils.count_all_users.return_value = 100
@@ -43,6 +44,7 @@ def mock_db_utils():
         mock_transcription_utils.get_cost_analytics_by_component.return_value = {'transcriptions': 50.0, 'workflows': 25.0}
         mock_transcription_utils.get_cost_analytics_by_role.return_value = {'admin': {'total_cost': 75.0, 'user_count': 1}}
         mock_transcription_utils.count_workflow_jobs_with_filters.return_value = 2
+        mock_workflow_display_map.return_value = {'gemini-2.0-flash': 'Gemini 2.0 Flash'}
 
         yield mock_user_utils, mock_transcription_utils
 

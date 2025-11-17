@@ -1,0 +1,121 @@
+>>> Installing dev dependencies...
+Requirement already satisfied: annotated-types==0.7.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 1)) (0.7.0)
+Requirement already satisfied: anyio==4.10.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 2)) (4.10.0)
+Requirement already satisfied: assemblyai==0.46.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 3)) (0.46.0)
+Requirement already satisfied: babel==2.17.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 4)) (2.17.0)
+Requirement already satisfied: bcrypt==4.3.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 5)) (4.3.0)
+Requirement already satisfied: CacheControl==0.14.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 6)) (0.14.3)
+Requirement already satisfied: cachetools==5.5.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 7)) (5.5.2)
+Requirement already satisfied: certifi==2025.8.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 8)) (2025.8.3)
+Requirement already satisfied: cffi==1.17.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 9)) (1.17.1)
+Requirement already satisfied: charset-normalizer==3.4.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 10)) (3.4.3)
+Requirement already satisfied: click==8.2.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 11)) (8.2.1)
+Requirement already satisfied: cryptography==45.0.6 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 12)) (45.0.6)
+Requirement already satisfied: dnspython==2.7.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 13)) (2.7.0)
+Requirement already satisfied: Flask==3.1.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 14)) (3.1.2)
+Requirement already satisfied: flask-babel==4.0.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 15)) (4.0.0)
+Requirement already satisfied: Flask-Bcrypt==1.0.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 16)) (1.0.1)
+Requirement already satisfied: Flask-Limiter==3.12 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 17)) (3.12)
+Requirement already satisfied: Flask-Login==0.6.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 18)) (0.6.3)
+Requirement already satisfied: Flask-Mail==0.10.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 19)) (0.10.0)
+Requirement already satisfied: Flask-WTF==1.2.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 20)) (1.2.2)
+Requirement already satisfied: google-api-core==2.25.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 21)) (2.25.1)
+Requirement already satisfied: google-auth==2.40.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 22)) (2.40.3)
+Requirement already satisfied: google-genai==1.31.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 23)) (1.31.0)
+Requirement already satisfied: googleapis-common-protos==1.70.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 24)) (1.70.0)
+Requirement already satisfied: gunicorn==23.0.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 25)) (23.0.0)
+Requirement already satisfied: h11==0.16.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 26)) (0.16.0)
+Requirement already satisfied: httpcore==1.0.9 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 27)) (1.0.9)
+Requirement already satisfied: httpx==0.28.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 28)) (0.28.1)
+Requirement already satisfied: idna==3.10 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 29)) (3.10)
+Requirement already satisfied: itsdangerous==2.2.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 30)) (2.2.0)
+Requirement already satisfied: Jinja2==3.1.6 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 31)) (3.1.6)
+Requirement already satisfied: jiter==0.10.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 32)) (0.10.0)
+Requirement already satisfied: limits==5.5.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 33)) (5.5.0)
+Requirement already satisfied: mysql-connector-python==9.4.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 34)) (9.4.0)
+Requirement already satisfied: openai==1.100.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 35)) (1.100.2)
+Requirement already satisfied: packaging==25.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 36)) (25.0)
+Requirement already satisfied: proto-plus==1.26.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 37)) (1.26.1)
+Requirement already satisfied: protobuf==6.32.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 38)) (6.32.0)
+Requirement already satisfied: pyasn1==0.6.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 39)) (0.6.1)
+Requirement already satisfied: pyasn1_modules==0.4.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 40)) (0.4.2)
+Requirement already satisfied: pycparser==2.22 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 41)) (2.22)
+Requirement already satisfied: pydantic==2.11.7 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 42)) (2.11.7)
+Requirement already satisfied: pydantic_core==2.33.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 43)) (2.33.2)
+Requirement already satisfied: pydub==0.25.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 44)) (0.25.1)
+Requirement already satisfied: python-dateutil==2.9.0.post0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 45)) (2.9.0.post0)
+Requirement already satisfied: python-dotenv==1.1.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 46)) (1.1.1)
+Requirement already satisfied: python-json-logger==3.3.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 47)) (3.3.0)
+Requirement already satisfied: requests==2.32.5 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 48)) (2.32.5)
+Requirement already satisfied: rsa==4.9.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 49)) (4.9.1)
+Requirement already satisfied: six==1.17.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 50)) (1.17.0)
+Requirement already satisfied: sniffio==1.3.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 51)) (1.3.1)
+Requirement already satisfied: tenacity==9.1.2 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 52)) (9.1.2)
+Requirement already satisfied: typing_extensions==4.14.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 53)) (4.14.1)
+Requirement already satisfied: urllib3==2.5.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 54)) (2.5.0)
+Requirement already satisfied: websockets==15.0.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 55)) (15.0.1)
+Requirement already satisfied: Werkzeug==3.1.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 56)) (3.1.3)
+Requirement already satisfied: wrapt==1.17.3 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 57)) (1.17.3)
+Requirement already satisfied: WTForms==3.2.1 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 58)) (3.2.1)
+Requirement already satisfied: email-validator==2.3.0 in ./.local/lib/python3.11/site-packages (from -r requirements.txt (line 59)) (2.3.0)
+Collecting pytest==8.4.2 (from -r requirements-dev.txt (line 2))
+  Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+Requirement already satisfied: msgpack<2.0.0,>=0.5.2 in ./.local/lib/python3.11/site-packages (from CacheControl==0.14.3->-r requirements.txt (line 6)) (1.1.2)
+Requirement already satisfied: blinker>=1.9.0 in ./.local/lib/python3.11/site-packages (from Flask==3.1.2->-r requirements.txt (line 14)) (1.9.0)
+Requirement already satisfied: markupsafe>=2.1.1 in ./.local/lib/python3.11/site-packages (from Flask==3.1.2->-r requirements.txt (line 14)) (3.0.3)
+Requirement already satisfied: pytz>=2022.7 in ./.local/lib/python3.11/site-packages (from flask-babel==4.0.0->-r requirements.txt (line 15)) (2025.2)
+Requirement already satisfied: ordered-set<5,>4 in ./.local/lib/python3.11/site-packages (from Flask-Limiter==3.12->-r requirements.txt (line 17)) (4.1.0)
+Requirement already satisfied: rich<14,>=12 in ./.local/lib/python3.11/site-packages (from Flask-Limiter==3.12->-r requirements.txt (line 17)) (13.9.4)
+Requirement already satisfied: deprecated>=1.2 in ./.local/lib/python3.11/site-packages (from limits==5.5.0->-r requirements.txt (line 33)) (1.3.1)
+Requirement already satisfied: distro<2,>=1.7.0 in ./.local/lib/python3.11/site-packages (from openai==1.100.2->-r requirements.txt (line 35)) (1.9.0)
+Requirement already satisfied: tqdm>4 in ./.local/lib/python3.11/site-packages (from openai==1.100.2->-r requirements.txt (line 35)) (4.67.1)
+Requirement already satisfied: typing-inspection>=0.4.0 in ./.local/lib/python3.11/site-packages (from pydantic==2.11.7->-r requirements.txt (line 42)) (0.4.2)
+Collecting iniconfig>=1 (from pytest==8.4.2->-r requirements-dev.txt (line 2))
+  Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting pluggy<2,>=1.5 (from pytest==8.4.2->-r requirements-dev.txt (line 2))
+  Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Requirement already satisfied: pygments>=2.7.2 in ./.local/lib/python3.11/site-packages (from pytest==8.4.2->-r requirements-dev.txt (line 2)) (2.19.2)
+Requirement already satisfied: markdown-it-py>=2.2.0 in ./.local/lib/python3.11/site-packages (from rich<14,>=12->Flask-Limiter==3.12->-r requirements.txt (line 17)) (4.0.0)
+Requirement already satisfied: mdurl~=0.1 in ./.local/lib/python3.11/site-packages (from markdown-it-py>=2.2.0->rich<14,>=12->Flask-Limiter==3.12->-r requirements.txt (line 17)) (0.1.2)
+Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 365.8/365.8 kB 8.8 MB/s eta 0:00:00
+Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+Installing collected packages: pluggy, iniconfig, pytest
+Successfully installed iniconfig-2.3.0 pluggy-1.6.0 pytest-8.4.2
+>>> Running pytest...
+Warning: .env file not found at /app/.env
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-8.4.2, pluggy-1.6.0
+rootdir: /app
+plugins: anyio-4.10.0
+collected 173 items
+
+tests/functional/services/test_transcription_service.py ......           [  3%]
+tests/functional/test_transcription_management.py .....                  [  6%]
+tests/functional/admin/test_admin_api.py .............                   [ 13%]
+tests/functional/admin/test_admin_panel.py ...........                   [ 20%]
+tests/functional/api/test_llm_api.py .........                           [ 25%]
+tests/functional/api/test_transcriptions_api.py ...............          [ 34%]
+tests/functional/routes/test_auth_routes.py .......                      [ 38%]
+tests/functional/routes/test_user_routes.py ...........                  [ 44%]
+tests/functional/services/test_admin_management_service.py ............. [ 52%]
+.....                                                                    [ 54%]
+tests/functional/services/test_admin_metrics_service.py ........         [ 59%]
+tests/functional/services/test_auth_service.py .......                   [ 63%]
+tests/functional/services/test_email_service.py ....                     [ 65%]
+tests/functional/services/test_llm_service.py .............              [ 73%]
+tests/functional/services/test_user_service.py ........                  [ 78%]
+tests/functional/services/test_workflow_service.py ...........           [ 84%]
+tests/functional/workflow/test_workflow_api.py ..........                [ 90%]
+tests/functional/workflow/test_workflow_integration.py ...               [ 91%]
+tests/functional/workflow/test_workflow_management.py .........          [ 97%]
+tests/unit/utils/test_title_utils.py .....                               [100%]
+
+=============================== warnings summary ===============================
+.local/lib/python3.11/site-packages/pydub/utils.py:14
+  /app/.local/lib/python3.11/site-packages/pydub/utils.py:14: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    import audioop
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================== 173 passed, 1 warning in 176.83s (0:02:56) ==================

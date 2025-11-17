@@ -3,7 +3,7 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 
 from flask import current_app # To access config and app context
 
@@ -11,8 +11,9 @@ from flask import current_app # To access config and app context
 from app.models import user_utils
 from app.models import transcription_utils
 from app.models import transcription as transcription_model
-from app.models import llm_catalog as llm_catalog_model
 
+# Shared display-map helpers
+from app.services import display_mapping_service
 # Import MySQL error class for potential specific checks if needed
 from mysql.connector import Error as MySQLError
 
@@ -38,25 +39,19 @@ def _safe_division(numerator: float, denominator: float, default: float = 0.0) -
     return numerator / denominator
 
 
-def _get_supported_llm_models() -> List[str]:
+def _get_supported_llm_models() -> Tuple[List[str], Dict[str, str]]:
     """
-    Returns the list of active LLM model codes from the catalog.
+    Returns the list of active LLM model codes and corresponding display names.
     Falls back to configured defaults if the catalog is unavailable or empty.
     """
-    try:
-        catalog_models = llm_catalog_model.get_active_models()
-    except Exception as catalog_err:
-        logging.warning(f"[AdminMetrics] Failed to load LLM models from catalog: {catalog_err}", exc_info=True)
-        catalog_models = []
-
-    codes = [model["code"] for model in catalog_models if model.get("code")]
-    if codes:
-        return codes
-
-    fallback = current_app.config.get('LLM_MODEL')
-    if fallback:
-        return [fallback]
-    return []
+    display_map = display_mapping_service.get_workflow_model_display_map()
+    codes = list(display_map.keys())
+    if not codes:
+        fallback = current_app.config.get('LLM_MODEL')
+        if fallback:
+            codes = [fallback]
+            display_map = {fallback: display_map.get(fallback) or fallback}
+    return codes, display_map
 
 # --- Dashboard Metrics ---
 def get_admin_dashboard_metrics() -> Dict[str, Any]:
@@ -155,12 +150,13 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
     }
     time_periods = _get_time_periods()
     supported_apis = ['gpt-4o-transcribe', 'whisper', 'assemblyai']
-    supported_workflow_models = _get_supported_llm_models()
+    supported_workflow_models, workflow_display_map = _get_supported_llm_models()
     # Define relevant statuses for volume/duration metrics
     relevant_statuses_for_volume = ('finished', 'cancelled')
 
     try:
         with current_app.app_context():
+            metrics['workflow_model_display_map'] = workflow_display_map
             for key, period in time_periods.items():
                 start, end = period["start"], period["end"]
 
@@ -292,10 +288,11 @@ def get_performance_error_metrics() -> Dict[str, Any]:
     }
     time_periods = _get_time_periods()
     supported_apis = ['gpt-4o-transcribe', 'whisper', 'assemblyai']
-    supported_workflow_models = _get_supported_llm_models()
+    supported_workflow_models, workflow_display_map = _get_supported_llm_models()
 
     try:
         with current_app.app_context():
+            metrics['workflow_model_display_map'] = workflow_display_map
             for key, period in time_periods.items():
                 start, end = period["start"], period["end"]
 

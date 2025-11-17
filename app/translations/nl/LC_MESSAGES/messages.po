@@ -185,13 +185,13 @@ msgid "Description"
 msgstr "Transcriptiemodel"
 
 #: app/forms.py:265
-msgid "Default LLM Model for Title Generations"
-msgstr "Standaard LLM-model voor titelgeneratie"
+msgid "Default Title Generation Model"
+msgstr "Standaardmodel voor titelgeneratie"
 
 #: app/forms.py:271
 #, fuzzy
-msgid "Default LLM Model for Workflows"
-msgstr "U kunt uw Workflows beheren"
+msgid "Default Workflow Model"
+msgstr "Standaard workflowmodel"
 
 #: app/forms.py:278
 #, fuzzy

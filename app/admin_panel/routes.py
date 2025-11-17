@@ -11,6 +11,7 @@ from . import admin_panel_bp
 # Import decorators and services
 from app.core.decorators import admin_required, permission_required
 from app.services import admin_management_service, admin_metrics_service, usage_service
+from app.services import display_mapping_service
 from app.services.admin_management_service import AdminServiceError
 from app.forms import AdminRoleForm, AdminTemplateWorkflowForm # Import the new name
 from app.models import role as role_model
@@ -18,23 +19,18 @@ from app.models import template_prompt as template_prompt_model
 from app.models import transcription_catalog as transcription_catalog_model
 from app.models import llm_catalog as llm_catalog_model
 
-# --- Helper Functions ---
 def _get_common_admin_context():
     """Helper to get frequently used context for admin templates."""
-    workflow_model_id = current_app.config.get('WORKFLOW_LLM_PROVIDER', 'gemini-2.0-flash')
-    workflow_model_display_name = workflow_model_id.replace('-', ' ').replace('_', ' ').title()
-    if 'Gemini' in workflow_model_display_name and 'Flash' in workflow_model_display_name:
-        workflow_model_display_name = workflow_model_display_name.replace('Flash', ' Flash')
-
     try:
         supported_languages = transcription_catalog_model.get_language_map()
     except Exception as catalog_err:
         logging.error(f"[AdminPanel] Failed to load language catalog for admin context: {catalog_err}", exc_info=True)
         supported_languages = current_app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
-    
+
     return {
-        'supported_workflow_models': {workflow_model_id: workflow_model_display_name},
-        'supported_languages': supported_languages
+        'supported_workflow_models': display_mapping_service.get_workflow_model_display_map(),
+        'transcription_models': display_mapping_service.get_transcription_display_map(),
+        'supported_languages': supported_languages,
     }
 
 # --- Dashboard Route ---
@@ -117,15 +113,23 @@ def performance_errors():
         metrics = admin_metrics_service.get_performance_error_metrics()
         if metrics.get('error'):
             flash(f"Warning: Could not load all performance metrics. {metrics['error']}", "warning")
-        return render_template('admin/performance_errors.html', metrics=metrics, supported_workflow_models=context['supported_workflow_models'])
+        return render_template('admin/performance_errors.html', metrics=metrics, **context)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading performance/errors: {e}", exc_info=True)
         flash(f"Error loading performance data: {e}", "danger")
-        return render_template('admin/performance_errors.html', metrics={'error': 'Failed to load performance data.'}, supported_workflow_models=context['supported_workflow_models'])
+        return render_template(
+            'admin/performance_errors.html',
+            metrics={'error': 'Failed to load performance data.'},
+            **context,
+        )
     except Exception as e:
         logging.error(f"{log_prefix} Failed to load performance/errors: {e}", exc_info=True)
         flash("An unexpected error occurred while loading performance data.", "danger")
-        return render_template('admin/performance_errors.html', metrics={'error': 'Failed to load performance data.'}, supported_workflow_models=context['supported_workflow_models'])
+        return render_template(
+            'admin/performance_errors.html',
+            metrics={'error': 'Failed to load performance data.'},
+            **context,
+        )
 
 
 # --- User Management Route ---
@@ -468,21 +472,7 @@ def costs():
         if metrics.get('error'):
             flash(f"Warning: Could not load all cost metrics. {metrics['error']}", "warning")
 
-        catalog_models = transcription_catalog_model.get_active_models()
-        catalog_display_map = {model['code']: model['display_name'] for model in catalog_models}
-        provider_codes = current_app.config.get('TRANSCRIPTION_PROVIDERS', [])
-        name_fallbacks = current_app.config.get('API_PROVIDER_NAME_MAP', {})
-
-        transcription_models = {}
-        for code in provider_codes:
-            normalized_code = (code or "").strip()
-            if not normalized_code:
-                continue
-            transcription_models[normalized_code] = (
-                catalog_display_map.get(normalized_code)
-                or name_fallbacks.get(normalized_code)
-                or normalized_code
-            )
+        transcription_models = display_mapping_service.get_transcription_display_map()
         
         # --- FINAL CORRECTED LOGIC ---
         # Create a nested structure: { 'Provider Display Name': { 'model_id': 'model_display_name' } }

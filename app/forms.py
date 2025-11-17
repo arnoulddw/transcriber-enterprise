@@ -262,13 +262,13 @@ class AdminRoleForm(FlaskForm):
         validate_choice=False
     )
     default_title_generation_model = SelectField(
-        _('Default LLM Model for Title Generations'),
+        _('Default Title Generation Model'),
         validators=[],
         choices=[],
         validate_choice=False
     )
     default_workflow_model = SelectField(
-        _('Default LLM Model for Workflows'),
+        _('Default Workflow Model'),
         validators=[],
         choices=[],
         validate_choice=False

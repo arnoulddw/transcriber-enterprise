@@ -186,13 +186,13 @@ msgid "Description"
 msgstr "Modèle de transcription"
 
 #: app/forms.py:265
-msgid "Default LLM Model for Title Generations"
-msgstr "Modèle LLM par défaut pour la génération de titres"
+msgid "Default Title Generation Model"
+msgstr "Modèle de génération de titres par défaut"
 
 #: app/forms.py:271
 #, fuzzy
-msgid "Default LLM Model for Workflows"
-msgstr "Vous pouvez gérer vos Workflows"
+msgid "Default Workflow Model"
+msgstr "Modèle de workflow par défaut"
 
 #: app/forms.py:278
 #, fuzzy
