@@ -68,4 +68,83 @@ document.addEventListener('DOMContentLoaded', function() {
     setupPasswordToggle('password', 'togglePassword');
     setupPasswordToggle('confirm_password', 'toggleConfirmPassword');
 
+    // --- reCAPTCHA v3 Integration ---
+    const recaptchaForm = document.querySelector('form[data-recaptcha-site-key]');
+    if (recaptchaForm) {
+        const siteKey = recaptchaForm.dataset.recaptchaSiteKey;
+        const actionName = recaptchaForm.dataset.recaptchaAction || 'login';
+        const tokenInput = recaptchaForm.querySelector('input[name="recaptcha_token"]');
+        const isEnterprise = recaptchaForm.dataset.recaptchaEnterprise === 'true';
+        let isRequestInFlight = false;
+        let lastTokenTimestamp = 0;
+
+        const resolveRecaptchaClient = () => {
+            if (!window.grecaptcha) return null;
+            if (isEnterprise && window.grecaptcha.enterprise) {
+                return window.grecaptcha.enterprise;
+            }
+            return window.grecaptcha;
+        };
+
+        const requestRecaptchaToken = () => new Promise((resolve, reject) => {
+            const client = resolveRecaptchaClient();
+            if (!client || typeof client.ready !== 'function' || typeof client.execute !== 'function') {
+                reject(new Error('grecaptcha-not-ready'));
+                return;
+            }
+            client.ready(() => {
+                client.execute(siteKey, { action: actionName })
+                    .then(resolve)
+                    .catch(reject);
+            });
+        });
+
+        recaptchaForm.addEventListener('submit', function(event) {
+            if (!siteKey || !tokenInput) {
+                window.logger.warn(logPrefix, 'reCAPTCHA configuration missing on login form.');
+                return;
+            }
+            const tokenAgeMs = Date.now() - lastTokenTimestamp;
+            if (tokenInput.value && tokenAgeMs < 90000) {
+                window.logger.debug(logPrefix, 'Existing reCAPTCHA token reused for submission.');
+                return;
+            }
+
+            event.preventDefault();
+
+            if (isRequestInFlight) {
+                window.logger.debug(logPrefix, 'reCAPTCHA token request already in progress.');
+                return;
+            }
+
+            isRequestInFlight = true;
+            const submitButton = recaptchaForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            requestRecaptchaToken()
+                .then(token => {
+                    tokenInput.value = token;
+                    lastTokenTimestamp = Date.now();
+                    isRequestInFlight = false;
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                    recaptchaForm.submit();
+                })
+                .catch(error => {
+                    window.logger.error(logPrefix, 'Unable to obtain reCAPTCHA token:', error);
+                    isRequestInFlight = false;
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                    tokenInput.value = '';
+                    alert('reCAPTCHA could not verify your request. Please ensure the script is not being blocked and try again.');
+                });
+        });
+    } else {
+        window.logger.debug(logPrefix, 'No reCAPTCHA-enabled login form detected.');
+    }
+
 }); // End DOMContentLoaded

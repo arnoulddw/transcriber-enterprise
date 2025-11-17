@@ -67,6 +67,7 @@ class LoginForm(FlaskForm):
         validators=[DataRequired(message="Password is required.")]
     )
     remember_me = BooleanField(_('Remember Me'))
+    recaptcha_token = HiddenField(_('reCAPTCHA Token'))
     submit = SubmitField(_('Login'))
 
 

@@ -20,6 +20,7 @@ from app.models.user import User
 from app.models import user, user_utils, user_prompt as user_prompt_model
 from app.models.user_prompt import UserPrompt
 from app.models import transcription as transcription_model 
+from app.extensions import limiter
 
 # Define the Blueprint
 user_settings_bp = Blueprint('user_settings', __name__, url_prefix='/api/user') 
@@ -27,6 +28,7 @@ user_settings_bp = Blueprint('user_settings', __name__, url_prefix='/api/user')
 # --- User Readiness Endpoint ---
 @user_settings_bp.route('/readiness', methods=['GET'])
 @login_required
+@limiter.exempt
 def get_user_readiness():
     """
     API endpoint to get the user's readiness status for transcription.

@@ -25,7 +25,7 @@ from app.models.user import User # For type hinting
 from app.services.user_service import MissingApiKeyError
 from app.services.api_clients.exceptions import TranscriptionApiError
 from app.core.decorators import check_permission, check_usage_limits
-from app.extensions import limiter
+from app.extensions import limiter, build_user_limit_key
 from mysql.connector import Error as MySQLError
 # --- ADDED: Import Optional ---
 from typing import Optional
@@ -34,6 +34,25 @@ from typing import Optional
 
 # Define the Blueprint
 transcriptions_bp = Blueprint('transcriptions', __name__, url_prefix='/api')
+
+
+def transcribe_rate_limit_key() -> str:
+    """
+    Rate limit key that scopes uploads per authenticated user and provider.
+    This keeps limits aligned with billing/plan usage while still falling
+    back to IP-based limits for anonymous users (should not happen here,
+    but the fallback avoids crashes if a session expires mid-request).
+    """
+    provider = None
+    if request.form:
+        provider = request.form.get('api_choice')
+    if not provider and request.is_json:
+        data = request.get_json(silent=True) or {}
+        provider = data.get('api_choice')
+    if not provider:
+        provider = request.args.get('api_choice')
+    provider = (provider or current_app.config.get('DEFAULT_TRANSCRIPTION_PROVIDER', 'default')).strip().lower()
+    return build_user_limit_key(f"transcribe:{provider}")
 
 
 def _compose_error_message(base_message: str, details: Optional[str] = None) -> str:
@@ -47,7 +66,7 @@ def _compose_error_message(base_message: str, details: Optional[str] = None) -> 
 
 @transcriptions_bp.route('/transcribe', methods=['POST'])
 @login_required
-@limiter.limit("10 per hour")
+@limiter.limit("10 per hour", key_func=transcribe_rate_limit_key)
 def transcribe_audio():
     """
     API endpoint to upload an audio file and initiate a transcription job.

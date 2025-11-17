@@ -121,24 +121,6 @@ def generate_title_task(app: Flask, transcription_id: str, user_id: int) -> None
                 transcription_model.update_title_generation_status(transcription_id, 'failed')
                 return
 
-            try:
-                rate_limit_item = parse(TITLE_GENERATION_RATE_LIMIT)
-                limit_key = f"title_gen:{user_id}"
-                allowed = limiter.limiter.test(rate_limit_item, limit_key)
-                if not allowed:
-                    error_reason = "rate_limit_exceeded"
-                    logger.warning(f"{log_prefix} Rate limit check failed (would exceed limit).", extra=log_extra)
-                    transcription_model.update_title_generation_status(transcription_id, 'failed')
-                    return
-                else:
-                    limiter.limiter.hit(rate_limit_item, limit_key)
-                    logger.debug(f"{log_prefix} Rate limit check passed and hit.", extra=log_extra)
-            except Exception as rl_err:
-                 error_reason = "rate_limit_error"
-                 logger.error(f"{log_prefix} Error checking/hitting rate limit: {rl_err}", exc_info=True, extra=log_extra)
-                 transcription_model.update_title_generation_status(transcription_id, 'failed')
-                 return
-
             transcription = transcription_model.get_transcription_by_id(transcription_id, user_id)
             if not transcription or not transcription.get('transcription_text'):
                 error_reason = "transcription_missing_or_empty"
@@ -185,6 +167,24 @@ def generate_title_task(app: Flask, transcription_id: str, user_id: int) -> None
                 logger.debug(f"{log_prefix} Using role-level title generation model override '{model_name}' with provider '{provider_config}'.", extra=log_extra)
             else:
                 logger.debug(f"{log_prefix} Using configured title generation model '{model_name}' with provider '{provider_config}'.", extra=log_extra)
+
+            provider_suffix = (provider_config or 'default').lower()
+            try:
+                rate_limit_item = parse(TITLE_GENERATION_RATE_LIMIT)
+                limit_key = f"title_gen:user:{user_id}:provider:{provider_suffix}"
+                allowed = limiter.limiter.test(rate_limit_item, limit_key)
+                if not allowed:
+                    error_reason = "rate_limit_exceeded"
+                    logger.warning(f"{log_prefix} Rate limit check failed (would exceed limit).", extra=log_extra)
+                    transcription_model.update_title_generation_status(transcription_id, 'failed')
+                    return
+                limiter.limiter.hit(rate_limit_item, limit_key)
+                logger.debug(f"{log_prefix} Rate limit check passed and hit.", extra=log_extra)
+            except Exception as rl_err:
+                error_reason = "rate_limit_error"
+                logger.error(f"{log_prefix} Error checking/hitting rate limit: {rl_err}", exc_info=True, extra=log_extra)
+                transcription_model.update_title_generation_status(transcription_id, 'failed')
+                return
 
             # --- REMOVED: Direct API key fetching from config ---
             # gemini_api_key = app.config.get('GEMINI_API_KEY')

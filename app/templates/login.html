@@ -9,6 +9,13 @@
 {% block head_extra %}
     {{ super() }}
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    {% if title == 'Login' and recaptcha_site_key %}
+        {% if recaptcha_use_enterprise %}
+            <script src="https://www.google.com/recaptcha/enterprise.js?render={{ recaptcha_site_key }}" async defer></script>
+        {% else %}
+            <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}" async defer></script>
+        {% endif %}
+    {% endif %}
 {% endblock %}
 
 
@@ -34,8 +41,17 @@
             {% endif %}
         {% endwith %}
         {% set form_action = url_for('auth.login', next=request.args.get('next')) if title == 'Login' else url_for('auth.register') %}
-        <form method="POST" action="{{ form_action }}" id="{{ title.lower().replace(' ', '-') }}-form" class="space-y-6">
+        {% set recaptcha_enabled = (title == 'Login' and recaptcha_site_key) %}
+        <form method="POST" action="{{ form_action }}" id="{{ title.lower().replace(' ', '-') }}-form" class="space-y-6"
+              {% if recaptcha_enabled %}
+                  data-recaptcha-site-key="{{ recaptcha_site_key }}"
+                  data-recaptcha-action="{{ recaptcha_login_action or 'login' }}"
+                  data-recaptcha-enterprise="{{ 'true' if recaptcha_use_enterprise else 'false' }}"
+              {% endif %}>
             {{ form.hidden_tag() }}
+            {% if form.recaptcha_token is defined and recaptcha_enabled %}
+                {{ form.recaptcha_token(id="recaptcha-token") }}
+            {% endif %}
 
             <div>
                 <label for="{{ form.username.id }}" class="form-label">

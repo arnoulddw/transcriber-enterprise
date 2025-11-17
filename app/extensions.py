@@ -2,7 +2,7 @@
 # Instantiation of Flask extensions.
 
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -24,13 +24,31 @@ login_manager.login_message_category = "info" # Flash message category
 # CSRFProtect for Cross-Site Request Forgery protection
 csrf = CSRFProtect()
 
+# Limiter helper utilities
+def build_user_limit_key(suffix: str = "") -> str:
+    """
+    Returns a limiter key that prioritizes the authenticated user id and falls
+    back to the remote IP for anonymous requests. Optional suffix allows
+    higher-layer code to scope limits per provider or action.
+    """
+    if current_user and getattr(current_user, "is_authenticated", False):
+        base = f"user:{current_user.id}"
+    else:
+        base = f"ip:{get_remote_address() or 'unknown'}"
+    if suffix:
+        return f"{base}:{suffix}"
+    return base
+
+
+def default_rate_limit_key():
+    """Default key function wired into Flask-Limiter."""
+    return build_user_limit_key()
+
+
 # Limiter for rate limiting requests
-# The key function determines how users are identified for rate limiting (e.g., by IP)
 # Default limits and storage URI will be configured in __init__.py using app.config
 limiter = Limiter(
-    key_func=get_remote_address,
-    # storage_uri will be set during init_app
-    # default_limits will be set during init_app
+    key_func=default_rate_limit_key,
     strategy="fixed-window" # Strategy for rate limiting window
 )
 

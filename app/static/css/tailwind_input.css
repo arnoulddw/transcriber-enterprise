@@ -101,13 +101,13 @@ These are processed by PostCSS with the Tailwind plugin.
         @apply mt-1 text-xs text-danger;
     }
     .input-control {
-        @apply form-input block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-150;
+        @apply form-input block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-colors duration-150;
     }
     .input-select {
-        @apply form-select block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-150;
+        @apply form-select block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-colors duration-150;
     }
     .input-textarea {
-        @apply form-textarea block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-150;
+        @apply form-textarea block w-full rounded-md border border-border-default shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-colors duration-150;
     }
 
     .toolbar {

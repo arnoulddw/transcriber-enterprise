@@ -17,7 +17,7 @@ from flask_babel import gettext as _, lazy_gettext as _l
 # Import extensions and application components
 from app.extensions import limiter, csrf # Import limiter instance and CSRF extension
 from app.forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
-from app.services import auth_service, email_service
+from app.services import auth_service, email_service, recaptcha_service
 from app.services.auth_service import AuthServiceError # Specific exception
 from app.models import user as user_model
 
@@ -65,6 +65,24 @@ def login():
         logging.info(f"{log_prefix} Login attempt received.")
 
         try:
+            if recaptcha_service.is_configured():
+                recaptcha_token = form.recaptcha_token.data
+                action_name = current_app.config.get('RECAPTCHA_V3_LOGIN_ACTION', 'login')
+                min_score = current_app.config.get('RECAPTCHA_V3_LOGIN_THRESHOLD', 0.5)
+                verified, recaptcha_score, recaptcha_errors = recaptcha_service.verify_token(
+                    recaptcha_token,
+                    action=action_name,
+                    remote_ip=request.remote_addr,
+                    min_score=min_score
+                )
+                if not verified:
+                    logging.warning(
+                        f"{log_prefix} reCAPTCHA verification failed (score={recaptcha_score}, errors={recaptcha_errors})."
+                    )
+                    flash(_l('We could not verify your login request. Please try again.'), 'danger')
+                    form.recaptcha_token.data = ''
+                    return render_template('login.html', title='Login', form=form)
+
             # Verify credentials using the auth service
             user = auth_service.verify_password(username, password)
             if user:

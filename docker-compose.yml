@@ -75,7 +75,7 @@ services:
 
       # --- Security Settings ---
       BCRYPT_LOG_ROUNDS: ${BCRYPT_LOG_ROUNDS:-12}
-      RATELIMIT_DEFAULT: ${RATELIMIT_DEFAULT:-200 per day;50 per hour}
+      RATELIMIT_DEFAULT: ${RATELIMIT_DEFAULT:-600 per minute;10000 per day}
 
       # --- Admin User Credentials (for initial setup) ---
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
