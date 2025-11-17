@@ -101,7 +101,7 @@
                                  class="hidden absolute right-0 mt-2 w-40 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transform opacity-0 scale-95 transition-ease-out duration-100 z-50"
                                  role="menu" aria-orientation="vertical" aria-labelledby="language-menu-button" tabindex="-1">
                                 <div class="py-1" role="none">
-                                    {% set lang_map_full = {'en': _('English'), 'es': _('Español'), 'fr': _('Français'), 'nl': _('Nederlands')} %}
+                                {% set lang_map_full = {'en': 'English', 'es': _('Español'), 'fr': _('Français'), 'nl': _('Nederlands')} %}
                                     {% for lang_code in config.SUPPORTED_LANGUAGES %}
                                         <a href="{{ url_for('main.set_language', lang=lang_code) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">{{ lang_map_full.get(lang_code, lang_code) }}</a>
                                     {% endfor %}
