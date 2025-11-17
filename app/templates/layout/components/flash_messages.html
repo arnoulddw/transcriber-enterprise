@@ -2,11 +2,21 @@
 {% import "layout/components/ui_helpers.html" as ui %}
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        <div class="container mx-auto sm:px-6 lg:px-8 space-y-4">
-            {% for category, message in messages %}
-                {% set normalized_category = category if category in ['danger', 'success', 'warning', 'info'] else 'info' %}
-                {{ ui.alert(level=normalized_category, message=_(message)) }}
-            {% endfor %}
-        </div>
+        {% set serialized = namespace(items=[]) %}
+        {% for category, message in messages %}
+            {% set normalized_category = category if category in ['danger', 'success', 'warning', 'info'] else 'info' %}
+            {% set translated_message = _(message) %}
+            {% set _ = serialized.items.append({'type': normalized_category, 'message': translated_message}) %}
+        {% endfor %}
+        <div class="hidden js-flash-messages" aria-hidden="true" data-flash-messages='{{ serialized.items | tojson | forceescape }}'></div>
+        <noscript>
+            <div class="container mx-auto sm:px-6 lg:px-8 space-y-4">
+                {% for item in serialized.items %}
+                    {{ ui.alert(level=item.type, message=item.message) }}
+                {% endfor %}
+            </div>
+        </noscript>
+    {% else %}
+        <div class="hidden js-flash-messages" aria-hidden="true" data-flash-messages="[]"></div>
     {% endif %}
 {% endwith %}

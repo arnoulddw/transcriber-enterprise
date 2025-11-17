@@ -58,7 +58,12 @@ window.handleSaveTemplateWorkflow = async function() { // MODIFIED: Attached to 
             throw new Error(data.error || `HTTP error ${response.status}`);
         }
 
-        window.showNotification(data.message || 'Template workflow saved successfully!', 'success', 4000, false);
+        const successMessage = data.message || 'Template workflow saved successfully!';
+        if (typeof window.persistNotificationForNextPage === 'function') {
+            window.persistNotificationForNextPage(successMessage, 'success');
+        } else {
+            window.showNotification(successMessage, 'success', 4000, false);
+        }
         window.logger.info(logPrefix, "Save successful via API.");
 
         window.location.href = "/admin/template-workflows";

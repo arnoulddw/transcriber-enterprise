@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification('Prices updated successfully!', 'success', 3000, false);
+                const successMessage = data.message || 'Pricing updated successfully.';
+                showNotification(successMessage, 'success');
             } else {
                 showNotification(`Error updating prices: ${data.error}`, 'error', 5000, true);
             }

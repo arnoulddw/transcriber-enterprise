@@ -101,6 +101,39 @@ window.logger = {
 };
 const mainUtilsLogger = window.logger.scoped("MainUtilsJS");
 
+const PERSISTED_NOTIFICATION_STORAGE_KEY = 'app:pendingNotifications';
+
+const NOTIFICATION_TYPE_CONFIG = Object.freeze({
+    error: {
+        alertClass: 'alert-danger',
+        iconName: 'error',
+        defaultDuration: 6000,
+        defaultPersistent: true,
+        ariaLive: 'assertive'
+    },
+    warning: {
+        alertClass: 'alert-warning',
+        iconName: 'warning',
+        defaultDuration: 5000,
+        defaultPersistent: false,
+        ariaLive: 'polite'
+    },
+    success: {
+        alertClass: 'alert-success',
+        iconName: 'check_circle',
+        defaultDuration: 4000,
+        defaultPersistent: false,
+        ariaLive: 'polite'
+    },
+    info: {
+        alertClass: 'alert-info',
+        iconName: 'info',
+        defaultDuration: 6000,
+        defaultPersistent: true,
+        ariaLive: 'polite'
+    }
+});
+
 
 /**
  * Simple HTML escaping.
@@ -123,12 +156,12 @@ window.escapeHtml = escapeHtml;
  * Displays a persistent notification message at the top of the page using Tailwind CSS.
  * @param {string} message - The message text (can include HTML).
  * @param {string} [type='info'] - Type of notification ('error', 'info', 'warning', 'success'). Determines styling.
- * @param {number} [duration=6000] - Duration in ms before auto-dismissal. 0 for no auto-dismiss.
- * @param {boolean} [persistent=true] - If true, message doesn't dismiss on click (unless a close button is added).
+ * @param {number} [duration] - Duration in ms before auto-dismissal. 0 for no auto-dismiss.
+ * @param {boolean} [persistent] - If true, message doesn't dismiss on click (unless a close button is added).
  * @param {string} [id=null] - Optional unique ID for the notification element.
  * @returns {HTMLElement|null} The created notification element or null.
  */
-function showNotification(message, type = 'info', duration = 6000, persistent = true, id = null) {
+function showNotification(message, type = 'info', duration, persistent, id = null) {
     const container = document.getElementById('notification-container');
     if (!container) {
         mainUtilsLogger.error("Notification container not found!");
@@ -143,64 +176,46 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
         }
     }
 
+    const typeConfig = NOTIFICATION_TYPE_CONFIG[type] || NOTIFICATION_TYPE_CONFIG.info;
+    const finalDuration = typeof duration === 'number' ? duration : typeConfig.defaultDuration;
+    const finalPersistent = typeof persistent === 'boolean' ? persistent : typeConfig.defaultPersistent;
+
     const notificationDiv = document.createElement('div');
     if (id) {
         notificationDiv.id = id;
     }
 
-    // Base Tailwind classes for all notifications
-    notificationDiv.className = 'w-full max-w-full px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
+    // Base classes shared with inline alerts for consistent styling
+    const baseNotificationClasses = 'alert w-full max-w-full shadow-lg transition-all duration-300 ease-in-out transform opacity-0 translate-y-2 pointer-events-auto';
+    const wrapperClasses = typeConfig.alertClass ? `${typeConfig.alertClass}` : '';
+    notificationDiv.className = wrapperClasses ? `${baseNotificationClasses} ${wrapperClasses}` : baseNotificationClasses;
+    notificationDiv.setAttribute('role', 'alert');
+    notificationDiv.setAttribute('aria-live', typeConfig.ariaLive || 'polite');
+    notificationDiv.dataset.notificationType = type;
 
-    // Type-specific Tailwind classes and icons
-    let bgColorClass, textColorClass, iconName, iconColorClass;
-    switch (type) {
-        case 'error':
-            bgColorClass = 'bg-alert-error'; // from tailwind.config.js
-            textColorClass = 'text-white';
-            iconName = 'error_outline';
-            iconColorClass = 'text-white';
-            break;
-        case 'warning':
-            bgColorClass = 'bg-alert-warning'; // from tailwind.config.js
-            textColorClass = 'text-gray-800'; // Dark text for better contrast on orange
-            iconName = 'warning_amber';
-            iconColorClass = 'text-gray-800';
-            break;
-        case 'success':
-            bgColorClass = 'bg-alert-success'; // from tailwind.config.js
-            textColorClass = 'text-white';
-            iconName = 'check_circle_outline';
-            iconColorClass = 'text-white';
-            break;
-        case 'info':
-        default:
-            bgColorClass = 'bg-alert-info'; // from tailwind.config.js
-            textColorClass = 'text-white';
-            iconName = 'info_outline';
-            iconColorClass = 'text-white';
-            break;
-    }
-
-    notificationDiv.classList.add(bgColorClass, textColorClass);
-
-    // Icon element
+    // Icon element wrapped to match flash alerts
+    const iconWrapper = document.createElement('div');
+    iconWrapper.className = 'alert-icon';
     const iconElement = document.createElement('i');
-    iconElement.className = `material-icons mr-3 flex-shrink-0 self-center leading-none ${iconColorClass}`;
-    iconElement.textContent = iconName;
+    iconElement.className = 'material-icons';
+    iconElement.textContent = typeConfig.iconName;
+    iconWrapper.appendChild(iconElement);
 
     // Message content element
-    const messageElement = document.createElement('span');
-    messageElement.className = 'flex-grow leading-snug';
-    messageElement.innerHTML = message; // Allow HTML in message
+    const messageElement = document.createElement('div');
+    messageElement.className = 'alert-content';
+    const bodyElement = document.createElement('p');
+    bodyElement.innerHTML = (message === undefined || message === null) ? '' : message; // Allow HTML in message
+    messageElement.appendChild(bodyElement);
 
-    notificationDiv.appendChild(iconElement);
+    notificationDiv.appendChild(iconWrapper);
     notificationDiv.appendChild(messageElement);
 
     // Close button (always add for persistent, or if not auto-dismissing for a long time)
-    if (persistent || duration === 0 || duration > 10000) {
+    if (finalPersistent || finalDuration === 0 || finalDuration > 10000) {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
-        closeButton.className = `ml-auto -mr-1 flex-shrink-0 self-center p-1 rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-white ${textColorClass}`;
+        closeButton.className = 'ml-auto -mr-1 flex-shrink-0 self-center p-1 rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-white text-current';
         closeButton.setAttribute('aria-label', 'Close notification');
         closeButton.innerHTML = '<i class="material-icons text-base">close</i>';
         closeButton.addEventListener('click', () => dismissNotification(notificationDiv));
@@ -216,13 +231,68 @@ function showNotification(message, type = 'info', duration = 6000, persistent = 
     });
 
     // Auto-dismissal
-    if (duration > 0) {
-        setTimeout(() => dismissNotification(notificationDiv), duration);
+    if (finalDuration > 0) {
+        setTimeout(() => dismissNotification(notificationDiv), finalDuration);
     }
 
     return notificationDiv;
 }
 window.showNotification = showNotification; // Expose globally
+
+function readPersistedNotifications() {
+    if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return [];
+    try {
+        const stored = window.sessionStorage.getItem(PERSISTED_NOTIFICATION_STORAGE_KEY);
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        mainUtilsLogger.warn("Unable to read pending notifications from storage.", error);
+        return [];
+    }
+}
+
+function writePersistedNotifications(entries) {
+    if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return;
+    try {
+        if (!entries || entries.length === 0) {
+            window.sessionStorage.removeItem(PERSISTED_NOTIFICATION_STORAGE_KEY);
+        } else {
+            window.sessionStorage.setItem(PERSISTED_NOTIFICATION_STORAGE_KEY, JSON.stringify(entries));
+        }
+    } catch (error) {
+        mainUtilsLogger.warn("Unable to write pending notifications to storage.", error);
+    }
+}
+
+function persistNotificationForNextPage(message, type = 'info', options = {}) {
+    if (!message) return;
+    if (typeof window === 'undefined' || typeof window.sessionStorage === 'undefined') return;
+    const normalizedType = typeof type === 'string' ? type : 'info';
+    const entry = { message, type: normalizedType };
+    if (typeof options.duration === 'number') {
+        entry.duration = options.duration;
+    }
+    if (typeof options.persistent === 'boolean') {
+        entry.persistent = options.persistent;
+    }
+    const pending = readPersistedNotifications();
+    pending.push(entry);
+    writePersistedNotifications(pending);
+}
+window.persistNotificationForNextPage = persistNotificationForNextPage;
+
+function processPersistedNotifications() {
+    const pending = readPersistedNotifications();
+    if (!pending.length) return;
+    writePersistedNotifications([]);
+    pending.forEach(entry => {
+        if (!entry || !entry.message) return;
+        const durationOverride = typeof entry.duration === 'number' ? entry.duration : undefined;
+        const persistentOverride = typeof entry.persistent === 'boolean' ? entry.persistent : undefined;
+        showNotification(entry.message, entry.type || 'info', durationOverride, persistentOverride);
+    });
+}
 
 function dismissNotification(notificationDiv) {
     if (!notificationDiv || !notificationDiv.parentNode) return;
@@ -293,7 +363,45 @@ function initializeLocalizedDates() {
 }
 
 // Run the date localization on page load.
-document.addEventListener('DOMContentLoaded', initializeLocalizedDates);
+function processFlashMessagesFromServer() {
+    const flashContainers = document.querySelectorAll('[data-flash-messages]');
+    if (!flashContainers.length) return;
+
+    flashContainers.forEach(container => {
+        const payload = container.dataset.flashMessages;
+        if (!payload) return;
+
+        let messages = [];
+        try {
+            messages = JSON.parse(payload);
+        } catch (error) {
+            mainUtilsLogger.warn("Failed to parse flash messages payload.", { error, payload });
+            return;
+        }
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return;
+        }
+
+        container.classList.add('hidden');
+        container.setAttribute('aria-hidden', 'true');
+
+        messages.forEach(entry => {
+            if (!entry) return;
+            const type = typeof entry.type === 'string' ? entry.type : 'info';
+            const text = entry.message || '';
+            showNotification(text, type);
+        });
+    });
+}
+
+function handleDomContentLoaded() {
+    initializeLocalizedDates();
+    processFlashMessagesFromServer();
+    processPersistedNotifications();
+}
+
+document.addEventListener('DOMContentLoaded', handleDomContentLoaded);
 
 
 // --- Copy to Clipboard Functionality with Toast Cooldown ---
