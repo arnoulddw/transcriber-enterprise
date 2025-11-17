@@ -243,7 +243,7 @@ These are processed by PostCSS with the Tailwind plugin.
 }
 @layer components {
     .toast-container {
-        @apply fixed inset-x-0 bottom-6 px-4 safe-area-bottom w-full z-[100] flex flex-col items-center gap-2.5 pointer-events-none;
+        @apply fixed inset-x-0 bottom-6 px-4 safe-area-bottom w-full z-[1200] flex flex-col items-center gap-2.5 pointer-events-none;
     }
 }
 
@@ -334,7 +334,7 @@ These are processed by PostCSS with the Tailwind plugin.
 
 @layer components {
     body.admin-panel .toast-container {
-        @apply z-[200];
+        @apply z-[1300];
     }
 }
 @layer components {
