@@ -18,6 +18,13 @@
     {% endif %}
 {% endblock %}
 
+{# Disable global flash toasts when showing the Login form, since errors are rendered inline. #}
+{% block flash_messages %}
+    {% if title != 'Login' %}
+        {{ super() }}
+    {% endif %}
+{% endblock %}
+
 
 {# Override main content block #}
 {% block content %}

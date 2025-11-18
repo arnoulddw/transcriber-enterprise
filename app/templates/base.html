@@ -173,9 +173,11 @@
     </header>
 
     <main class="flex-grow pt-5 pb-10">
+        {% block flash_messages %}
         <div class="flash-messages-wrapper">
             {% include 'layout/components/flash_messages.html' %}
         </div>
+        {% endblock %}
 
         <div class="container mx-auto sm:px-6 lg:px-8">
             {% block content %}{% endblock %}

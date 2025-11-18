@@ -75,13 +75,25 @@ def login():
                     remote_ip=request.remote_addr,
                     min_score=min_score
                 )
-                if not verified:
+                bypassable_errors = {'recaptcha-unreachable', 'recaptcha-invalid-response', 'recaptcha-not-configured'}
+                allow_bypass = (
+                    not verified
+                    and current_app.debug
+                    and current_app.config.get('RECAPTCHA_ALLOW_BYPASS_IN_DEBUG', True)
+                    and any(err in bypassable_errors for err in (recaptcha_errors or []))
+                )
+                if not verified and not allow_bypass:
                     logging.warning(
                         f"{log_prefix} reCAPTCHA verification failed (score={recaptcha_score}, errors={recaptcha_errors})."
                     )
                     flash(_l('We could not verify your login request. Please try again.'), 'danger')
                     form.recaptcha_token.data = ''
                     return render_template('login.html', title='Login', form=form)
+                if allow_bypass:
+                    logging.warning(
+                        f"{log_prefix} reCAPTCHA verification failed but bypass is enabled in debug mode; continuing login flow."
+                    )
+                    form.recaptcha_token.data = ''
 
             # Verify credentials using the auth service
             user = auth_service.verify_password(username, password)
