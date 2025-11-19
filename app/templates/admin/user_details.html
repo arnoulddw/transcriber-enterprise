@@ -9,268 +9,413 @@
 {% endblock %}
 
 {% block admin_content %}
-    <a href="{{ url_for('admin_panel.manage_users') }}" class="inline-flex items-center px-3 py-1.5 border border-border-default shadow-sm text-xs font-medium rounded-md text-text-strong bg-surface hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mb-6"> {# Increased mb-4 to mb-6 #}
-        <i class="material-icons left tiny -ml-0.5 mr-1.5">arrow_back</i>Back to User List
-    </a>
+<a href="{{ url_for('admin_panel.manage_users') }}"
+    class="inline-flex items-center px-3 py-1.5 border border-border-default shadow-sm text-xs font-medium rounded-md text-text-strong bg-surface hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary mb-6">
+    {# Increased mb-4 to mb-6 #}
+    <i class="material-icons left tiny -ml-0.5 mr-1.5">arrow_back</i>Back to User List
+</a>
 
-    {# User Information Card #}
-    <div class="page-section card-panel p-6 space-y-4 mb-6">
-        <h2 class="card-title text-lg">User Information</h2> {# Changed h6 to h2 for better semantics #}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-                <p><strong class="font-medium text-text-muted">ID:</strong> {{ user_details.id }}</p>
-                <p><strong class="font-medium text-text-muted">Username:</strong> {{ user_details.username | e }}</p>
-            </div>
-            <div>
-                <p><strong class="font-medium text-text-muted">Email:</strong> {{ user_details.email | e }}</p>
-                <p><strong class="font-medium text-text-muted">Role:</strong> {{ user_details.role.name | e }}</p>
-                <p><strong class="font-medium text-text-muted">Account Created:</strong> <time datetime="{{ user_details.created_at | datetime_tz }}">{{ user_details.created_at | datetime_tz }}</time></p>
-            </div>
+{# User Information Card #}
+<div class="page-section card-panel p-6 space-y-4 mb-6">
+    <h2 class="card-title text-lg">User Information</h2> {# Changed h6 to h2 for better semantics #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+            <p><strong class="font-medium text-text-muted">ID:</strong> {{ user_details.id }}</p>
+            <p><strong class="font-medium text-text-muted">Username:</strong> {{ user_details.username | e }}</p>
+        </div>
+        <div>
+            <p><strong class="font-medium text-text-muted">Email:</strong> {{ user_details.email | e }}</p>
+            <p><strong class="font-medium text-text-muted">Role:</strong> {{ user_details.role.name | e }}</p>
+            <p><strong class="font-medium text-text-muted">Account Created:</strong> <time
+                    datetime="{{ user_details.created_at | datetime_tz }}">{{ user_details.created_at | datetime_tz
+                    }}</time></p>
         </div>
     </div>
+</div>
 
-    {# Usage Statistics Card #}
-    <div class="page-section card-panel p-6 space-y-4 mb-6">
-        <h2 class="card-title text-lg">Usage Statistics</h2>
-        {% if user_details.usage_metrics and not user_details.usage_metrics.error %}
-            <div class="overflow-x-auto mt-4">
-                <table class="table-shell min-w-full divide-y divide-border-default data-table">
-                    <thead class="hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Metric</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 24h</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 7d</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last 30d</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">All Time</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-surface divide-y divide-border-default">
-                        {% set metrics = user_details.usage_metrics %}
-                        {% set periods = ['24h', '7d', '30d', 'all'] %}
-                        
-                        {# Costs Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Costs</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_currency(metrics.costs.get(period, 0.0), 'USD', locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
+{# Usage Statistics Card #}
+<div class="page-section card-panel p-6 space-y-4 mb-6">
+    <h2 class="card-title text-lg">Usage Statistics</h2>
+    {% if user_details.usage_metrics and not user_details.usage_metrics.error %}
+    <div class="table-card overflow-x-auto mt-4">
+        <table class="table-shell data-table min-w-full">
+            <thead class="bg-surface-muted hidden sm:table-header-group">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Metric
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last
+                        24h</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last
+                        7d</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Last
+                        30d</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">All
+                        Time</th>
+                </tr>
+            </thead>
+            <tbody class="bg-surface divide-y divide-border-default">
+                {% set metrics = user_details.usage_metrics %}
+                {% set periods = ['24h', '7d', '30d', 'all'] %}
 
-                        {# Transcriptions Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Transcriptions (#)</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.transcriptions.get(period, 0), locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
+                {# Costs Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Costs</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_currency(metrics.costs.get(period, 0.0), 'USD', locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
 
-                        {# Title Generations Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Title Generations (#)</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.title_generations.get(period, 0), locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
+                {# Transcriptions Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Transcriptions (#)</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(metrics.transcriptions.get(period, 0), locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
 
-                        {# Workflows Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Workflows (#)</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.workflows.get(period, 0), locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
+                {# Title Generations Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Title Generations (#)</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(metrics.title_generations.get(period, 0), locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
 
-                        {# Audio Processed Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Audio Processed (min)</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(metrics.audio_processed.get(period, 0.0), locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
+                {# Workflows Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Workflows (#)</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(metrics.workflows.get(period, 0), locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
 
-                        {# Errors Row #}
-                        <tr class="block sm:table-row">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative">Errors (#)</td>
-                            {% for period in periods %}
-                                <td data-label="Last 24h" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative">{{ format_number(metrics.errors.get(period, 0), locale=formatting_locale) }}</td>
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        {% elif user_details.usage_metrics.error %}
-            <p class="text-red-500 text-sm">Could not load usage statistics: {{ user_details.usage_metrics.error }}</p>
-        {% else %}
-            <p class="text-text-muted">No usage statistics available for this user.</p>
-        {% endif %}
+                {# Audio Processed Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Audio Processed (min)</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(metrics.audio_processed.get(period, 0.0), locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
+
+                {# Errors Row #}
+                <tr class="block sm:table-row">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative">
+                        Errors (#)</td>
+                    {% for period in periods %}
+                    <td data-label="Last 24h"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative">{{
+                        format_number(metrics.errors.get(period, 0), locale=formatting_locale) }}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
     </div>
+    {% elif user_details.usage_metrics.error %}
+    <p class="text-red-500 text-sm">Could not load usage statistics: {{ user_details.usage_metrics.error }}</p>
+    {% else %}
+    <p class="text-text-muted">No usage statistics available for this user.</p>
+    {% endif %}
+</div>
 
-    {# Usage vs Quotas Card #}
-    <div class="page-section card-panel p-6 space-y-4 mb-6">
-        <h2 class="card-title text-lg">Usage vs. Quotas</h2>
-        {% if usage_stats and user_details.role %}
-            <div class="overflow-x-auto mt-4">
-                <table class="table-shell min-w-full divide-y divide-border-default data-table">
-                    <thead class="hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Metric</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Daily</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Weekly</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Monthly</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-surface divide-y divide-border-default">
-                        {# Costs Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Costs ($)</td>
-                            <td data-label="Daily" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_currency(usage_stats.daily.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_daily_cost, 'USD', locale=formatting_locale) if user_details.role.limit_daily_cost > 0 else '∞' }}
-                            </td>
-                            <td data-label="Weekly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_currency(usage_stats.weekly.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_weekly_cost, 'USD', locale=formatting_locale) if user_details.role.limit_weekly_cost > 0 else '∞' }}
-                            </td>
-                            <td data-label="Monthly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_currency(usage_stats.monthly.cost, 'USD', locale=formatting_locale) }} / {{ format_currency(user_details.role.limit_monthly_cost, 'USD', locale=formatting_locale) if user_details.role.limit_monthly_cost > 0 else '∞' }}
-                            </td>
-                        </tr>
-                        {# Minutes Processed Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Minutes Processed</td>
-                            <td data-label="Daily" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.daily.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_daily_minutes, locale=formatting_locale) if user_details.role.limit_daily_minutes > 0 else '∞' }}
-                            </td>
-                            <td data-label="Weekly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.weekly.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_weekly_minutes, locale=formatting_locale) if user_details.role.limit_weekly_minutes > 0 else '∞' }}
-                            </td>
-                            <td data-label="Monthly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.monthly.minutes, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_monthly_minutes, locale=formatting_locale) if user_details.role.limit_monthly_minutes > 0 else '∞' }}
-                            </td>
-                        </tr>
-                        {# Workflows Row #}
-                        <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Metric" class="px-4 py-3 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">Workflows</td>
-                            <td data-label="Daily" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.daily.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_daily_workflows, locale=formatting_locale) if user_details.role.limit_daily_workflows > 0 else '∞' }}
-                            </td>
-                            <td data-label="Weekly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.weekly.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_weekly_workflows, locale=formatting_locale) if user_details.role.limit_weekly_workflows > 0 else '∞' }}
-                            </td>
-                            <td data-label="Monthly" class="px-4 py-3 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
-                                {{ format_number(usage_stats.monthly.workflows, locale=formatting_locale) }} / {{ format_number(user_details.role.limit_monthly_workflows, locale=formatting_locale) if user_details.role.limit_monthly_workflows > 0 else '∞' }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-text-muted">No usage vs. quotas data available for this user.</p>
-        {% endif %}
+{# Usage vs Quotas Card #}
+<div class="page-section card-panel p-6 space-y-4 mb-6">
+    <h2 class="card-title text-lg">Usage vs. Quotas</h2>
+    {% if usage_stats and user_details.role %}
+    <div class="table-card overflow-x-auto mt-4">
+        <table class="table-shell data-table min-w-full">
+            <thead class="bg-surface-muted hidden sm:table-header-group">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Metric
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Daily
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Weekly</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Monthly</th>
+                </tr>
+            </thead>
+            <tbody class="bg-surface divide-y divide-border-default">
+                {# Costs Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Costs ($)</td>
+                    <td data-label="Daily"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_currency(usage_stats.daily.cost, 'USD', locale=formatting_locale) }} / {{
+                        format_currency(user_details.role.limit_daily_cost, 'USD', locale=formatting_locale) if
+                        user_details.role.limit_daily_cost > 0 else '∞' }}
+                    </td>
+                    <td data-label="Weekly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_currency(usage_stats.weekly.cost, 'USD', locale=formatting_locale) }} / {{
+                        format_currency(user_details.role.limit_weekly_cost, 'USD', locale=formatting_locale) if
+                        user_details.role.limit_weekly_cost > 0 else '∞' }}
+                    </td>
+                    <td data-label="Monthly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_currency(usage_stats.monthly.cost, 'USD', locale=formatting_locale) }} / {{
+                        format_currency(user_details.role.limit_monthly_cost, 'USD', locale=formatting_locale) if
+                        user_details.role.limit_monthly_cost > 0 else '∞' }}
+                    </td>
+                </tr>
+                {# Minutes Processed Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Minutes Processed</td>
+                    <td data-label="Daily"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.daily.minutes, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_daily_minutes, locale=formatting_locale) if
+                        user_details.role.limit_daily_minutes > 0 else '∞' }}
+                    </td>
+                    <td data-label="Weekly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.weekly.minutes, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_weekly_minutes, locale=formatting_locale) if
+                        user_details.role.limit_weekly_minutes > 0 else '∞' }}
+                    </td>
+                    <td data-label="Monthly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.monthly.minutes, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_monthly_minutes, locale=formatting_locale) if
+                        user_details.role.limit_monthly_minutes > 0 else '∞' }}
+                    </td>
+                </tr>
+                {# Workflows Row #}
+                <tr class="block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Metric"
+                        class="px-6 py-4 text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        Workflows</td>
+                    <td data-label="Daily"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.daily.workflows, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_daily_workflows, locale=formatting_locale) if
+                        user_details.role.limit_daily_workflows > 0 else '∞' }}
+                    </td>
+                    <td data-label="Weekly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.weekly.workflows, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_weekly_workflows, locale=formatting_locale) if
+                        user_details.role.limit_weekly_workflows > 0 else '∞' }}
+                    </td>
+                    <td data-label="Monthly"
+                        class="px-6 py-4 text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(usage_stats.monthly.workflows, locale=formatting_locale) }} / {{
+                        format_number(user_details.role.limit_monthly_workflows, locale=formatting_locale) if
+                        user_details.role.limit_monthly_workflows > 0 else '∞' }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <p class="text-text-muted">No usage vs. quotas data available for this user.</p>
+    {% endif %}
+</div>
 
-    {# Transcription History Card #}
-    <div class="page-section card-panel p-6 space-y-4 mb-6">
-        <h2 class="card-title text-lg">Transcription History</h2> {# Changed h6 to h2 #}
-        <p class="text-xs text-text-muted mb-2">Includes records hidden from the user until physically deleted.</p>
-        {% if user_details.history %}
-            <div class="overflow-x-auto mt-4">
-                <table class="table-shell min-w-full divide-y divide-border-default data-table"> {# Added data-table class for responsive stacking #}
-                    <thead class="hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Job ID</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Filename</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">API Used</th>
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Language</th> {# Centered header #}
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Duration (min)</th> {# Centered header #}
-                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Status</th> {# Centered header #}
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Created At</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Hidden At</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Hidden Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-surface divide-y divide-border-default">
-                        {% for job in user_details.history %}
-                        <tr class="{{ 'opacity-60 bg-surface-muted' if job.is_hidden_from_user else '' }} block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Job ID" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.id[:8] }}...</td>
-                            <td data-label="Filename" class="px-4 py-3 whitespace-nowrap text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
-                                {{ job.filename | e }}
-                                {% if job.is_hidden_from_user %}
-                                    <span class="ml-1 text-xs font-semibold text-text-muted">(Hidden)</span>
-                                {% endif %}
-                            </td>
-                            <td data-label="API Used" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.api_used | e }}</td>
-                            <td data-label="Language" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ job.detected_language | e if job.detected_language else 'N/A' }}</td> {# Centered data #}
-                            <td data-label="Duration (min)" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">{{ format_number(job.audio_length_minutes, locale=formatting_locale) if job.audio_length_minutes is not none else 'N/A' }}</td> {# Centered data #}
-                            <td data-label="Status" class="px-4 py-3 whitespace-nowrap text-sm block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data #}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+{# Transcription History Card #}
+<div class="page-section card-panel p-6 space-y-4 mb-6">
+    <h2 class="card-title text-lg">Transcription History</h2> {# Changed h6 to h2 #}
+    <p class="text-xs text-text-muted mb-2">Includes records hidden from the user until physically deleted.</p>
+    {% if user_details.history %}
+    <div class="table-card overflow-x-auto mt-4">
+        <table class="table-shell data-table min-w-full"> {# Added data-table class for responsive stacking #}
+            <thead class="bg-surface-muted hidden sm:table-header-group">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Job ID
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Filename</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">API
+                        Used</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Language</th> {# Centered header #}
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Duration (min)</th> {# Centered header #}
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Status</th> {# Centered header #}
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Created
+                        At</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Hidden
+                        At</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Hidden
+                        Reason</th>
+                </tr>
+            </thead>
+            <tbody class="bg-surface divide-y divide-border-default">
+                {% for job in user_details.history %}
+                <tr
+                    class="{{ 'opacity-60 bg-surface-muted' if job.is_hidden_from_user else '' }} block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Job ID"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.id[:8] }}...</td>
+                    <td data-label="Filename"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-strong block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.filename | e }}
+                        {% if job.is_hidden_from_user %}
+                        <span class="ml-1 text-xs font-semibold text-text-muted">(Hidden)</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="API Used"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.api_used | e }}</td>
+                    <td data-label="Language"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ job.detected_language | e if job.detected_language else 'N/A' }}</td> {# Centered data #}
+                    <td data-label="Duration (min)"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {{ format_number(job.audio_length_minutes, locale=formatting_locale) if job.audio_length_minutes
+                        is not none else 'N/A' }}</td> {# Centered data #}
+                    <td data-label="Status"
+                        class="px-6 py-4 whitespace-nowrap text-sm block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {# Centered data #}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                            {{ 'bg-green-100 text-green-800' if job.status == 'finished' else
                                               'bg-red-100 text-red-800' if job.status == 'error' else
                                               'bg-orange-100 text-orange-800' if job.status == 'cancelled' else
                                               'bg-surface-muted text-text-strong' }}">
-                                    {{ job.status | capitalize }}
-                                </span>
-                            </td>
-                            <td data-label="Created At" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none"><time datetime="{{ job.created_at | datetime_tz }}">{{ job.created_at | datetime_tz }}</time></td>
-                            <td data-label="Hidden At" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{% if job.hidden_date %}<time datetime="{{ job.hidden_date | datetime_tz }}">{{ job.hidden_date | datetime_tz }}</time>{% else %}-{% endif %}</td>
-                            <td data-label="Hidden Reason" class="px-4 py-3 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.hidden_reason | replace('_', ' ') | title if job.hidden_reason else '-' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-text-muted">This user has no transcription history.</p>
-        {% endif %}
+                            {{ job.status | capitalize }}
+                        </span>
+                    </td>
+                    <td data-label="Created At"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        <time datetime="{{ job.created_at | datetime_tz }}">{{ job.created_at | datetime_tz }}</time>
+                    </td>
+                    <td data-label="Hidden At"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {% if job.hidden_date %}<time datetime="{{ job.hidden_date | datetime_tz }}">{{ job.hidden_date
+                            | datetime_tz }}</time>{% else %}-{% endif %}</td>
+                    <td data-label="Hidden Reason"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.hidden_reason | replace('_', ' ') | title if job.hidden_reason else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <p class="text-text-muted">This user has no transcription history.</p>
+    {% endif %}
+</div>
 
-    {# Workflow History Card #}
-    <div class="page-section card-panel p-6 space-y-4 mb-6">
-        <h2 class="card-title text-lg">Workflow History</h2> {# Changed h6 to h2 #}
-        {% if user_details.workflow_history %}
-             <div class="overflow-x-auto mt-4">
-                <table class="table-shell min-w-full divide-y divide-border-default data-table"> {# Added data-table class for responsive stacking #}
-                    <thead class="hidden sm:table-header-group">
-                        <tr>
-                            <th scope="col" class="px-1.5 py-2 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Job ID</th>
-                            <th scope="col" class="px-1.5 py-2 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Workflow Model</th>
-                            <th scope="col" class="px-1.5 py-2 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Prompt</th>
-                            <th scope="col" class="px-1.5 py-2 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Result (Preview)</th>
-                            <th scope="col" class="px-1.5 py-2 text-center text-xs font-medium text-text-muted uppercase tracking-wider">Status</th> {# Centered header #}
-                            <th scope="col" class="px-1.5 py-2 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Ran At</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-surface divide-y divide-border-default">
-                        {% for job in user_details.workflow_history %}
-                        <tr class="{{ 'opacity-60 bg-surface-muted' if job.is_hidden_from_user else '' }} block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
-                            <td data-label="Job ID" class="px-1.5 py-2 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.id[:8] }}...</td>
-                            <td data-label="Workflow Model" class="px-1.5 py-2 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.workflow_model_used | e if job.workflow_model_used else 'N/A' }}</td>
-                            <td data-label="Prompt" class="px-1.5 py-2 text-sm text-text-muted max-w-xs whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.workflow_prompt | e | truncate(100) if job.workflow_prompt else '-' }}</td>
-                            <td data-label="Result (Preview)" class="px-1.5 py-2 text-sm text-text-muted max-w-sm whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{{ job.workflow_result | e | truncate(150) if job.workflow_result else '-' }}</td>
-                            <td data-label="Status" class="px-1.5 py-2 whitespace-nowrap text-sm block sm:table-cell sm:text-center relative border-b sm:border-none"> {# Centered data #}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+{# Workflow History Card #}
+<div class="page-section card-panel p-6 space-y-4 mb-6">
+    <h2 class="card-title text-lg">Workflow History</h2> {# Changed h6 to h2 #}
+    {% if user_details.workflow_history %}
+    <div class="table-card overflow-x-auto mt-4">
+        <table class="table-shell data-table min-w-full"> {# Added data-table class for responsive stacking #}
+            <thead class="bg-surface-muted hidden sm:table-header-group">
+                <tr>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Job ID
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Workflow Model</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Prompt
+                    </th>
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Result
+                        (Preview)</th>
+                    <th scope="col"
+                        class="px-6 py-3 text-center text-xs font-medium text-text-muted uppercase tracking-wider">
+                        Status</th> {# Centered header #}
+                    <th scope="col"
+                        class="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Ran At
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-surface divide-y divide-border-default">
+                {% for job in user_details.workflow_history %}
+                <tr
+                    class="{{ 'opacity-60 bg-surface-muted' if job.is_hidden_from_user else '' }} block sm:table-row border-b sm:border-none mb-4 sm:mb-0">
+                    <td data-label="Job ID"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.id[:8] }}...</td>
+                    <td data-label="Workflow Model"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.workflow_model_used | e if job.workflow_model_used else 'N/A' }}</td>
+                    <td data-label="Prompt"
+                        class="px-6 py-4 text-sm text-text-muted max-w-xs whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.workflow_prompt | e | truncate(100) if job.workflow_prompt else '-' }}</td>
+                    <td data-label="Result (Preview)"
+                        class="px-6 py-4 text-sm text-text-muted max-w-sm whitespace-normal break-words block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {{ job.workflow_result | e | truncate(150) if job.workflow_result else '-' }}</td>
+                    <td data-label="Status"
+                        class="px-6 py-4 whitespace-nowrap text-sm block sm:table-cell sm:text-center relative border-b sm:border-none">
+                        {# Centered data #}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                            {{ 'bg-green-100 text-green-800' if job.workflow_status == 'finished' else
                                               'bg-red-100 text-red-800' if job.workflow_status == 'error' else
                                               'bg-blue-100 text-blue-800' if job.workflow_status == 'processing' else
                                               'bg-surface-muted text-text-strong' }}">
-                                    {{ job.workflow_status | capitalize }}
-                                </span>
-                                {% if job.workflow_status == 'error' %}
-                                    <i class="material-icons tiny text-red-500 ml-1 align-middle cursor-help" title="{{ job.workflow_error | e }}">info_outline</i>
-                                {% endif %}
-                            </td>
-                            <td data-label="Ran At" class="px-1.5 py-2 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">{% if job.workflow_ran_at %}<time datetime="{{ job.workflow_ran_at | datetime_tz }}">{{ job.workflow_ran_at | datetime_tz }}</time>{% else %}-{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-text-muted">This user has no workflow history.</p>
-        {% endif %}
+                            {{ job.workflow_status | capitalize }}
+                        </span>
+                        {% if job.workflow_status == 'error' %}
+                        <i class="material-icons tiny text-red-500 ml-1 align-middle cursor-help"
+                            title="{{ job.workflow_error | e }}">info_outline</i>
+                        {% endif %}
+                    </td>
+                    <td data-label="Ran At"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-text-muted block sm:table-cell text-right sm:text-left relative border-b sm:border-none">
+                        {% if job.workflow_ran_at %}<time datetime="{{ job.workflow_ran_at | datetime_tz }}">{{
+                            job.workflow_ran_at | datetime_tz }}</time>{% else %}-{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <p class="text-text-muted">This user has no workflow history.</p>
+    {% endif %}
+</div>
 
 {% endblock %}
 
 {% block admin_scripts %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
