@@ -142,6 +142,7 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
         'api_minutes_distribution': {},
         'language_distribution': {},
         'context_prompt_usage': {},
+        'public_api_usage': {},
         'download_usage': {},
         'workflows_run': {},
         'workflow_model_distribution': {},
@@ -197,6 +198,15 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
                 metrics['context_prompt_usage'][key] = {
                     'used': context_used_count,
                     'total_compatible': total_compatible_relevant_jobs
+                }
+
+                # Feature Usage: Public API uploads (based on relevant jobs)
+                public_api_count = transcription_utils.count_jobs_in_range(
+                    start, end, status__in=relevant_statuses_for_volume, public_api_invocation=True
+                )
+                metrics['public_api_usage'][key] = {
+                    'used': public_api_count,
+                    'total_jobs': total_relevant_jobs
                 }
 
                 # Feature Usage: Downloads (denominator based on 'finished' jobs as per task)

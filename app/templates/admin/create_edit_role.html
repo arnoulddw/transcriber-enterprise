@@ -127,6 +127,10 @@
                         <span class="text-sm text-text-strong">{{ form.allow_api_key_management.label.text }}</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
+                        {{ form.allow_public_api_access(class="form-checkbox h-4 w-4 text-primary border-border-default rounded focus:ring-primary") }}
+                        <span class="text-sm text-text-strong">{{ form.allow_public_api_access.label.text }}</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
                         {{ form.access_admin_panel(class="form-checkbox h-4 w-4 text-primary border-border-default rounded focus:ring-primary") }}
                         <span class="text-sm text-text-strong">{{ form.access_admin_panel.label.text }}</span>
                     </label>

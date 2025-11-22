@@ -31,6 +31,9 @@ class User(UserMixin):
     default_transcription_model: Optional[str]
     enable_auto_title_generation: bool
     language: Optional[str]
+    public_api_key_hash: Optional[str]
+    public_api_key_last_four: Optional[str]
+    public_api_key_created_at: Optional[str]
     _role: Optional['Role']
 
     def __init__(
@@ -50,6 +53,9 @@ class User(UserMixin):
         default_transcription_model: Optional[str] = None,
         enable_auto_title_generation: bool = False,
         language: Optional[str] = None,
+        public_api_key_hash: Optional[str] = None,
+        public_api_key_last_four: Optional[str] = None,
+        public_api_key_created_at: Optional[str] = None,
     ):
         self.id = id
         self.username = username
@@ -66,6 +72,9 @@ class User(UserMixin):
         self.default_transcription_model = default_transcription_model
         self.enable_auto_title_generation = enable_auto_title_generation
         self.language = language
+        self.public_api_key_hash = public_api_key_hash
+        self.public_api_key_last_four = public_api_key_last_four
+        self.public_api_key_created_at = public_api_key_created_at
         self._role = None
 
     @property
@@ -142,6 +151,9 @@ def _map_row_to_user(row: Dict[str, Any]) -> Optional[User]:
             default_transcription_model=row.get('default_transcription_model'),
             enable_auto_title_generation=bool(row.get('enable_auto_title_generation', False)),
             language=row.get('language'),
+            public_api_key_hash=row.get('public_api_key_hash'),
+            public_api_key_last_four=row.get('public_api_key_last_four'),
+            public_api_key_created_at=row.get('public_api_key_created_at'),
         )
         return user
     return None

@@ -116,6 +116,7 @@ def logged_in_client_with_permissions(app, clean_db):
                 'use_api_openai_gpt_4o_transcribe': True,
                 'use_api_google_gemini': True,
                 'allow_api_key_management': True,
+                'allow_public_api_access': True,
                 'allow_auto_title_generation': True,
                 'allow_speaker_diarization': True,
                 'allow_download_transcript': True,

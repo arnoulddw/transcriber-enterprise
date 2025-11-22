@@ -20,6 +20,7 @@ from app.models.user import User
 from app.models import user, user_utils, user_prompt as user_prompt_model
 from app.models.user_prompt import UserPrompt
 from app.models import transcription as transcription_model 
+from app.core.decorators import check_permission
 from app.extensions import limiter
 
 # Define the Blueprint
@@ -60,6 +61,7 @@ def get_user_readiness():
                 'allow_context_prompt': role.has_permission('allow_context_prompt'),
                 'allow_download_transcript': role.has_permission('allow_download_transcript'),
                 'allow_api_key_management': role.has_permission('allow_api_key_management'), 
+                'allow_public_api_access': role.has_permission('allow_public_api_access'),
                 'access_admin_panel': role.has_permission('access_admin_panel'), 
                 'allow_workflows': role.has_permission('allow_workflows'), 
                 'manage_workflow_templates': role.has_permission('manage_workflow_templates'), 
@@ -112,6 +114,82 @@ def get_api_key_status():
     except Exception as e:
         logging.error(f"{log_prefix} Error getting API key status: {e}", exc_info=True)
         return jsonify({'error': _('Failed to retrieve API key status.')}), 500
+
+
+@user_settings_bp.route('/public-api-key', methods=['GET'])
+@login_required
+def get_public_api_key_status():
+    """
+    Returns the status/metadata for the user's public API key (used for authenticated API access).
+    """
+    user_id = current_user.id
+    log_prefix = f"[API:UserPublicKey:{user_id}:GET]"
+    try:
+        if not check_permission(current_user, 'allow_public_api_access'):
+            logging.warning(f"{log_prefix} Permission denied for public API key status.")
+            return jsonify({'error': _('You do not have permission to use the public API.')}), 403
+        status = user_service.get_public_api_key_status(user_id)
+        logging.info(f"{log_prefix} Returning public API key status.")
+        return jsonify(status), 200
+    except UserNotFoundError as e:
+        logging.warning(f"{log_prefix} User not found: {e}")
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        logging.error(f"{log_prefix} Error getting public API key status: {e}", exc_info=True)
+        return jsonify({'error': _('Failed to retrieve API key status.')}), 500
+
+
+@user_settings_bp.route('/public-api-key', methods=['POST'])
+@login_required
+def generate_public_api_key():
+    """
+    Generates (or regenerates) a public API key for the authenticated user.
+    Returns the plaintext key once so it can be copied.
+    """
+    user_id = current_user.id
+    log_prefix = f"[API:UserPublicKey:{user_id}:POST]"
+    try:
+        if not check_permission(current_user, 'allow_public_api_access'):
+            logging.warning(f"{log_prefix} Permission denied for public API key generation.")
+            return jsonify({'error': _('You do not have permission to use the public API.')}), 403
+        key_data = user_service.generate_public_api_key(user_id)
+        logging.info(f"{log_prefix} Public API key generated.")
+        return jsonify(key_data), 201
+    except UserNotFoundError as e:
+        logging.warning(f"{log_prefix} User not found: {e}")
+        return jsonify({'error': str(e)}), 404
+    except (ValueError, ApiKeyManagementError) as e:
+        logging.error(f"{log_prefix} Failed to generate public API key: {e}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logging.error(f"{log_prefix} Unexpected error generating public API key: {e}", exc_info=True)
+        return jsonify({'error': _('An unexpected error occurred while generating the API key.')}), 500
+
+
+@user_settings_bp.route('/public-api-key', methods=['DELETE'])
+@login_required
+def delete_public_api_key():
+    """
+    Revokes the stored public API key for the authenticated user.
+    """
+    user_id = current_user.id
+    log_prefix = f"[API:UserPublicKey:{user_id}:DELETE]"
+    try:
+        if not check_permission(current_user, 'allow_public_api_access'):
+            logging.warning(f"{log_prefix} Permission denied for public API key revoke.")
+            return jsonify({'error': _('You do not have permission to use the public API.')}), 403
+        user_service.revoke_public_api_key(user_id)
+        logging.info(f"{log_prefix} Public API key revoked.")
+        return jsonify({'message': _('Public API key revoked.')}), 200
+    except UserNotFoundError as e:
+        logging.warning(f"{log_prefix} User not found: {e}")
+        return jsonify({'error': str(e)}), 404
+    except ApiKeyManagementError as e:
+        logging.error(f"{log_prefix} Failed to revoke public API key: {e}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logging.error(f"{log_prefix} Unexpected error revoking public API key: {e}", exc_info=True)
+        return jsonify({'error': _('An unexpected error occurred while revoking the API key.')}), 500
 
 @user_settings_bp.route('/keys', methods=['POST'])
 @login_required

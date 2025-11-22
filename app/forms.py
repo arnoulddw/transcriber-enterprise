@@ -286,6 +286,7 @@ class AdminRoleForm(FlaskForm):
     allow_large_files = BooleanField(_('Allow Large Files (>25MB)'))
     allow_context_prompt = BooleanField(_('Allow Context Prompt'))
     allow_api_key_management = BooleanField(_('Allow User API Key Management'))
+    allow_public_api_access = BooleanField(_('Allow Public API Access'))
     allow_download_transcript = BooleanField(_('Allow Transcript Download'))
     allow_workflows = BooleanField(_('Allow Workflows'))
     manage_workflow_templates = BooleanField(_('Manage Workflow Templates (Admin)'))

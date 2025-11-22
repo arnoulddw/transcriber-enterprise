@@ -364,6 +364,11 @@ def create_app(config_class=Config) -> Flask:
                 request.endpoint and
                 not request.endpoint.startswith('static') and
                 request.endpoint not in allowed_endpoints):
+            if request.path.startswith('/api/v1/transcribe'):
+                auth_header = request.headers.get('Authorization', '')
+                if auth_header and auth_header.lower().startswith('bearer '):
+                    logging.debug("[AUTH] Allowing public API token flow for /api/v1/transcribe.")
+                    return None
             is_api_request = request.path.startswith('/api/') or \
                              ('Accept' in request.headers and 'application/json' in request.headers['Accept'])
             if is_api_request:
@@ -431,6 +436,7 @@ def create_app(config_class=Config) -> Flask:
                     'allow_context_prompt': role.allow_context_prompt,
                     'allow_download_transcript': role.allow_download_transcript,
                     'allow_api_key_management': role.allow_api_key_management,
+                    'allow_public_api_access': getattr(role, 'allow_public_api_access', False),
                     'access_admin_panel': role.access_admin_panel,
                     'allow_workflows': role.allow_workflows,
                     'manage_workflow_templates': role.manage_workflow_templates,
@@ -448,6 +454,7 @@ def create_app(config_class=Config) -> Flask:
                  'use_api_openai_gpt_4o_transcribe': True, 'use_api_google_gemini': True,
                  'allow_large_files': True, 'allow_context_prompt': True,
                  'allow_download_transcript': True, 'allow_api_key_management': False,
+                 'allow_public_api_access': True,
                  'access_admin_panel': False, 'allow_workflows': True,
                  'manage_workflow_templates': False, 'allow_auto_title_generation': True,
                  'allow_speaker_diarization': True

@@ -16,7 +16,8 @@ def create_transcription_job(job_id: str, user_id: int, filename: str, api_used:
                              pending_workflow_prompt_text: Optional[str] = None,
                              pending_workflow_prompt_title: Optional[str] = None,
                              pending_workflow_prompt_color: Optional[str] = None,
-                             pending_workflow_origin_prompt_id: Optional[int] = None
+                             pending_workflow_origin_prompt_id: Optional[int] = None,
+                             public_api_invocation: bool = False
                              ) -> None:
 # --- END MODIFIED ---
     """
@@ -34,9 +35,9 @@ def create_transcription_job(job_id: str, user_id: int, filename: str, api_used:
             is_hidden_from_user, hidden_date, hidden_reason,
             llm_operation_id, llm_operation_status, llm_operation_result, llm_operation_error, llm_operation_ran_at,
             pending_workflow_prompt_text, pending_workflow_prompt_title, pending_workflow_prompt_color,
-            pending_workflow_origin_prompt_id, cost
+            pending_workflow_origin_prompt_id, public_api_invocation, cost
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         '''
     # --- END MODIFIED ---
     initial_log_entry = f"Job created at {datetime.now(timezone.utc).replace(microsecond=0).isoformat()}."
@@ -54,6 +55,7 @@ def create_transcription_job(job_id: str, user_id: int, filename: str, api_used:
             None, None, None, None, None, # Workflow fields
             pending_workflow_prompt_text, pending_workflow_prompt_title, pending_workflow_prompt_color, # Existing pending workflow fields
             pending_workflow_origin_prompt_id, # New field
+            public_api_invocation,
             None # cost
         ))
         # --- END MODIFIED ---

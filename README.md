@@ -208,6 +208,18 @@ The application is configured using environment variables in a `.env` file. The 
     *   Delete old transcriptions.
     *   Run an AI workflow (ex. summarize) on the text.
 
+### Public Transcription API
+
+You can trigger transcriptions programmatically using your personal API key (generate it in **Manage API Keys** → **Public API Access**). Requests run with your default transcription model and language and the results land in your normal history.
+
+```bash
+curl -X POST https://your-domain.example.com/api/v1/transcribe \
+  -H "Authorization: Bearer <YOUR_USER_API_KEY>" \
+  -F "audio_file=@/path/to/audio.wav"
+```
+
+Use your deployment’s base URL (or `http://localhost:5004` in local dev). The API responds with a `job_id` you can poll via `/api/progress/<job_id>` while signed in. Keep your API key secret; rotate it anytime from the same modal.
+
 ## 🛠️ For Developers
 
 ### Database Migrations

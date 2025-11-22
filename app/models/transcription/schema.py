@@ -56,6 +56,7 @@ def init_db_command() -> None:
                 pending_workflow_prompt_title VARCHAR(100) DEFAULT NULL,
                 pending_workflow_prompt_color VARCHAR(7) DEFAULT NULL,
                 pending_workflow_origin_prompt_id INT DEFAULT NULL,
+                public_api_invocation BOOLEAN NOT NULL DEFAULT FALSE,
                 cost DECIMAL(10, 5) DEFAULT NULL,
 
                  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
@@ -187,6 +188,13 @@ def init_db_command() -> None:
                 logger.info(f"Adding '{col_name}' column to 'transcriptions' table.")
                 cursor.execute(f"ALTER TABLE transcriptions ADD COLUMN {col_name} {col_def}")
         # --- END NEW ---
+
+        cursor.execute("SHOW COLUMNS FROM transcriptions LIKE 'public_api_invocation'")
+        public_api_exists = cursor.fetchone()
+        cursor.fetchall()
+        if not public_api_exists:
+            logger.info("Adding 'public_api_invocation' column to 'transcriptions' table.")
+            cursor.execute("ALTER TABLE transcriptions ADD COLUMN public_api_invocation BOOLEAN NOT NULL DEFAULT FALSE AFTER pending_workflow_origin_prompt_id")
 
         # Check and add cost
         cursor.execute("SHOW COLUMNS FROM transcriptions LIKE 'cost'")

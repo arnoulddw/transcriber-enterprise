@@ -70,6 +70,35 @@
             </li>
             {% endif %}
         </ul>
+        {% if user_permissions.allow_public_api_access %}
+            <div class="surface-divider"></div>
+            <div class="space-y-3" id="publicApiKeySection">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-base font-semibold text-text-strong">{{ _('Public API Access') }}</p>
+                        <p class="text-sm text-text-muted">
+                            {{ _('Use this key to call the transcription API without logging in. Send it as') }}
+                            <code class="bg-gray-100 text-gray-800 px-1 py-0.5 rounded">Authorization: Bearer &lt;{{ _('YOUR_KEY') }}&gt;</code>
+                        </p>
+                    </div>
+                    <span id="publicApiKeyStatus" class="text-sm text-orange-600 font-medium">{{ _('Not Configured') }}</span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex gap-2">
+                        <input id="publicApiKeyValue" type="text" readonly class="input-control flex-1" placeholder="{{ _('Generate a key to view it') }}">
+                        <button id="copyPublicApiKeyBtn" type="button" class="ui-btn ui-btn--ghost" disabled>
+                            <i class="material-icons text-base mr-1">content_copy</i>{{ _('Copy') }}
+                        </button>
+                    </div>
+                    <p id="publicApiKeyMeta" class="text-xs text-text-muted"></p>
+                    <p class="text-xs text-text-muted">{{ _('For security, the full key is shown only immediately after generation.') }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    {{ ui.button(_('Generate / Rotate Key'), variant='primary', id='generatePublicApiKeyBtn', icon='autorenew', extra_classes='flex-1 justify-center') }}
+                    {{ ui.button(_('Revoke'), variant='muted', id='revokePublicApiKeyBtn', icon='delete', extra_classes='flex-none') }}
+                </div>
+            </div>
+        {% endif %}
     </div>
     <div class="modal-footer">
         {{ ui.button(_('Close'), variant='muted', id='apiKeyModalCloseButtonFooter') }}

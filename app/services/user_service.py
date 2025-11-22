@@ -4,9 +4,14 @@
 from app.logging_config import get_logger
 import json
 import re # For Gemini API key validation
+import secrets
+import hmac
+import hashlib
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List 
 
 from cryptography.fernet import InvalidToken
+from flask import current_app
 
 # Import model and User class
 from app.models import user as user_model 
@@ -77,6 +82,15 @@ class DataLengthError(PromptManagementError):
 
 
 # --- API Key Management ---
+
+def _hash_public_api_key(raw_key: str) -> str:
+    """
+    Creates an HMAC-SHA256 hash of the raw API key using the app SECRET_KEY.
+    """
+    secret = current_app.config.get('SECRET_KEY')
+    if not secret:
+        raise ValueError("SECRET_KEY is required to generate public API keys.")
+    return hmac.new(secret.encode('utf-8'), raw_key.encode('utf-8'), hashlib.sha256).hexdigest()
 
 def _validate_gemini_api_key_format(api_key: str) -> bool:
     """
@@ -252,16 +266,35 @@ def delete_user_api_key(user_id: int, service: str) -> None:
         logger.error(f"Unexpected error deleting API key for service '{service}': {e}", exc_info=True)
         raise ApiKeyManagementError(f"An unexpected error occurred while deleting the API key for {service}.") from e
 
-def get_user_api_key_status(user_id: int) -> Dict[str, bool]:
+def get_user_api_key_status(user_id: int) -> Dict[str, Any]:
     """
     Checks which API keys are configured (present and non-empty) for the user.
     Uses MySQL backend via models.
     """
     logger = get_logger(__name__, user_id=user_id, component="UserService")
-    status = {'openai': False, 'assemblyai': False, 'gemini': False}
+    status: Dict[str, Any] = {
+        'openai': False,
+        'assemblyai': False,
+        'gemini': False,
+        'public_api': {
+            'enabled': False,
+            'last_four': None,
+            'created_at': None
+        }
+    }
     try:
         user = user_model.get_user_by_id(user_id)
+        if not user:
+            return status
+        allow_public = False
+        try:
+            allow_public = bool(user.role.allow_public_api_access) if user.role else False
+        except Exception:
+            allow_public = False
+
         if not user or not user.api_keys_encrypted:
+            if user and allow_public:
+                status['public_api'] = get_public_api_key_status(user_id)
             return status
 
         keys_dict = json.loads(user.api_keys_encrypted)
@@ -275,6 +308,8 @@ def get_user_api_key_status(user_id: int) -> Dict[str, bool]:
         else:
              logger.warning("API keys data is not a dictionary when checking status.")
 
+        status['public_api'] = get_public_api_key_status(user_id) if allow_public else status['public_api']
+
         logger.debug(f"API Key status checked: {status}")
 
     except (json.JSONDecodeError, TypeError):
@@ -284,6 +319,126 @@ def get_user_api_key_status(user_id: int) -> Dict[str, bool]:
     except Exception as e:
         logger.error(f"Error checking API key status: {e}", exc_info=True)
     return status
+
+
+def get_public_api_key_status(user_id: int) -> Dict[str, Optional[str]]:
+    """
+    Returns metadata about the user's public API key used for authenticated API access.
+    """
+    logger = get_logger(__name__, user_id=user_id, component="UserService")
+    try:
+        user = user_model.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User with ID {user_id} not found.")
+        if not (user.role and user.role.has_permission('allow_public_api_access')):
+            raise ApiKeyManagementError("Public API access is not permitted for this user.")
+
+        created_at_raw = getattr(user, 'public_api_key_created_at', None)
+        created_at_iso = None
+        if created_at_raw:
+            if isinstance(created_at_raw, datetime):
+                created_at_iso = created_at_raw.replace(tzinfo=timezone.utc).isoformat()
+            else:
+                created_at_iso = str(created_at_raw)
+
+        status = {
+            'enabled': bool(getattr(user, 'public_api_key_hash', None)),
+            'last_four': getattr(user, 'public_api_key_last_four', None),
+            'created_at': created_at_iso
+        }
+        logger.debug(f"Public API key status for user {user_id}: {status}")
+        return status
+    except UserNotFoundError:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving public API key status for user {user_id}: {e}", exc_info=True)
+        raise ApiKeyManagementError("Failed to retrieve public API key status.") from e
+
+
+def generate_public_api_key(user_id: int) -> Dict[str, str]:
+    """
+    Generates a new public API key for the user, storing only a hashed version.
+    Returns the plaintext key once so the caller can display it.
+    """
+    logger = get_logger(__name__, user_id=user_id, component="UserService")
+    try:
+        user = user_model.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User with ID {user_id} not found.")
+        if not (user.role and user.role.has_permission('allow_public_api_access')):
+            raise ApiKeyManagementError("Public API access is not permitted for this user.")
+
+        raw_key = f"tk_{secrets.token_urlsafe(32)}"
+        key_hash = _hash_public_api_key(raw_key)
+        last_four = raw_key[-4:]
+        created_at = datetime.now(timezone.utc)
+
+        saved = user_model.update_public_api_key(user_id, key_hash, last_four, created_at)
+        if not saved:
+            raise ApiKeyManagementError("Failed to persist public API key.")
+
+        logger.info(f"Generated new public API key for user {user_id}.")
+        return {
+            'api_key': raw_key,
+            'last_four': last_four,
+            'created_at': created_at.isoformat()
+        }
+    except (UserNotFoundError, ValueError, ApiKeyManagementError) as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected error generating public API key for user {user_id}: {e}", exc_info=True)
+        raise ApiKeyManagementError("An unexpected error occurred while generating the public API key.") from e
+
+
+def revoke_public_api_key(user_id: int) -> None:
+    """
+    Removes the stored public API key hash/metadata for the user.
+    """
+    logger = get_logger(__name__, user_id=user_id, component="UserService")
+    try:
+        user = user_model.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User with ID {user_id} not found.")
+        if not (user.role and user.role.has_permission('allow_public_api_access')):
+            raise ApiKeyManagementError("Public API access is not permitted for this user.")
+        if not user_model.clear_public_api_key(user_id):
+            raise ApiKeyManagementError("Failed to revoke the public API key.")
+        logger.info(f"Revoked public API key for user {user_id}.")
+    except (UserNotFoundError, ApiKeyManagementError) as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected error revoking public API key for user {user_id}: {e}", exc_info=True)
+        raise ApiKeyManagementError("An unexpected error occurred while revoking the public API key.") from e
+
+
+def authenticate_public_api_key(raw_key: str) -> Optional[User]:
+    """
+    Validates a presented public API key and returns the associated user if valid.
+    """
+    logger = get_logger(__name__, component="UserService")
+    if not raw_key:
+        return None
+    try:
+        key_hash = _hash_public_api_key(raw_key)
+        user = user_model.get_user_by_public_api_key_hash(key_hash)
+        if user and getattr(user, 'public_api_key_hash', None):
+            if hmac.compare_digest(user.public_api_key_hash, key_hash):
+                return user
+        return None
+    except Exception as e:
+        logger.error(f"Error authenticating public API key: {e}", exc_info=True)
+        return None
+
+
+def hash_public_api_key_for_rate_limit(raw_key: str) -> Optional[str]:
+    """
+    Utility used by rate-limiters to derive a stable key from the raw API token.
+    Returns None if hashing cannot be performed.
+    """
+    try:
+        return _hash_public_api_key(raw_key)
+    except Exception:
+        return None
 
 
 # --- Profile Update Service ---

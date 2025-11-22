@@ -10,6 +10,13 @@ let apiKeyModalPanel = null;
 let apiKeyModalTriggers = [];
 let apiKeyModalCloseButtons = [];
 let previouslyFocusedElement = null;
+let publicApiKeyStatusEl = null;
+let publicApiKeyValueInput = null;
+let publicApiKeyMetaEl = null;
+let publicApiCopyBtn = null;
+let publicApiGenerateBtn = null;
+let publicApiRevokeBtn = null;
+let lastGeneratedPublicApiKey = null;
 
 function initializeApiKeyModalElements() {
     apiKeyModal = document.getElementById('apiKeyModal');
@@ -19,6 +26,12 @@ function initializeApiKeyModalElements() {
     if (apiKeyModal) {
         apiKeyModalCloseButtons = Array.from(apiKeyModal.querySelectorAll('#apiKeyModalCloseButtonHeader, #apiKeyModalCloseButtonFooter'));
     }
+    publicApiKeyStatusEl = document.getElementById('publicApiKeyStatus');
+    publicApiKeyValueInput = document.getElementById('publicApiKeyValue');
+    publicApiKeyMetaEl = document.getElementById('publicApiKeyMeta');
+    publicApiCopyBtn = document.getElementById('copyPublicApiKeyBtn');
+    publicApiGenerateBtn = document.getElementById('generatePublicApiKeyBtn');
+    publicApiRevokeBtn = document.getElementById('revokePublicApiKeyBtn');
 
     if (!apiKeyModal || !apiKeyModalOverlay || !apiKeyModalPanel) {
         window.logger.warn(userSettingsLogPrefix, "One or more API Key modal core elements not found.");
@@ -120,6 +133,16 @@ document.addEventListener('DOMContentLoaded', function() {
         apiKeyModalOverlay.addEventListener('click', closeApiKeyModalDialog);
     }
 
+    if (publicApiGenerateBtn) {
+        publicApiGenerateBtn.addEventListener('click', handleGeneratePublicApiKey);
+    }
+    if (publicApiCopyBtn) {
+        publicApiCopyBtn.addEventListener('click', copyPublicApiKeyToClipboard);
+    }
+    if (publicApiRevokeBtn) {
+        publicApiRevokeBtn.addEventListener('click', handleRevokePublicApiKey);
+    }
+
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && apiKeyModal && !apiKeyModal.classList.contains('hidden')) {
             closeApiKeyModalDialog();
@@ -177,6 +200,143 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 }); // End DOMContentLoaded
+
+
+function updatePublicApiKeySection(publicStatus) {
+    if (!publicApiKeyStatusEl || !publicApiKeyValueInput || !publicApiKeyMetaEl || !publicApiCopyBtn) return;
+    const status = publicStatus || {};
+    const enabled = Boolean(status && status.enabled);
+    const lastFour = status && status.last_four ? status.last_four : null;
+    const createdAt = status && status.created_at ? status.created_at : null;
+
+    if (enabled) {
+        publicApiKeyStatusEl.textContent = lastFour ? `Active • ****${lastFour}` : 'Active';
+        publicApiKeyStatusEl.className = 'text-sm text-green-600 font-medium';
+    } else {
+        publicApiKeyStatusEl.textContent = 'Not Configured';
+        publicApiKeyStatusEl.className = 'text-sm text-orange-600 font-medium';
+    }
+
+    if (lastGeneratedPublicApiKey) {
+        publicApiKeyValueInput.value = lastGeneratedPublicApiKey;
+        publicApiCopyBtn.disabled = false;
+    } else {
+        publicApiKeyValueInput.value = '';
+        publicApiCopyBtn.disabled = true;
+    }
+
+    if (createdAt) {
+        try {
+            const createdDate = new Date(createdAt);
+            publicApiKeyMetaEl.textContent = `Created ${createdDate.toLocaleString()}`;
+        } catch (e) {
+            publicApiKeyMetaEl.textContent = `Created ${createdAt}`;
+        }
+    } else {
+        publicApiKeyMetaEl.textContent = enabled
+            ? 'Key is active.'
+            : 'Generate a key to enable API access.';
+    }
+
+    if (publicApiRevokeBtn) {
+        publicApiRevokeBtn.disabled = !enabled;
+    }
+}
+
+function copyPublicApiKeyToClipboard(event) {
+    event.preventDefault();
+    if (!lastGeneratedPublicApiKey) {
+        window.showNotification('Nothing to copy. Generate a key first.', 'warning', 4000, false);
+        return;
+    }
+    navigator.clipboard.writeText(lastGeneratedPublicApiKey)
+        .then(() => {
+            window.showNotification('API key copied to clipboard.', 'success', 3000, false);
+        })
+        .catch(() => {
+            window.showNotification('Could not copy API key. Please copy it manually.', 'error', 4000, false);
+        });
+}
+
+function handleGeneratePublicApiKey(event) {
+    event.preventDefault();
+    if (!publicApiGenerateBtn) return;
+
+    const originalHtml = publicApiGenerateBtn.innerHTML;
+    publicApiGenerateBtn.disabled = true;
+    publicApiGenerateBtn.innerHTML = 'Generating... <span class="spinner ml-2 inline-block" style="width: 1em; height: 1em; border-width: .15em;"></span>';
+
+    fetch('/api/user/public-api-key', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': window.csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` })).then(errData => {
+                throw new Error(errData.error || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        lastGeneratedPublicApiKey = data.api_key;
+        updatePublicApiKeySection({ enabled: true, last_four: data.last_four, created_at: data.created_at });
+        window.showNotification('New API key generated. Copy it now and keep it secure.', 'success', 5000, false);
+        return fetchApiKeyStatus();
+    })
+    .catch(error => {
+        window.logger.error(userSettingsLogPrefix, 'Error generating public API key:', error);
+        window.showNotification(`Error generating API key: ${escapeHtml(error.message)}`, 'error', 6000, false);
+    })
+    .finally(() => {
+        publicApiGenerateBtn.disabled = false;
+        publicApiGenerateBtn.innerHTML = originalHtml;
+    });
+}
+
+function handleRevokePublicApiKey(event) {
+    event.preventDefault();
+    if (!confirm('Revoke the current public API key? Existing scripts will stop working.')) {
+        return;
+    }
+    if (!publicApiRevokeBtn) return;
+    const originalHtml = publicApiRevokeBtn.innerHTML;
+    publicApiRevokeBtn.disabled = true;
+    publicApiRevokeBtn.innerHTML = '<span class="spinner inline-block" style="width: 0.8em; height: 0.8em; border-width: .15em;"></span>';
+
+    fetch('/api/user/public-api-key', {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': window.csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` })).then(errData => {
+                throw new Error(errData.error || `HTTP error! Status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        lastGeneratedPublicApiKey = null;
+        updatePublicApiKeySection({ enabled: false });
+        window.showNotification(data.message || 'Public API key revoked.', 'success', 4000, false);
+        return fetchApiKeyStatus();
+    })
+    .catch(error => {
+        window.logger.error(userSettingsLogPrefix, 'Error revoking public API key:', error);
+        window.showNotification(`Error revoking API key: ${escapeHtml(error.message)}`, 'error', 6000, false);
+    })
+    .finally(() => {
+        publicApiRevokeBtn.disabled = false;
+        publicApiRevokeBtn.innerHTML = originalHtml;
+    });
+}
 
 
 /**
@@ -249,6 +409,7 @@ function fetchApiKeyStatus() {
             }
 
             window.API_KEY_STATUS = data || {};
+            updatePublicApiKeySection(data.public_api);
 
             if (typeof window.updateApiKeyNotificationVisibility === 'function') {
                 window.updateApiKeyNotificationVisibility(data, permissions);
@@ -271,6 +432,7 @@ function fetchApiKeyStatus() {
             if (canUseGemini && geminiStatusElem && geminiActionsElem) {
                 updateStatusElement(geminiStatusElem, geminiActionsElem, false, 'gemini', 'Error');
             }
+            updatePublicApiKeySection(null);
 
             if (error.message.includes('Authentication required')) {
                 closeApiKeyModalDialog(); // Close the new modal

@@ -52,5 +52,6 @@ def _map_row_to_transcription_dict(row: Dict[str, Any]) -> Optional[Dict[str, An
     row['pending_workflow_prompt_color'] = row.get('pending_workflow_prompt_color')
     row['pending_workflow_origin_prompt_id'] = row.get('pending_workflow_origin_prompt_id') # Added
     # --- END MODIFIED ---
+    row['public_api_invocation'] = bool(row.get('public_api_invocation', False))
 
     return row

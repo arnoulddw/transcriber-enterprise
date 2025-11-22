@@ -17,7 +17,8 @@ VALID_TRANSCRIPTION_COLUMNS_FOR_FILTERING = {
     'llm_operation_id', 'llm_operation_status', 'llm_operation_result',
     'llm_operation_error', 'llm_operation_ran_at',
     'pending_workflow_prompt_text', 'pending_workflow_prompt_title',
-    'pending_workflow_prompt_color', 'cost'
+    'pending_workflow_prompt_color', 'pending_workflow_origin_prompt_id',
+    'public_api_invocation', 'cost'
 }
 
 

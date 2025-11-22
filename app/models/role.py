@@ -80,6 +80,7 @@ class Role:
     allow_large_files: bool
     allow_context_prompt: bool
     allow_api_key_management: bool
+    allow_public_api_access: bool
     allow_download_transcript: bool
     allow_workflows: bool
     manage_workflow_templates: bool
@@ -115,7 +116,7 @@ class Role:
             'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
             'use_api_google_gemini',
             'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
-            'allow_api_key_management', 'allow_download_transcript', 'allow_workflows',
+            'allow_api_key_management', 'allow_public_api_access', 'allow_download_transcript', 'allow_workflows',
             'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization'
         ]
         defaults = {field: (1 if field == 'allow_download_transcript' else 0) for field in bool_fields}
@@ -178,6 +179,8 @@ def _map_row_to_role(row: Dict[str, Any]) -> Optional[Role]:
             row['allow_auto_title_generation'] = 0
         if 'allow_speaker_diarization' not in row:
             row['allow_speaker_diarization'] = 0
+        if 'allow_public_api_access' not in row:
+            row['allow_public_api_access'] = 0
         return Role(**row)
     return None
 
@@ -204,6 +207,7 @@ def init_roles_table() -> None:
                 allow_large_files BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_context_prompt BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_api_key_management BOOLEAN NOT NULL DEFAULT FALSE,
+                allow_public_api_access BOOLEAN NOT NULL DEFAULT FALSE,
                 allow_download_transcript BOOLEAN NOT NULL DEFAULT TRUE,
                 allow_workflows BOOLEAN NOT NULL DEFAULT FALSE,
                 manage_workflow_templates BOOLEAN NOT NULL DEFAULT FALSE,
@@ -242,6 +246,8 @@ def init_roles_table() -> None:
         for col_name, col_def in new_workflow_columns.items():
             _ensure_column(cursor, "roles", None, col_name, col_def, log_prefix=log_prefix)
 
+        _ensure_column(cursor, "roles", None, "allow_public_api_access",
+                       "BOOLEAN NOT NULL DEFAULT FALSE", after="allow_api_key_management", log_prefix=log_prefix)
         _ensure_column(cursor, "roles", None, "allow_auto_title_generation",
                        "BOOLEAN NOT NULL DEFAULT FALSE", after="manage_workflow_templates", log_prefix=log_prefix)
         _ensure_column(cursor, "roles", None, "allow_speaker_diarization",
@@ -284,7 +290,7 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
-        'allow_api_key_management', 'allow_download_transcript',
+        'allow_api_key_management', 'allow_public_api_access', 'allow_download_transcript',
         'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization',
         'default_transcription_model', 'default_title_generation_model', 'default_workflow_model',
         'limit_daily_cost', 'limit_weekly_cost', 'limit_monthly_cost',
@@ -457,7 +463,7 @@ def update_role(role_id: int, role_data: Dict[str, Any]) -> bool:
         'use_api_assemblyai', 'use_api_openai_whisper', 'use_api_openai_gpt_4o_transcribe',
         'use_api_google_gemini', # Added
         'access_admin_panel', 'allow_large_files', 'allow_context_prompt',
-        'allow_api_key_management', 'allow_download_transcript',
+        'allow_api_key_management', 'allow_public_api_access', 'allow_download_transcript',
         'allow_workflows', 'manage_workflow_templates', 'allow_auto_title_generation', 'allow_speaker_diarization',
         'default_transcription_model', 'default_title_generation_model', 'default_workflow_model',
         'limit_daily_cost', 'limit_weekly_cost', 'limit_monthly_cost',
