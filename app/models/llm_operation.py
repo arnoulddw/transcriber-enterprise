@@ -81,8 +81,8 @@ def init_db_command() -> None:
                 result MEDIUMTEXT,
                 transcription_id VARCHAR(36) DEFAULT NULL,
                 prompt_id INT DEFAULT NULL,
-                created_at TEXT NOT NULL,
-                completed_at TEXT DEFAULT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP NULL DEFAULT NULL,
                 status VARCHAR(20) NOT NULL DEFAULT 'pending',
                 error TEXT DEFAULT NULL,
                 cost DECIMAL(10, 5) DEFAULT NULL,
@@ -94,7 +94,7 @@ def init_db_command() -> None:
                 INDEX idx_llm_op_status (status),
                 INDEX idx_llm_op_transcription (transcription_id),
                 INDEX idx_llm_op_prompt (prompt_id),
-                INDEX idx_llm_op_created_at (created_at(20))
+                INDEX idx_llm_op_created_at (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
         )
@@ -108,6 +108,30 @@ def init_db_command() -> None:
         if not cost_col_exists:
             logging.info(f"{log_prefix} Adding 'cost' column (DECIMAL(10, 5)) to 'llm_operations' table.")
             cursor.execute("ALTER TABLE llm_operations ADD COLUMN cost DECIMAL(10, 5) DEFAULT NULL AFTER error")
+
+        cursor.execute("SHOW COLUMNS FROM llm_operations LIKE 'transcription_id'")
+        transcription_id_col = cursor.fetchone()
+        cursor.fetchall()
+        transcription_id_type = (transcription_id_col.get('Type') if isinstance(transcription_id_col, dict) else (transcription_id_col[1] if transcription_id_col else "")).lower()
+        if transcription_id_col and 'varchar' not in transcription_id_type:
+            logging.info(f"{log_prefix} Normalizing 'transcription_id' column to VARCHAR(36).")
+            cursor.execute("ALTER TABLE llm_operations MODIFY COLUMN transcription_id VARCHAR(36) DEFAULT NULL")
+
+        cursor.execute("SHOW COLUMNS FROM llm_operations LIKE 'created_at'")
+        created_at_col = cursor.fetchone()
+        cursor.fetchall()
+        created_at_type = (created_at_col.get('Type') if isinstance(created_at_col, dict) else (created_at_col[1] if created_at_col else "")).lower()
+        if created_at_col and 'timestamp' not in created_at_type:
+            logging.info(f"{log_prefix} Converting 'created_at' column on 'llm_operations' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE llm_operations MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        cursor.execute("SHOW COLUMNS FROM llm_operations LIKE 'completed_at'")
+        completed_at_col = cursor.fetchone()
+        cursor.fetchall()
+        completed_at_type = (completed_at_col.get('Type') if isinstance(completed_at_col, dict) else (completed_at_col[1] if completed_at_col else "")).lower()
+        if completed_at_col and 'timestamp' not in completed_at_type:
+            logging.info(f"{log_prefix} Converting 'completed_at' column on 'llm_operations' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE llm_operations MODIFY COLUMN completed_at TIMESTAMP NULL DEFAULT NULL")
         get_db().commit()
     except MySQLError as err:
         logging.error(f"{log_prefix} Error during 'llm_operations' table initialization: {err}", exc_info=True)
@@ -184,7 +208,7 @@ def update_llm_operation_status(
 ) -> bool:
     """Updates the status, result, error, and completed_at timestamp for an LLM operation."""
     log_prefix = f"[DB:LLMOperation:{operation_id}]"
-    now_utc_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    now_utc = datetime.now(timezone.utc).replace(microsecond=0)
 
     valid_statuses = ['pending', 'processing', 'finished', 'error']
     if status not in valid_statuses:
@@ -195,8 +219,8 @@ def update_llm_operation_status(
     params = [status]
 
     if status in ['finished', 'error']:
-        update_fields['completed_at'] = now_utc_iso
-        params.append(now_utc_iso)
+        update_fields['completed_at'] = now_utc
+        params.append(now_utc)
 
     if status == 'finished':
         update_fields['result'] = result

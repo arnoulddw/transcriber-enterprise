@@ -38,20 +38,20 @@ def init_db_command() -> None:
                 detected_language VARCHAR(10),
                 transcription_text MEDIUMTEXT,
                 api_used VARCHAR(50),
-                created_at TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 status VARCHAR(20) DEFAULT 'pending',
                 progress_log JSON,
                 error_message TEXT,
                 context_prompt_used BOOLEAN DEFAULT FALSE,
                 downloaded BOOLEAN DEFAULT FALSE,
                 is_hidden_from_user BOOLEAN NOT NULL DEFAULT FALSE,
-                hidden_date DATETIME DEFAULT NULL,
+                hidden_date TIMESTAMP NULL DEFAULT NULL,
                 hidden_reason ENUM('USER_DELETED', 'RETENTION_POLICY') DEFAULT NULL,
                 llm_operation_id INT DEFAULT NULL,
                 llm_operation_status VARCHAR(20) DEFAULT NULL,
                 llm_operation_result MEDIUMTEXT,
                 llm_operation_error TEXT DEFAULT NULL,
-                llm_operation_ran_at DATETIME DEFAULT NULL,
+                llm_operation_ran_at TIMESTAMP NULL DEFAULT NULL,
                 pending_workflow_prompt_text TEXT DEFAULT NULL,
                 pending_workflow_prompt_title VARCHAR(100) DEFAULT NULL,
                 pending_workflow_prompt_color VARCHAR(7) DEFAULT NULL,
@@ -62,10 +62,10 @@ def init_db_command() -> None:
                  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
                  INDEX idx_transcription_user (user_id),
                 INDEX idx_transcription_status (status),
-                INDEX idx_transcription_created_at (created_at(20)),
+                INDEX idx_transcription_created_at (created_at),
                 INDEX idx_transcription_api_used (api_used),
                 INDEX idx_transcription_language (detected_language),
-                INDEX idx_transcription_user_hidden_created (user_id, is_hidden_from_user, created_at(20)),
+                INDEX idx_transcription_user_hidden_created (user_id, is_hidden_from_user, created_at),
                 INDEX idx_transcription_hidden_date (is_hidden_from_user, hidden_date),
                 INDEX idx_title_generation_status (title_generation_status)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -119,8 +119,8 @@ def init_db_command() -> None:
         hidden_date_exists = cursor.fetchone()
         cursor.fetchall()  # Consume remaining results
         if not hidden_date_exists:
-            logger.info("Adding 'hidden_date' column (DATETIME).")
-            cursor.execute("ALTER TABLE transcriptions ADD COLUMN hidden_date DATETIME DEFAULT NULL AFTER is_hidden_from_user")
+            logger.info("Adding 'hidden_date' column (TIMESTAMP).")
+            cursor.execute("ALTER TABLE transcriptions ADD COLUMN hidden_date TIMESTAMP NULL DEFAULT NULL AFTER is_hidden_from_user")
 
         # Check and add hidden_reason
         cursor.execute("SHOW COLUMNS FROM transcriptions LIKE 'hidden_reason'")
@@ -142,7 +142,7 @@ def init_db_command() -> None:
                   ADD COLUMN llm_operation_status VARCHAR(20) DEFAULT NULL AFTER llm_operation_id,
                   ADD COLUMN llm_operation_result MEDIUMTEXT AFTER llm_operation_status,
                   ADD COLUMN llm_operation_error TEXT DEFAULT NULL AFTER llm_operation_result,
-                  ADD COLUMN llm_operation_ran_at DATETIME DEFAULT NULL AFTER llm_operation_error
+                  ADD COLUMN llm_operation_ran_at TIMESTAMP NULL DEFAULT NULL AFTER llm_operation_error
             """
             cursor.execute(alter_workflow_sql)
 
@@ -206,10 +206,10 @@ def init_db_command() -> None:
 
         # --- Add/Check Indexes ---
         index_checks = {
-            'idx_transcription_created_at': 'created_at(20)',
+            'idx_transcription_created_at': 'created_at',
             'idx_transcription_api_used': 'api_used',
             'idx_transcription_language': 'detected_language',
-            'idx_transcription_user_hidden_created': 'user_id, is_hidden_from_user, created_at(20)',
+            'idx_transcription_user_hidden_created': 'user_id, is_hidden_from_user, created_at',
             'idx_transcription_hidden_date': 'is_hidden_from_user, hidden_date',
             'idx_title_generation_status': 'title_generation_status'
         }
@@ -220,6 +220,24 @@ def init_db_command() -> None:
             if not idx_exists:
                 logger.info(f"Adding index '{idx_name}' to 'transcriptions' table.")
                 cursor.execute(f"ALTER TABLE transcriptions ADD INDEX {idx_name} ({col_def})")
+
+        # Normalize timestamp columns
+        cursor.execute("SHOW COLUMNS FROM transcriptions LIKE 'created_at'")
+        created_at_col = cursor.fetchone()
+        cursor.fetchall()
+        created_at_type = (created_at_col.get('Type') if isinstance(created_at_col, dict) else (created_at_col[1] if created_at_col else "")).lower()
+        if created_at_col and 'timestamp' not in created_at_type:
+            logger.info("Converting 'created_at' column on 'transcriptions' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE transcriptions MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        for col_name in ('hidden_date', 'llm_operation_ran_at'):
+            cursor.execute(f"SHOW COLUMNS FROM transcriptions LIKE '{col_name}'")
+            col_info = cursor.fetchone()
+            cursor.fetchall()
+            col_type = (col_info.get('Type') if isinstance(col_info, dict) else (col_info[1] if col_info else "")).lower()
+            if col_info and 'timestamp' not in col_type:
+                logger.info(f"Converting '{col_name}' column on 'transcriptions' table to TIMESTAMP.")
+                cursor.execute(f"ALTER TABLE transcriptions MODIFY COLUMN {col_name} TIMESTAMP NULL DEFAULT NULL")
         get_db().commit()
         logger.info("'transcriptions' table schema verified/initialized.")
 

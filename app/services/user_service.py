@@ -2,7 +2,6 @@
 # Handles user-specific business logic, particularly API key management and profile updates.
 
 from app.logging_config import get_logger
-import json
 import re # For Gemini API key validation
 import secrets
 import hmac
@@ -15,6 +14,7 @@ from flask import current_app
 
 # Import model and User class
 from app.models import user as user_model 
+from app.models import user_api_key as user_api_key_model
 from app.models import user_prompt as user_prompt_model
 from app.models import template_prompt as template_prompt_model
 from app.models.user import User 
@@ -115,6 +115,7 @@ def save_user_api_key(user_id: int, service: str, api_key: str) -> bool:
     if service not in allowed_services:
         logger.error(f"Attempted to save API key for invalid service: {service}")
         raise ValueError(f"Invalid service specified: {service}. Must be one of {allowed_services}.")
+    service = service.lower()
 
     if service == 'gemini' and not _validate_gemini_api_key_format(api_key):
         logger.warning(f"Invalid Google Gemini API key format provided. Key: '{api_key[:10]}...'")
@@ -130,28 +131,13 @@ def save_user_api_key(user_id: int, service: str, api_key: str) -> bool:
         encrypted_key = security_svc.encrypt_data(api_key)
         logger.debug(f"API key for service '{service}' encrypted.")
 
-        current_keys_encrypted_json = user.api_keys_encrypted
-        keys_dict: Dict[str, str] = {}
-        if current_keys_encrypted_json:
-            try:
-                keys_dict = json.loads(current_keys_encrypted_json)
-                if not isinstance(keys_dict, dict):
-                    logger.warning(f"Stored API keys data is not a dictionary. Resetting. Type: {type(keys_dict)}")
-                    keys_dict = {}
-            except (json.JSONDecodeError, TypeError):
-                logger.warning(f"Could not parse existing API keys JSON. Starting fresh. Content: {current_keys_encrypted_json}")
-                keys_dict = {}
-
-        keys_dict[service] = encrypted_key
-        updated_keys_json = json.dumps(keys_dict)
-
-        success = user_model.update_user_api_keys(user_id, updated_keys_json)
-        if success:
-            logger.debug(f"Successfully saved encrypted API key for service '{service}'.")
-            return True
-        else:
-            logger.error(f"Failed to update user record with new API keys for service '{service}'.")
+        success = user_api_key_model.upsert_api_key(user_id, service, encrypted_key)
+        if not success:
+            logger.error(f"Failed to persist API key for service '{service}'.")
             raise DatabaseUpdateError("Failed to update API keys in the database.")
+
+        logger.debug(f"Successfully saved encrypted API key for service '{service}'.")
+        return True
 
     except (UserNotFoundError, ValueError, DatabaseUpdateError) as e:
          raise e
@@ -170,23 +156,15 @@ def get_decrypted_api_key(user_id: int, service: str) -> Optional[str]:
     if not service:
         logger.error("Attempted to get API key for empty service.")
         return None
+    service = service.lower()
 
     try:
         user = user_model.get_user_by_id(user_id)
-        if not user or not user.api_keys_encrypted:
-            logger.debug("No encrypted API keys found for user.")
+        if not user:
+            logger.debug("User not found when fetching encrypted API keys.")
             return None
 
-        try:
-            keys_dict = json.loads(user.api_keys_encrypted)
-            if not isinstance(keys_dict, dict):
-                logger.error(f"Stored API keys data is not a dictionary: {type(keys_dict)}")
-                return None
-        except (json.JSONDecodeError, TypeError):
-            logger.error(f"Could not parse stored API keys JSON: {user.api_keys_encrypted}", exc_info=True)
-            return None
-
-        encrypted_key = keys_dict.get(service)
+        encrypted_key = user_api_key_model.get_api_key(user_id, service)
         if not encrypted_key:
             logger.debug(f"API key for service '{service}' not found in stored keys.")
             return None
@@ -223,39 +201,18 @@ def delete_user_api_key(user_id: int, service: str) -> None:
     if service not in allowed_services:
         logger.error(f"Attempted to delete API key for invalid service: {service}")
         raise ValueError(f"Invalid service specified: {service}. Must be one of {allowed_services}.")
+    service = service.lower()
 
     try:
         user = user_model.get_user_by_id(user_id)
         if not user:
             raise UserNotFoundError(f"User with ID {user_id} not found.")
-        if not user.api_keys_encrypted:
-            logger.warning(f"No API keys found for user when trying to delete key for '{service}'.")
-            raise KeyNotFoundError(f"API key for service '{service}' not found (no keys stored).")
 
-        try:
-            keys_dict = json.loads(user.api_keys_encrypted)
-            if not isinstance(keys_dict, dict):
-                logger.error(f"Stored API keys data is not a dictionary during delete: {type(keys_dict)}")
-                raise DatabaseUpdateError("Stored API key data is corrupted.")
-        except (json.JSONDecodeError, TypeError):
-            logger.error(f"Could not parse stored API keys JSON during delete: {user.api_keys_encrypted}", exc_info=True)
-            raise DatabaseUpdateError("Could not parse stored API key data.")
-
-        if service in keys_dict:
-            del keys_dict[service]
-            logger.debug(f"Removed API key for service '{service}' from dictionary.")
-
-            updated_keys_json = json.dumps(keys_dict) if keys_dict else None
-
-            success = user_model.update_user_api_keys(user_id, updated_keys_json)
-            if success:
-                logger.debug(f"Successfully updated user record after deleting API key for '{service}'.")
-            else:
-                logger.error(f"Failed to update user record after deleting API key for '{service}'.")
-                raise DatabaseUpdateError("Failed to update user record in database after key deletion.")
-        else:
-            logger.warning(f"API key for service '{service}' not found, nothing to delete.")
+        removed = user_api_key_model.delete_api_key(user_id, service)
+        if not removed:
+            logger.warning(f"API key for service '{service}' not found or could not be removed.")
             raise KeyNotFoundError(f"API key for service '{service}' not found.")
+        logger.debug(f"Successfully removed API key for service '{service}'.")
 
     except (UserNotFoundError, KeyNotFoundError, DatabaseUpdateError, ValueError) as specific_error:
         raise specific_error
@@ -292,28 +249,15 @@ def get_user_api_key_status(user_id: int) -> Dict[str, Any]:
         except Exception:
             allow_public = False
 
-        if not user or not user.api_keys_encrypted:
-            if user and allow_public:
-                status['public_api'] = get_public_api_key_status(user_id)
-            return status
-
-        keys_dict = json.loads(user.api_keys_encrypted)
-        if isinstance(keys_dict, dict):
-            if keys_dict.get('openai'):
-                status['openai'] = True
-            if keys_dict.get('assemblyai'):
-                status['assemblyai'] = True
-            if keys_dict.get('gemini'):
-                status['gemini'] = True
-        else:
-             logger.warning("API keys data is not a dictionary when checking status.")
+        key_map = user_api_key_model.get_api_keys_by_user(user_id)
+        status['openai'] = bool(key_map.get('openai'))
+        status['assemblyai'] = bool(key_map.get('assemblyai'))
+        status['gemini'] = bool(key_map.get('gemini'))
 
         status['public_api'] = get_public_api_key_status(user_id) if allow_public else status['public_api']
 
         logger.debug(f"API Key status checked: {status}")
 
-    except (json.JSONDecodeError, TypeError):
-        logger.warning("Could not parse API keys JSON while checking status.")
     except MySQLError as db_err:
         logger.error(f"Database error checking API key status: {db_err}", exc_info=True)
     except Exception as e:

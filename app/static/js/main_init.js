@@ -407,20 +407,19 @@ window.validateContextPrompt = validateContextPrompt;
 function updateApiKeyNotificationVisibility(keyStatus, permissions) {
     if (!window.IS_MULTI_USER) return;
     const notificationElement = document.getElementById('api-key-notification');
-    let shouldShow = false;
-    const hasOpenAIPermission = permissions.use_api_openai_whisper || permissions.use_api_openai_gpt_4o_transcribe;
-    const hasAssemblyAIPermission = permissions.use_api_assemblyai;
-    const hasAnyPermission = hasOpenAIPermission || hasAssemblyAIPermission;
-    let hasKeyForPermittedModel = false;
-    if (hasOpenAIPermission && keyStatus.openai) {
-        hasKeyForPermittedModel = true;
-    }
-    if (!hasKeyForPermittedModel && hasAssemblyAIPermission && keyStatus.assemblyai) {
-        hasKeyForPermittedModel = true;
-    }
-    if (hasAnyPermission && !hasKeyForPermittedModel) {
-        shouldShow = true;
-    }
+    const normalizedKeyStatus = (typeof keyStatus === 'object' && keyStatus !== null) ? keyStatus : {};
+    const normalizedPermissions = (typeof permissions === 'object' && permissions !== null) ? permissions : {};
+
+    const servicePermissions = [
+        { key: 'openai', permitted: normalizedPermissions.use_api_openai_whisper || normalizedPermissions.use_api_openai_gpt_4o_transcribe },
+        { key: 'assemblyai', permitted: normalizedPermissions.use_api_assemblyai },
+        { key: 'gemini', permitted: normalizedPermissions.use_api_google_gemini }
+    ];
+
+    const permittedServices = servicePermissions.filter(service => service.permitted);
+    const hasAnyPermission = permittedServices.length > 0;
+    const hasKeyForPermittedService = permittedServices.some(service => Boolean(normalizedKeyStatus[service.key]));
+    const shouldShow = hasAnyPermission && !hasKeyForPermittedService;
     if (shouldShow) {
         if (!notificationElement) {
             initLogger.info("Showing API key needed notification.");

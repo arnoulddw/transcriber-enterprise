@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Optional, List
 from datetime import datetime
 
@@ -7,6 +8,7 @@ from mysql.connector import Error as MySQLError
 
 from app.database import get_db, get_cursor
 from app.models import transcription_catalog as transcription_catalog_model
+from app.models import user_api_key as user_api_key_model
 
 from .model import User, _map_row_to_user
 
@@ -362,19 +364,48 @@ def link_oauth_to_user(user_id: int, oauth_provider: str, oauth_provider_id: str
 
 
 def update_user_api_keys(user_id: int, encrypted_keys_json: Optional[str]) -> bool:
-    sql = 'UPDATE users SET api_keys_encrypted = %s WHERE id = %s'
-    cursor = get_cursor()
+    """
+    Backwards-compatible helper to sync API key payloads into the normalized user_api_keys table.
+    Accepts the legacy JSON blob format mapping provider -> encrypted key.
+    """
     try:
-        cursor.execute(sql, (encrypted_keys_json, user_id))
-        get_db().commit()
-        logger.info(f"[DB:User] Updated API keys for user ID {user_id}.")
-        return True
+        if not encrypted_keys_json:
+            user_api_key_model.delete_all_api_keys_for_user(user_id)
+            logger.info(f"[DB:User] Cleared all API keys for user ID {user_id}.")
+            return True
+
+        keys_dict = json.loads(encrypted_keys_json)
+        if not isinstance(keys_dict, dict):
+            logger.error(f"[DB:User] update_user_api_keys expected a dict, got {type(keys_dict)}")
+            return False
+
+        existing_keys = user_api_key_model.get_api_keys_by_user(user_id)
+        success = True
+
+        # Remove keys that are no longer present
+        for provider in set(existing_keys.keys()) - set(keys_dict.keys()):
+            success = user_api_key_model.delete_api_key(user_id, provider) and success
+
+        # Upsert provided keys
+        for provider, encrypted_key in keys_dict.items():
+            success = user_api_key_model.upsert_api_key(user_id, provider, encrypted_key) and success
+
+        if success:
+            logger.info(f"[DB:User] Updated API keys for user ID {user_id} using normalized storage.")
+        else:
+            logger.warning(f"[DB:User] One or more API keys failed to persist for user ID {user_id}.")
+        return success
+    except (json.JSONDecodeError, TypeError) as parse_err:
+        logger.error(f"[DB:User] Failed to parse API key JSON for user {user_id}: {parse_err}", exc_info=True)
+        return False
     except MySQLError as err:
-        logger.error(f"[DB:User] Error updating API keys for user ID {user_id}: {err}", exc_info=True)
+        logger.error(f"[DB:User] Database error updating API keys for user ID {user_id}: {err}", exc_info=True)
         get_db().rollback()
         return False
-    finally:
-        pass
+    except Exception as err:
+        logger.error(f"[DB:User] Unexpected error updating API keys for user ID {user_id}: {err}", exc_info=True)
+        get_db().rollback()
+        return False
 
 
 def update_public_api_key(user_id: int, key_hash: str, last_four: str, created_at: datetime) -> bool:

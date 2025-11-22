@@ -52,7 +52,7 @@ def clean_db(app):
         # List of all tables to be truncated
         tables = [
             "user_prompts", "template_prompts", "llm_operations",
-            "transcriptions", "user_usage", "users", "roles"
+            "transcriptions", "user_usage", "user_api_keys", "users", "roles"
         ]
         for table in tables:
             cursor.execute(f"TRUNCATE TABLE {table}")

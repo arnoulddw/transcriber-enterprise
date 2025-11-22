@@ -49,7 +49,7 @@ def create_transcription_job(job_id: str, user_id: int, filename: str, api_used:
         cursor.execute(sql, (
             job_id, user_id, filename, None, 'pending',
             file_size_mb, audio_length_minutes, api_used,
-            datetime.now(timezone.utc).isoformat(), 'pending', initial_log_json, None,
+            datetime.now(timezone.utc), 'pending', initial_log_json, None,
             context_prompt_used, False,
             False, None, None,
             None, None, None, None, None, # Workflow fields

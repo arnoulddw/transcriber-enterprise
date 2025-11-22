@@ -7,8 +7,45 @@ from app.database import get_db, get_cursor
 logger = logging.getLogger(__name__)
 
 
+def _get_sql_mode(cursor):
+    cursor.execute("SELECT @@SESSION.sql_mode")
+    row = cursor.fetchone()
+    if not row:
+        return None
+    if isinstance(row, dict):
+        return row.get('@@SESSION.sql_mode') or row.get('sql_mode')
+    if isinstance(row, (list, tuple)):
+        return row[0]
+    return str(row)
+
+
+def _temporarily_allow_zero_dates(cursor):
+    """
+    Removes NO_ZERO_DATE/NO_ZERO_IN_DATE for the session so we can clean bad values.
+    Returns the original sql_mode so it can be restored.
+    """
+    original_mode = _get_sql_mode(cursor)
+    if not original_mode:
+        return None
+    modes = [m for m in original_mode.split(',') if m not in ('NO_ZERO_DATE', 'NO_ZERO_IN_DATE')]
+    new_mode = ",".join(modes)
+    if new_mode != original_mode:
+        cursor.execute("SET SESSION sql_mode = %s", (new_mode,))
+    return original_mode
+
+
+def _restore_sql_mode(cursor, original_mode):
+    if original_mode is None:
+        return
+    try:
+        cursor.execute("SET SESSION sql_mode = %s", (original_mode,))
+    except Exception:
+        pass
+
+
 def init_db_command() -> None:
     cursor = get_cursor()
+    conn = get_db()
     log_prefix = "[DB:Schema:MySQL]"
     logger.info(f"{log_prefix} Checking/Initializing 'users' table schema...")
     try:
@@ -26,8 +63,7 @@ def init_db_command() -> None:
                 email VARCHAR(120) UNIQUE NOT NULL,
                 password_hash VARCHAR(255),
                 role_id INT,
-                created_at DATETIME NOT NULL,
-                api_keys_encrypted TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 first_name VARCHAR(100),
                 last_name VARCHAR(100),
                 oauth_provider VARCHAR(50),
@@ -37,7 +73,7 @@ def init_db_command() -> None:
                 enable_auto_title_generation BOOLEAN NOT NULL DEFAULT FALSE,
                 public_api_key_hash VARCHAR(128),
                 public_api_key_last_four VARCHAR(12),
-                public_api_key_created_at DATETIME,
+                public_api_key_created_at TIMESTAMP NULL DEFAULT NULL,
                 FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE SET NULL,
                 UNIQUE KEY uk_oauth (oauth_provider, oauth_provider_id),
                 INDEX idx_username (username),
@@ -103,7 +139,7 @@ def init_db_command() -> None:
         cursor.fetchall()
         if not public_api_key_hash_exists:
             logger.info(f"{log_prefix} Adding 'public_api_key_hash' column to 'users' table.")
-            cursor.execute("ALTER TABLE users ADD COLUMN public_api_key_hash VARCHAR(128) DEFAULT NULL AFTER api_keys_encrypted")
+            cursor.execute("ALTER TABLE users ADD COLUMN public_api_key_hash VARCHAR(128) DEFAULT NULL AFTER created_at")
 
         cursor.execute("SHOW COLUMNS FROM users LIKE 'public_api_key_last_four'")
         public_api_key_last_four_exists = cursor.fetchone()
@@ -117,7 +153,50 @@ def init_db_command() -> None:
         cursor.fetchall()
         if not public_api_key_created_at_exists:
             logger.info(f"{log_prefix} Adding 'public_api_key_created_at' column to 'users' table.")
-            cursor.execute("ALTER TABLE users ADD COLUMN public_api_key_created_at DATETIME DEFAULT NULL AFTER public_api_key_last_four")
+            cursor.execute("ALTER TABLE users ADD COLUMN public_api_key_created_at TIMESTAMP NULL DEFAULT NULL AFTER public_api_key_last_four")
+
+        cursor.execute("SHOW COLUMNS FROM users LIKE 'api_keys_encrypted'")
+        api_keys_encrypted_exists = cursor.fetchone()
+        cursor.fetchall()
+        if api_keys_encrypted_exists:
+            logger.info(f"{log_prefix} Dropping deprecated 'api_keys_encrypted' column from 'users' table.")
+            cursor.execute("ALTER TABLE users DROP COLUMN api_keys_encrypted")
+
+        # Normalize timestamp-like columns to avoid invalid zero dates while preserving existing data
+        timestamp_columns = {
+            'created_at': "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+            'public_api_key_created_at': "TIMESTAMP NULL DEFAULT NULL",
+            'plan_start_at': "TIMESTAMP NULL DEFAULT NULL",
+            'plan_end_at': "TIMESTAMP NULL DEFAULT NULL",
+        }
+        for col_name, col_def in timestamp_columns.items():
+            cursor.execute(f"SHOW COLUMNS FROM users LIKE '{col_name}'")
+            col_info = cursor.fetchone()
+            cursor.fetchall()
+            if not col_info:
+                # Column missing; add fresh
+                logger.info(f"{log_prefix} Adding missing '{col_name}' column to 'users' table.")
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
+                continue
+
+            original_mode = _temporarily_allow_zero_dates(cursor)
+            try:
+                replacement_expr = "NOW()" if col_name == 'created_at' else "NULL"
+                cursor.execute(
+                    f"UPDATE users SET {col_name} = {replacement_expr} WHERE {col_name} IN ('0000-00-00 00:00:00', '0000-00-00')"
+                )
+            finally:
+                _restore_sql_mode(cursor, original_mode)
+
+            col_type = ""
+            if isinstance(col_info, dict):
+                col_type = str(col_info.get('Type', '')).lower()
+            elif isinstance(col_info, (list, tuple)) and len(col_info) > 1:
+                col_type = str(col_info[1]).lower()
+
+            if 'timestamp' not in col_type:
+                logger.info(f"{log_prefix} Converting '{col_name}' column on 'users' table to TIMESTAMP.")
+                cursor.execute(f"ALTER TABLE users MODIFY COLUMN {col_name} {col_def}")
 
         cursor.execute("SHOW INDEX FROM users WHERE Key_name = 'uk_oauth'")
         uk_oauth_exists = cursor.fetchone()

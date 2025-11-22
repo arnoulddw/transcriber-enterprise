@@ -60,8 +60,8 @@ def init_db_command() -> None:
                 prompt_text TEXT NOT NULL,
                 language VARCHAR(10) DEFAULT NULL, -- NULL means applicable to all languages
                 color VARCHAR(7) NOT NULL DEFAULT '#ffffff', -- Added color column, default white
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_template_prompt_language (language)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
@@ -77,6 +77,22 @@ def init_db_command() -> None:
             # Add after language column
             cursor.execute("ALTER TABLE template_prompts ADD COLUMN color VARCHAR(7) NOT NULL DEFAULT '#ffffff' AFTER language")
         # --- End ALTER TABLE ---
+
+        cursor.execute("SHOW COLUMNS FROM template_prompts LIKE 'created_at'")
+        created_at_col = cursor.fetchone()
+        cursor.fetchall()
+        created_at_type = (created_at_col.get('Type') if isinstance(created_at_col, dict) else (created_at_col[1] if created_at_col else "")).lower()
+        if created_at_col and 'timestamp' not in created_at_type:
+            logging.info(f"{log_prefix} Converting 'created_at' column on 'template_prompts' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE template_prompts MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        cursor.execute("SHOW COLUMNS FROM template_prompts LIKE 'updated_at'")
+        updated_at_col = cursor.fetchone()
+        cursor.fetchall()
+        updated_at_type = (updated_at_col.get('Type') if isinstance(updated_at_col, dict) else (updated_at_col[1] if updated_at_col else "")).lower()
+        if updated_at_col and 'timestamp' not in updated_at_type:
+            logging.info(f"{log_prefix} Converting 'updated_at' column on 'template_prompts' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE template_prompts MODIFY COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
         get_db().commit()
         logging.info(f"{log_prefix} 'template_prompts' table schema verified/initialized.")
@@ -106,7 +122,7 @@ def _map_row_to_template_prompt(row: Dict[str, Any]) -> Optional[TemplatePrompt]
 def add_template(title: str, prompt_text: str, language: Optional[str] = None, color: str = '#ffffff') -> Optional[TemplatePrompt]:
     """Adds a new template prompt."""
     log_prefix = "[DB:TemplatePrompt]"
-    now_utc_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    now_utc = datetime.now(timezone.utc).replace(microsecond=0)
     sql = '''
         INSERT INTO template_prompts (title, prompt_text, language, color, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s)
@@ -120,7 +136,7 @@ def add_template(title: str, prompt_text: str, language: Optional[str] = None, c
         color_to_store = color if (color and color.startswith('#') and len(color) == 7) else '#ffffff'
 
         # --- MODIFIED: Pass color_to_store ---
-        cursor.execute(sql, (title, prompt_text, lang_to_store, color_to_store, now_utc_iso, now_utc_iso))
+        cursor.execute(sql, (title, prompt_text, lang_to_store, color_to_store, now_utc, now_utc))
         # --- END MODIFIED ---
         get_db().commit()
         prompt_id = cursor.lastrowid
@@ -133,8 +149,8 @@ def add_template(title: str, prompt_text: str, language: Optional[str] = None, c
                 prompt_text=prompt_text,
                 language=lang_to_store,
                 color=color_to_store, # Include color
-                created_at=now_utc_iso,
-                updated_at=now_utc_iso
+                created_at=now_utc.isoformat(),
+                updated_at=now_utc.isoformat()
             )
         else:
             return None

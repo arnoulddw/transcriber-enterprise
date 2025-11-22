@@ -64,13 +64,13 @@ def init_db_command() -> None:
                 prompt_text TEXT NOT NULL,
                 color VARCHAR(7) NOT NULL DEFAULT '#ffffff',
                 source_template_id INT DEFAULT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
                 FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE CASCADE,
                 INDEX idx_user_prompt_user (user_id),
                 INDEX idx_user_prompt_source_template (source_template_id),
-                INDEX idx_user_prompt_user_created (user_id, created_at(20))
+                INDEX idx_user_prompt_user_created (user_id, created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
         )
@@ -99,6 +99,22 @@ def init_db_command() -> None:
             logging.info(f"{log_prefix} Adding foreign key for 'source_template_id' to 'user_prompts' table.")
             cursor.execute("ALTER TABLE user_prompts ADD CONSTRAINT fk_source_template FOREIGN KEY (source_template_id) REFERENCES template_prompts(id) ON DELETE CASCADE")
             # --- END MODIFIED ---
+
+        cursor.execute("SHOW COLUMNS FROM user_prompts LIKE 'created_at'")
+        created_at_col = cursor.fetchone()
+        cursor.fetchall()
+        created_at_type = (created_at_col.get('Type') if isinstance(created_at_col, dict) else (created_at_col[1] if created_at_col else "")).lower()
+        if created_at_col and 'timestamp' not in created_at_type:
+            logging.info(f"{log_prefix} Converting 'created_at' column on 'user_prompts' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE user_prompts MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        cursor.execute("SHOW COLUMNS FROM user_prompts LIKE 'updated_at'")
+        updated_at_col = cursor.fetchone()
+        cursor.fetchall()
+        updated_at_type = (updated_at_col.get('Type') if isinstance(updated_at_col, dict) else (updated_at_col[1] if updated_at_col else "")).lower()
+        if updated_at_col and 'timestamp' not in updated_at_type:
+            logging.info(f"{log_prefix} Converting 'updated_at' column on 'user_prompts' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE user_prompts MODIFY COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
         get_db().commit()
         logging.info(f"{log_prefix} 'user_prompts' table schema verified/initialized.")
@@ -129,7 +145,7 @@ def _map_row_to_user_prompt(row: Dict[str, Any]) -> Optional[UserPrompt]:
 def add_prompt(user_id: int, title: str, prompt_text: str, color: str = '#ffffff', source_template_id: Optional[int] = None) -> Optional[UserPrompt]:
     """Adds a new saved prompt for a user."""
     log_prefix = f"[DB:UserPrompt:User:{user_id}]"
-    now_utc_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    now_utc = datetime.now(timezone.utc).replace(microsecond=0)
     sql = '''
         INSERT INTO user_prompts (user_id, title, prompt_text, color, source_template_id, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -157,7 +173,7 @@ def add_prompt(user_id: int, title: str, prompt_text: str, color: str = '#ffffff
             logging.warning(f"{log_prefix} Prompt with title '{title}' already exists for this user.")
             raise MySQLError(errno=1062, msg="Duplicate entry")
 
-        cursor.execute(sql, (user_id, title, prompt_text, color_to_store, source_template_id, now_utc_iso, now_utc_iso))
+        cursor.execute(sql, (user_id, title, prompt_text, color_to_store, source_template_id, now_utc, now_utc))
         get_db().commit()
         prompt_id = cursor.lastrowid
         logging.info(f"{log_prefix} Added new prompt '{title}' (Color: {color_to_store}, SourceID: {source_template_id}) with ID {prompt_id}.")
@@ -172,9 +188,13 @@ def add_prompt(user_id: int, title: str, prompt_text: str, color: str = '#ffffff
         pass
 
 def get_prompts_by_user(user_id: int) -> List[UserPrompt]:
-    """Retrieves all saved prompts for a specific user, ordered by creation date descending."""
+    """Retrieves all saved prompts for a specific user, ordered by source template then creation."""
     log_prefix = f"[DB:UserPrompt:User:{user_id}]"
-    sql = 'SELECT * FROM user_prompts WHERE user_id = %s ORDER BY created_at DESC'
+    sql = (
+        "SELECT * FROM user_prompts "
+        "WHERE user_id = %s "
+        "ORDER BY (source_template_id IS NULL) ASC, source_template_id ASC, created_at ASC"
+    )
     prompts = []
     cursor = get_cursor()
     try:

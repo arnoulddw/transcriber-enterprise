@@ -16,6 +16,7 @@ def clean_db(app):
         cursor.execute("TRUNCATE TABLE llm_operations")
         cursor.execute("TRUNCATE TABLE transcriptions")
         cursor.execute("TRUNCATE TABLE user_usage")
+        cursor.execute("TRUNCATE TABLE user_api_keys")
         cursor.execute("TRUNCATE TABLE users")
         cursor.execute("TRUNCATE TABLE roles")
         # Reset centralized catalog tables to ensure consistent test state

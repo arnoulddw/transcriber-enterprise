@@ -59,7 +59,9 @@ def setup_logging(config):
                 'format': '%(asctime)s - %(levelname)s - [%(name)s:%(lineno)d] - %(message)s'
             },
             'simple': {
-                'format': '%(asctime)s - %(levelname)s - %(message)s'
+                # NOTE: Container runtimes (Docker/K8s) prefix stdout with a timestamp already.
+                # Omitting %(asctime)s here avoids double timestamps in aggregated logs.
+                'format': '%(levelname)s - %(message)s'
             }
         },
         'handlers': {

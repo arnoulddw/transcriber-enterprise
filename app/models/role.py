@@ -61,6 +61,48 @@ def _safe_close(cursor, log_prefix: str = ""):
         # The cursor is managed by the application context, so we don't close it here.
         pass
 
+def _normalize_timestamp_column(table: str, column: str, log_prefix: str) -> None:
+    """
+    Converts string/ISO timestamps in a column to MySQL-compatible DATETIME before altering to TIMESTAMP.
+    This avoids ALTER failures on legacy values such as ISO strings with timezone suffixes.
+    """
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(f"SELECT id, {column} FROM {table} WHERE {column} IS NOT NULL")
+        rows = cursor.fetchall() or []
+        for row in rows:
+            raw = row[column]
+            # Skip if already a datetime object
+            if isinstance(raw, datetime):
+                continue
+            if raw is None:
+                continue
+            raw_str = str(raw)
+            normalized = None
+            try:
+                cleaned = raw_str.rstrip('Z')
+                # If no timezone info, assume UTC
+                if 'T' in cleaned:
+                    normalized = datetime.fromisoformat(cleaned)
+                else:
+                    normalized = datetime.strptime(cleaned, "%Y-%m-%d %H:%M:%S")
+                if normalized.tzinfo is None:
+                    normalized = normalized.replace(tzinfo=timezone.utc)
+            except Exception:
+                logging.warning(f"{log_prefix} Could not parse timestamp '{raw_str}' in {table}.{column} (id={row.get('id')}). Skipping.")
+                continue
+            try:
+                cursor.execute(f"UPDATE {table} SET {column} = %s WHERE id = %s", (normalized, row["id"]))
+            except Exception as update_err:
+                logging.warning(f"{log_prefix} Failed to normalize {table}.{column} for id={row.get('id')}: {update_err}")
+        conn.commit()
+    finally:
+        try:
+            cursor.close()
+        except Exception:
+            pass
+
 # ----- Role Model Definition -----
 
 class Role:
@@ -224,8 +266,8 @@ def init_roles_table() -> None:
                 limit_monthly_workflows INT NOT NULL DEFAULT 0,
                 max_history_items INT NOT NULL DEFAULT 0,
                 history_retention_days INT NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_role_name (name)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
@@ -264,6 +306,25 @@ def init_roles_table() -> None:
         _ensure_column(cursor, "roles", None, "use_api_google_gemini",
                        "BOOLEAN NOT NULL DEFAULT FALSE", after="use_api_openai_gpt_4o_transcribe", log_prefix=log_prefix)
         # --- END MODIFIED ---
+
+        # Normalize timestamp columns
+        cursor.execute("SHOW COLUMNS FROM roles LIKE 'created_at'")
+        created_at_col = cursor.fetchone()
+        cursor.fetchall()
+        created_at_type = (created_at_col.get('Type') if isinstance(created_at_col, dict) else (created_at_col[1] if created_at_col else "")).lower()
+        if created_at_col and 'timestamp' not in created_at_type:
+            logging.info(f"{log_prefix} Converting 'created_at' column on 'roles' table to TIMESTAMP.")
+            _normalize_timestamp_column("roles", "created_at", log_prefix)
+            cursor.execute("ALTER TABLE roles MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
+
+        cursor.execute("SHOW COLUMNS FROM roles LIKE 'updated_at'")
+        updated_at_col = cursor.fetchone()
+        cursor.fetchall()
+        updated_at_type = (updated_at_col.get('Type') if isinstance(updated_at_col, dict) else (updated_at_col[1] if updated_at_col else "")).lower()
+        if updated_at_col and 'timestamp' not in updated_at_type:
+            logging.info(f"{log_prefix} Converting 'updated_at' column on 'roles' table to TIMESTAMP with auto-update.")
+            _normalize_timestamp_column("roles", "updated_at", log_prefix)
+            cursor.execute("ALTER TABLE roles MODIFY COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
 
         get_db().commit()
         logging.info(f"{log_prefix} 'roles' table schema verified/initialized.")
@@ -404,7 +465,7 @@ def increment_usage(user_id: int, cost: float, minutes_processed: float) -> None
     Increments usage stats for a user after a transcription.
     """
     now = datetime.now(timezone.utc)
-    date_str = now.strftime('%Y-%m-%d')
+    date_ts = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
     log_prefix = f"[DB:Usage:User:{user_id}]"
     
     cursor = get_cursor()
@@ -416,7 +477,7 @@ def increment_usage(user_id: int, cost: float, minutes_processed: float) -> None
             cost = cost + VALUES(cost),
             minutes = minutes + VALUES(minutes)
         """
-        cursor.execute(sql, (user_id, date_str, cost, minutes_processed))
+        cursor.execute(sql, (user_id, date_ts, cost, minutes_processed))
         get_db().commit()
         logging.debug(f"{log_prefix} Successfully incremented usage stats.")
     except MySQLError as e:
@@ -431,7 +492,7 @@ def increment_workflow_usage(user_id: int) -> None:
     Increments workflow usage stats for a user.
     """
     now = datetime.now(timezone.utc)
-    date_str = now.strftime('%Y-%m-%d')
+    date_ts = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
     log_prefix = f"[DB:Usage:Workflow:User:{user_id}]"
     cursor = get_cursor()
     try:
@@ -441,7 +502,7 @@ def increment_workflow_usage(user_id: int) -> None:
             ON DUPLICATE KEY UPDATE
             workflows = workflows + 1
         """
-        cursor.execute(sql, (user_id, date_str))
+        cursor.execute(sql, (user_id, date_ts))
         get_db().commit()
         logging.debug(f"{log_prefix} Successfully incremented workflow usage stats.")
     except MySQLError as e:
@@ -568,7 +629,7 @@ def init_user_usage_table() -> None:
             CREATE TABLE IF NOT EXISTS user_usage (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 user_id INT NOT NULL,
-                date DATE NOT NULL,
+                date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 cost DECIMAL(10, 4) NOT NULL DEFAULT 0.0000,
                 minutes INT NOT NULL DEFAULT 0,
                 workflows INT NOT NULL DEFAULT 0,
@@ -577,6 +638,13 @@ def init_user_usage_table() -> None:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             '''
         )
+        cursor.execute("SHOW COLUMNS FROM user_usage LIKE 'date'")
+        date_col = cursor.fetchone()
+        cursor.fetchall()
+        date_type = (date_col.get('Type') if isinstance(date_col, dict) else (date_col[1] if date_col else "")).lower()
+        if date_col and 'timestamp' not in date_type:
+            logging.info(f"{log_prefix} Converting 'date' column on 'user_usage' table to TIMESTAMP.")
+            cursor.execute("ALTER TABLE user_usage MODIFY COLUMN date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
         get_db().commit()
         logging.info(f"{log_prefix} 'user_usage' table schema verified/initialized.")
     except MySQLError as err:
