@@ -2,7 +2,7 @@
 
 **A powerful, self-hostable transcription solution designed for small to medium-sized businesses (SMBs), teams and individuals who need full control over their data and transcription workflow.**
 
-Transcriber Platform turns audio into accurate organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **AssemblyAI Universal** (from AssemblyAI), **OpenAI Whisper** and **OpenAI GPT-4o Transcribe**. It intelligently handles large files, supports single and multi-user modes and includes powerful administrative tools for managing users, costs and custom AI workflows.
+Transcriber Platform turns audio into accurate organized text through a user-friendly web interface. Upload audio files and get transcriptions from top-tier APIs like **OpenAI GPT-4o Transcribe**, **OpenAI Whisper** and **AssemblyAI Universal** (from AssemblyAI). It intelligently handles large files, supports single and multi-user modes and includes powerful administrative tools for managing users, costs and custom AI workflows.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/arnoulddw/transcriber-platform)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -22,17 +22,18 @@ Transcriber Platform turns audio into accurate organized text through a user-fri
 ## ✨ Key Features
 
 ### Core Functionality
--   **Multiple Transcription APIs:** Choose from AssemblyAI Universal, OpenAI Whisper or OpenAI GPT-4o Transcribe.
+-   **Multiple Transcription APIs:** Choose from OpenAI GPT-4o Transcribe, OpenAI Whisper or AssemblyAI Universal.
+-   **Speaker Diarization (AssemblyAI):** Toggle speaker labels to identify who said what on supported jobs.
 -   **Large File Handling:** Automatically splits files over 25MB into chunks for seamless processing.
 -   **AI-Powered Title Generation:** Automatically generates a concise title for each transcription.
--   **Custom AI Workflows:** Execute custom prompts (ex. summarize, extract action items) on transcribed text using LLMs like Google Gemini or OpenAI models.
+-   **Custom AI Workflows:** Execute custom prompts (ex. summarize, extract action items) on transcribed text using LLMs like OpenAI models or Google Gemini; save reusable workflows from the UI.
 -   **Flexible Language Options:** Select the audio language manually or use automatic detection.
 -   **Context Prompting:** Improve accuracy for jargon or specific names by providing context hints to OpenAI models.
 
 ### User Experience
 -   **Intuitive Web Interface:** Clean and simple UI for uploading files, managing history and running workflows.
+-   **Live Progress & Cancellation:** Track uploads/transcriptions with live updates and cancel long-running jobs without leaving the page.
 -   **Comprehensive History:** View, copy, download (.txt) and delete past transcriptions.
--   **Asynchronous Processing:** Long tasks run in the background, keeping the UI fast and responsive.
 -   **Internationalization (i1n):** Multi-language support (English, Spanish, French, Dutch).
 
 ### Multi-User & Admin Features
@@ -85,8 +86,8 @@ This section provides more detailed setup instructions.
 ### Prerequisites
 
 -   **API Keys:** You need API keys for the services you plan to use:
--   [AssemblyAI (Universal model)](https://www.assemblyai.com/)
     -   [OpenAI](https://platform.openai.com/) (for Whisper, GPT-4o Transcribe and LLM workflows)
+    -   [AssemblyAI (Universal model)](https://www.assemblyai.com/)
     -   [Google Gemini](https://ai.google.dev/) (for title generation and LLM workflows)
 -   **Docker & Docker Compose:** Required for the recommended installation method.
 -   **Google Client ID (Optional):** Required for Google Sign-In in `multi` user mode.
@@ -108,12 +109,12 @@ The application is configured using environment variables in a `.env` file. The 
 | `APP_PORT` | Port on which the app is accessible on the host machine. | `5004` |
 | `LOG_LEVEL` | Application logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). | `INFO` |
 | **API Keys (Global Fallback)** | | |
-| `ASSEMBLYAI_API_KEY` | Your API key for AssemblyAI. | (none) |
 | `OPENAI_API_KEY` | Your API key for OpenAI (Whisper, GPT-4o Transcribe, LLMs). | (none) |
+| `ASSEMBLYAI_API_KEY` | Your API key for AssemblyAI. | (none) |
 | `GEMINI_API_KEY` | Your API key for Google Gemini (Title Generation, LLMs). | (none) |
 | **Default Settings** | | |
-| `DEFAULT_TRANSCRIPTION_PROVIDER` | Default transcription API on load (`assemblyai`, `whisper`, `gpt-4o-transcribe`). | `gpt-4o-transcribe` |
-| `DEFAULT_LLM_PROVIDER` | Default LLM for tasks like title generation (`gemini`, `openai`). | `gemini` |
+| `DEFAULT_TRANSCRIPTION_PROVIDER` | Default transcription API on load (`gpt-4o-transcribe`, `whisper`, `assemblyai`). | `gpt-4o-transcribe` |
+| `DEFAULT_LLM_PROVIDER` | Default LLM for tasks like title generation (`openai`, `gemini`). | `gemini` |
 | `DEFAULT_LANGUAGE` | Default transcription language on load (`auto`, `en`, `es`, etc.). | `auto` |
 | `SUPPORTED_LANGUAGE_CODES` | Comma-separated language codes to show in the UI (ex. `en,nl,fr,es`). | `en,nl,fr,es` |
 | **Database (MySQL)** | | |
@@ -154,14 +155,14 @@ The application is configured using environment variables in a `.env` file. The 
 1.  **Create a `.env` file** on your host machine with all necessary variables. Ensure `MYSQL_HOST` points to your accessible MySQL server.
 2.  **Pull the Docker Image:**
     ```bash
-    docker pull yourusername/transcriber-platform:latest
+    docker pull arnoulddw/transcriber-platform:latest
     ```
 3.  **Run the Docker Container:**
     ```bash
     docker run -d -p 5004:5004 \
       --env-file ./.env \
       --name transcriber-platform-app \
-      yourusername/transcriber-platform:latest
+      arnoulddw/transcriber-platform:latest
     ```
 
 #### Option 3: Local Development (Without Docker)
@@ -199,9 +200,10 @@ The application is configured using environment variables in a `.env` file. The 
     *   Navigate to "Manage API Keys" to add your personal API keys for OpenAI, AssemblyAI, etc. This is required for most features.
 3.  **Upload Audio:** Click the "File" button to select an audio file.
 4.  **Configure Transcription:**
-    *   Select your preferred API (Whisper, GPT-4o Transcribe, etc.).
+    *   Select your preferred API (GPT-4o Transcribe, Whisper, AssemblyAI, etc.).
     *   Choose the audio language or leave it on "Automatic Detection."
     *   (Optional) Provide a context prompt to improve accuracy.
+    *   (Optional) Enable speaker diarization when using AssemblyAI to label speakers in the transcript.
 5.  **Transcribe:** Click the "Transcribe" button.
 6.  **Manage History:** Your completed transcriptions will appear in the history panel. From there you can:
     *   View, copy or download the text.
@@ -222,21 +224,7 @@ Use your deployment’s base URL (or `http://localhost:5004` in local dev). The 
 
 ## 🛠️ For Developers
 
-### Database Migrations
-
-After changing a database model in `app/models/`, you must apply the changes.
-
-**Do not use `flask init-db` after the initial setup.**
-
-1.  **Connect to the running app container (if using Docker):**
-    ```bash
-    docker exec -it transcriber-platform bash
-    ```
-2.  **Run the migration command:**
-    ```bash
-    flask db-migrate
-    ```
-    For local development, run this command with your virtual environment activated.
+Database migrations are handled automatically by the application on startup; no manual migration commands are required.
 
 ### Translation Workflow
 
