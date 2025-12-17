@@ -13,7 +13,7 @@ from pydub import AudioSegment, exceptions as pydub_exceptions
 
 # --- Configuration Constants ---
 ALLOWED_EXTENSIONS = {'mp3', 'm4a', 'wav', 'ogg', 'webm', 'mpga', 'mpeg'}
-DEFAULT_CHUNK_LENGTH_MS = 10 * 60 * 1000
+DEFAULT_CHUNK_LENGTH_MS = 7 * 60 * 1000
 OPENAI_MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
 TARGET_CHUNK_SIZE_BYTES = 24 * 1024 * 1024
 IGNORE_FILES = {'.DS_Store', '.gitkeep'}
