@@ -497,9 +497,7 @@ def create_app(config_class=Config) -> Flask:
             initial_key_status=initial_key_status,
             user_permissions=user_permissions,
             google_client_id=app.config.get('GOOGLE_CLIENT_ID'),
-            recaptcha_site_key=app.config.get('RECAPTCHA_V3_SITE_KEY'),
-            recaptcha_login_action=app.config.get('RECAPTCHA_V3_LOGIN_ACTION', 'login'),
-            recaptcha_use_enterprise=app.config.get('RECAPTCHA_USE_ENTERPRISE', False),
+
             supported_languages=supported_languages,
             SUPPORTED_UI_LANGS_CONFIG=supported_ui_languages,
             API_NAME_MAP_FRONTEND=api_name_map_for_frontend_subset,

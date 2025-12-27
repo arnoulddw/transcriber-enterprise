@@ -141,20 +141,6 @@ class Config:
     # SESSION_COOKIE_SECURE = DEPLOYMENT_MODE == 'multi' # Enable in production with HTTPS
     PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS = int(os.environ.get('PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS', 3600))
 
-    # --- reCAPTCHA v3 ---
-    RECAPTCHA_V3_SITE_KEY = os.environ.get('RECAPTCHA_V3_SITE_KEY')
-    RECAPTCHA_V3_SECRET_KEY = os.environ.get('RECAPTCHA_V3_SECRET_KEY')
-    RECAPTCHA_V3_LOGIN_ACTION = os.environ.get('RECAPTCHA_V3_LOGIN_ACTION', 'login')
-    try:
-        _recaptcha_threshold = float(os.environ.get('RECAPTCHA_V3_LOGIN_THRESHOLD', 0.5))
-    except (TypeError, ValueError):
-        print("WARNING: Invalid RECAPTCHA_V3_LOGIN_THRESHOLD value. Falling back to 0.5.")
-        _recaptcha_threshold = 0.5
-    RECAPTCHA_V3_LOGIN_THRESHOLD = max(0.0, min(1.0, _recaptcha_threshold))
-    RECAPTCHA_ENTERPRISE_PROJECT_ID = os.environ.get('RECAPTCHA_ENTERPRISE_PROJECT_ID')
-    RECAPTCHA_ENTERPRISE_API_KEY = os.environ.get('RECAPTCHA_ENTERPRISE_API_KEY')
-    RECAPTCHA_USE_ENTERPRISE = bool(RECAPTCHA_ENTERPRISE_PROJECT_ID and RECAPTCHA_ENTERPRISE_API_KEY)
-    RECAPTCHA_ALLOW_BYPASS_IN_DEBUG = os.environ.get('RECAPTCHA_ALLOW_BYPASS_IN_DEBUG', 'true').lower() in ['true', '1', 't', 'yes']
 
     # --- Admin User Credentials ---
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')

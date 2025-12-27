@@ -7,22 +7,16 @@
 
 {# Add Google Sign-In library script #}
 {% block head_extra %}
-    {{ super() }}
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    {% if title == 'Login' and recaptcha_site_key %}
-        {% if recaptcha_use_enterprise %}
-            <script src="https://www.google.com/recaptcha/enterprise.js?render={{ recaptcha_site_key }}" async defer></script>
-        {% else %}
-            <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}" async defer></script>
-        {% endif %}
-    {% endif %}
+{{ super() }}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 {% endblock %}
 
 {# Disable global flash toasts when showing the Login form, since errors are rendered inline. #}
 {% block flash_messages %}
-    {% if title != 'Login' %}
-        {{ super() }}
-    {% endif %}
+{% if title != 'Login' %}
+{{ super() }}
+{% endif %}
 {% endblock %}
 
 
@@ -30,152 +24,148 @@
 {% block content %}
 <div class="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] py-8">
     {% call auth_card.render(title=_(title)) %}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert {{ 'alert-danger' if category == 'danger' else 'alert-success' }}" role="alert">
-                        <div class="alert-icon">
-                            <i class="material-icons">{{ 'error' if category == 'danger' else 'check_circle' }}</i>
-                        </div>
-                        <div class="alert-content">
-                            <p class="font-semibold">{{ _('Message:') }}</p>
-                            <p>{{ _(message) }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        {% set form_action = url_for('auth.login', next=request.args.get('next')) if title == 'Login' else url_for('auth.register') %}
-        {% set recaptcha_enabled = (title == 'Login' and recaptcha_site_key) %}
-        <form method="POST" action="{{ form_action }}" id="{{ title.lower().replace(' ', '-') }}-form" class="space-y-6"
-              {% if recaptcha_enabled %}
-                  data-recaptcha-site-key="{{ recaptcha_site_key }}"
-                  data-recaptcha-action="{{ recaptcha_login_action or 'login' }}"
-                  data-recaptcha-enterprise="{{ 'true' if recaptcha_use_enterprise else 'false' }}"
-              {% endif %}>
-            {{ form.hidden_tag() }}
-            {% if form.recaptcha_token is defined and recaptcha_enabled %}
-                {{ form.recaptcha_token(id="recaptcha-token") }}
-            {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert {{ 'alert-danger' if category == 'danger' else 'alert-success' }}" role="alert">
+        <div class="alert-icon">
+            <i class="material-icons">{{ 'error' if category == 'danger' else 'check_circle' }}</i>
+        </div>
+        <div class="alert-content">
+            <p class="font-semibold">{{ _('Message:') }}</p>
+            <p>{{ _(message) }}</p>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    {% set form_action = url_for('auth.login', next=request.args.get('next')) if title == 'Login' else
+    url_for('auth.register') %}
+    <form method="POST" action="{{ form_action }}" id="{{ title.lower().replace(' ', '-') }}-form" class="space-y-6">
+        {{ form.hidden_tag() }}
+        {% if form.recaptcha_token is defined and recaptcha_enabled %}
+        {{ form.recaptcha_token(id="recaptcha-token") }}
+        {% endif %}
 
-            <div>
-                <label for="{{ form.username.id }}" class="form-label">
-                    {{ _(form.username.label.text) }}
-                </label>
-                <div class="mt-1">
-                    {{ form.username(class="input-control" + (" border-danger focus:border-danger focus:ring-danger" if form.username.errors else ""), autofocus=true, required=true, id=form.username.id) }}
-                </div>
-                {% if form.username.errors %}
-                    <p class="form-error">{{ _(form.username.errors[0]) }}</p>
+        <div>
+            <label for="{{ form.username.id }}" class="form-label">
+                {{ _(form.username.label.text) }}
+            </label>
+            <div class="mt-1">
+                {{ form.username(class="input-control" + (" border-danger focus:border-danger focus:ring-danger" if
+                form.username.errors else ""), autofocus=true, required=true, id=form.username.id) }}
+            </div>
+            {% if form.username.errors %}
+            <p class="form-error">{{ _(form.username.errors[0]) }}</p>
+            {% endif %}
+        </div>
+
+        {% if title == 'Register' %}
+        <div>
+            <label for="{{ form.email.id }}" class="form-label">
+                {{ _(form.email.label.text) }}
+            </label>
+            <div class="mt-1">
+                {{ form.email(class="input-control" + (" border-danger focus:border-danger focus:ring-danger" if
+                form.email.errors else ""), required=true, id=form.email.id) }}
+            </div>
+            {% if form.email.errors %}
+            <p class="form-error">{{ _(form.email.errors[0]) }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div>
+            <label for="password" class="form-label">
+                {{ _(form.password.label.text) }}
+            </label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                {% if title == 'Login' %}
+                {{ form.password(class="input-control pr-10" + (" border-danger focus:border-danger focus:ring-danger"
+                if
+                form.password.errors else ""), id="password", required=true, autocomplete="current-password") }}
+                {% else %}
+                {{ form.password(class="input-control pr-10" + (" border-danger focus:border-danger focus:ring-danger"
+                if
+                form.password.errors else ""), id="password", required=true, autocomplete="new-password") }}
                 {% endif %}
-            </div>
-
-            {% if title == 'Register' %}
-            <div>
-                <label for="{{ form.email.id }}" class="form-label">
-                    {{ _(form.email.label.text) }}
-                </label>
-                <div class="mt-1">
-                    {{ form.email(class="input-control" + (" border-danger focus:border-danger focus:ring-danger" if form.email.errors else ""), required=true, id=form.email.id) }}
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <i class="material-icons cursor-pointer text-text-muted hover:text-text-strong"
+                        id="togglePassword">visibility</i>
                 </div>
-                {% if form.email.errors %}
-                    <p class="form-error">{{ _(form.email.errors[0]) }}</p>
-                {% endif %}
             </div>
+            {% if form.password.errors %}
+            <p class="form-error">{{ _(form.password.errors[0]) }}</p>
             {% endif %}
+        </div>
 
-            <div>
-                <label for="password" class="form-label">
-                    {{ _(form.password.label.text) }}
-                </label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                    {% if title == 'Login' %}
-                        {{ form.password(class="input-control pr-10" + (" border-danger focus:border-danger focus:ring-danger" if form.password.errors else ""), id="password", required=true, autocomplete="current-password") }}
-                    {% else %}
-                        {{ form.password(class="input-control pr-10" + (" border-danger focus:border-danger focus:ring-danger" if form.password.errors else ""), id="password", required=true, autocomplete="new-password") }}
-                    {% endif %}
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <i class="material-icons cursor-pointer text-text-muted hover:text-text-strong" id="togglePassword">visibility</i>
-                    </div>
+        {% if title == 'Register' %}
+        <div>
+            <label for="confirm_password" class="form-label">
+                {{ _(form.confirm_password.label.text) }}
+            </label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                {{ form.confirm_password(class="input-control pr-10" + (" border-danger focus:border-danger
+                focus:ring-danger" if form.confirm_password.errors else ""), id="confirm_password", required=true,
+                autocomplete="new-password") }}
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <i class="material-icons cursor-pointer text-text-muted hover:text-text-strong"
+                        id="toggleConfirmPassword">visibility</i>
                 </div>
-                {% if form.password.errors %}
-                    <p class="form-error">{{ _(form.password.errors[0]) }}</p>
-                {% endif %}
             </div>
-
-            {% if title == 'Register' %}
-            <div>
-                <label for="confirm_password" class="form-label">
-                    {{ _(form.confirm_password.label.text) }}
-                </label>
-                <div class="mt-1 relative rounded-md shadow-sm">
-                    {{ form.confirm_password(class="input-control pr-10" + (" border-danger focus:border-danger focus:ring-danger" if form.confirm_password.errors else ""), id="confirm_password", required=true, autocomplete="new-password") }}
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <i class="material-icons cursor-pointer text-text-muted hover:text-text-strong" id="toggleConfirmPassword">visibility</i>
-                    </div>
-                </div>
-                {% if form.confirm_password.errors %}
-                    <p class="form-error">{{ _(form.confirm_password.errors[0]) }}</p>
-                {% endif %}
-            </div>
+            {% if form.confirm_password.errors %}
+            <p class="form-error">{{ _(form.confirm_password.errors[0]) }}</p>
             {% endif %}
+        </div>
+        {% endif %}
 
-            {% if form.remember_me is defined %}
-            <div class="flex items-center">
-                {{ form.remember_me(class="h-4 w-4 text-primary focus:ring-primary border-border-default rounded") }}
-                <label for="{{ form.remember_me.id }}" class="ml-2 block text-sm text-text-strong">
-                    {{ _('Remember me') }}
-                </label>
-            </div>
-            {% endif %}
+        {% if form.remember_me is defined %}
+        <div class="flex items-center">
+            {{ form.remember_me(class="h-4 w-4 text-primary focus:ring-primary border-border-default rounded") }}
+            <label for="{{ form.remember_me.id }}" class="ml-2 block text-sm text-text-strong">
+                {{ _('Remember me') }}
+            </label>
+        </div>
+        {% endif %}
 
-            <div>
-                <button type="submit" class="ui-btn ui-btn--primary w-full justify-center">
-                    {{ _(title) }}
-                </button>
-            </div>
+        <div>
+            <button type="submit" class="ui-btn ui-btn--primary w-full justify-center">
+                {{ _(title) }}
+            </button>
+        </div>
 
-            {% if title == 'Login' %}
-            <div class="mt-4 text-center text-sm">
-                <a href="{{ url_for('auth.forgot_password') }}" class="font-medium text-primary hover:text-primary-dark">
-                    {{ _('Forgot your password?') }}
-                </a>
-            </div>
-            {% endif %}
+        {% if title == 'Login' %}
+        <div class="mt-4 text-center text-sm">
+            <a href="{{ url_for('auth.forgot_password') }}" class="font-medium text-primary hover:text-primary-dark">
+                {{ _('Forgot your password?') }}
+            </a>
+        </div>
+        {% endif %}
 
-            {% if title == 'Login' %}
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full surface-divider"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-surface text-text-muted">{{ _('Or continue with') }}</span>
-                </div>
+        {% if title == 'Login' %}
+        <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full surface-divider"></div>
             </div>
-            <div>
-                <div id="g_id_onload"
-                     data-client_id="{{ google_client_id }}"
-                     data-context="signin"
-                     data-ux_mode="popup"
-                     data-login_uri="{{ url_for('auth.google_callback', _external=True) }}"
-                     data-auto_prompt="false">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="signin_with"
-                     data-shape="rectangular"
-                     data-logo_alignment="left">
-                </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-surface text-text-muted">{{ _('Or continue with') }}</span>
             </div>
-            {% endif %}
-        </form>
+        </div>
+        <div class="flex justify-center">
+            <div id="g_id_onload" data-client_id="{{ google_client_id }}" data-context="signin" data-ux_mode="popup"
+                data-login_uri="{{ url_for('auth.google_callback', _external=True) }}" data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with"
+                data-shape="rectangular" data-logo_alignment="left">
+            </div>
+        </div>
+        {% endif %}
+    </form>
     {% endcall %}
 </div>
 {% endblock %}
 
 {% block page_scripts %}
-    {{ super() }}
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{{ super() }}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 {% endblock %}

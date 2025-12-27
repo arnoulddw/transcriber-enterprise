@@ -17,7 +17,7 @@ from flask_babel import gettext as _, lazy_gettext as _l
 # Import extensions and application components
 from app.extensions import limiter, csrf # Import limiter instance and CSRF extension
 from app.forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
-from app.services import auth_service, email_service, recaptcha_service
+from app.services import auth_service, email_service
 from app.services.auth_service import AuthServiceError # Specific exception
 from app.models import user as user_model
 
@@ -65,36 +65,6 @@ def login():
         logging.info(f"{log_prefix} Login attempt received.")
 
         try:
-            if recaptcha_service.is_configured():
-                recaptcha_token = form.recaptcha_token.data
-                action_name = current_app.config.get('RECAPTCHA_V3_LOGIN_ACTION', 'login')
-                min_score = current_app.config.get('RECAPTCHA_V3_LOGIN_THRESHOLD', 0.5)
-                verified, recaptcha_score, recaptcha_errors = recaptcha_service.verify_token(
-                    recaptcha_token,
-                    action=action_name,
-                    remote_ip=request.remote_addr,
-                    min_score=min_score
-                )
-                bypassable_errors = {'recaptcha-unreachable', 'recaptcha-invalid-response', 'recaptcha-not-configured'}
-                allow_bypass = (
-                    not verified
-                    and current_app.debug
-                    and current_app.config.get('RECAPTCHA_ALLOW_BYPASS_IN_DEBUG', True)
-                    and any(err in bypassable_errors for err in (recaptcha_errors or []))
-                )
-                if not verified and not allow_bypass:
-                    logging.warning(
-                        f"{log_prefix} reCAPTCHA verification failed (score={recaptcha_score}, errors={recaptcha_errors})."
-                    )
-                    flash(_l('We could not verify your login request. Please try again.'), 'danger')
-                    form.recaptcha_token.data = ''
-                    return render_template('login.html', title='Login', form=form)
-                if allow_bypass:
-                    logging.warning(
-                        f"{log_prefix} reCAPTCHA verification failed but bypass is enabled in debug mode; continuing login flow."
-                    )
-                    form.recaptcha_token.data = ''
-
             # Verify credentials using the auth service
             user = auth_service.verify_password(username, password)
             if user:
@@ -119,14 +89,17 @@ def login():
                 # Redirect to the originally requested page, or the main index
                 next_page = request.args.get('next')
                 # Security: Validate the next_page URL to prevent open redirect vulnerabilities
-                if next_page and urlparse(next_page).netloc == '': # Check if relative
-                     return redirect(next_page)
-                elif next_page:
-                     logging.warning(f"{log_prefix} Invalid 'next' parameter detected: {next_page}. Redirecting home.")
-                     return redirect(url_for('main.index'))
-                else:
-                    logging.debug(f"{log_prefix} Redirecting to main index page.")
-                    return redirect(url_for('main.index'))
+                # Allow relative URLs OR absolute URLs that match the current host
+                target_url = url_for('main.index')
+                if next_page:
+                    parsed_next = urlparse(next_page)
+                    # Safe if netloc is empty (relative) OR netloc matches current host
+                    if parsed_next.netloc == '' or parsed_next.netloc == request.host:
+                        target_url = next_page
+                    else:
+                        logging.warning(f"{log_prefix} Invalid 'next' parameter detected: {next_page}. Redirecting home.")
+                
+                return redirect(target_url)
             else:
                 # Authentication failed (logged by auth_service)
                 flash(_l('Invalid username or password.'), 'danger')
@@ -369,12 +342,17 @@ def google_callback():
         logging.info(f"{log_prefix} User {user.id} ({user.email}) logged in successfully via Google.")
 
         # Determine redirect URL (e.g., 'next' param if provided and safe, or home)
+        # Determine redirect URL (e.g., 'next' param if provided and safe, or home)
         next_page = request.args.get('next')
         redirect_url = url_for('main.index') # Default redirect
-        if next_page and urlparse(next_page).netloc == '': # Check if relative
-            redirect_url = next_page
-        elif next_page:
-            logging.warning(f"{log_prefix} Invalid 'next' parameter during OAuth callback: {next_page}. Redirecting home.")
+        
+        if next_page:
+            parsed_next = urlparse(next_page)
+            # Safe if netloc is empty (relative) OR netloc matches current host
+            if parsed_next.netloc == '' or parsed_next.netloc == request.host:
+                redirect_url = next_page
+            else:
+                logging.warning(f"{log_prefix} Invalid 'next' parameter during OAuth callback: {next_page}. Redirecting home.")
 
         wants_json = (
             request.is_json
