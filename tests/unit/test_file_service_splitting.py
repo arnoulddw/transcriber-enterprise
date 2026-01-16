@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 from app.services.file_service import DEFAULT_CHUNK_LENGTH_MS, split_audio_file
 
 def test_default_chunk_length_constant():
-    """Verify that the DEFAULT_CHUNK_LENGTH_MS constant is set to 5 minutes."""
-    expected_ms = 5 * 60 * 1000
-    assert DEFAULT_CHUNK_LENGTH_MS == expected_ms, f"Expected {expected_ms}ms (5 min), but got {DEFAULT_CHUNK_LENGTH_MS}ms"
+    """Verify that the DEFAULT_CHUNK_LENGTH_MS constant is set to 7 minutes."""
+    expected_ms = 7 * 60 * 1000
+    assert DEFAULT_CHUNK_LENGTH_MS == expected_ms, f"Expected {expected_ms}ms (7 min), but got {DEFAULT_CHUNK_LENGTH_MS}ms"
 
 @patch('app.services.file_service.AudioSegment')
 @patch('app.services.file_service.os.path.exists')
@@ -15,7 +15,7 @@ def test_default_chunk_length_constant():
 def test_split_audio_file_uses_default_chunk_length(mock_getsize, mock_validate, mock_exists, mock_audio_segment):
     """
     Verify that split_audio_file uses the default chunk length when not specified.
-    We'll mock a 15-minute audio file and expect 3 chunks (5+5+5).
+    We'll mock a 15-minute audio file and expect 3 chunks (7+7+1).
     """
     # Setup mocks
     mock_exists.return_value = True
@@ -59,10 +59,10 @@ def test_split_audio_file_uses_default_chunk_length(mock_getsize, mock_validate,
     first_call_args = mock_audio.__getitem__.call_args_list[0]
     first_slice = first_call_args[0][0]
     assert first_slice.start == 0
-    assert first_slice.stop == 5 * 60 * 1000 # 300000
+    assert first_slice.stop == 7 * 60 * 1000 # 420000
     
     # Check the second slice
     second_call_args = mock_audio.__getitem__.call_args_list[1]
     second_slice = second_call_args[0][0]
-    assert second_slice.start == 5 * 60 * 1000
-    assert second_slice.stop == 10 * 60 * 1000
+    assert second_slice.start == 7 * 60 * 1000
+    assert second_slice.stop == 14 * 60 * 1000
