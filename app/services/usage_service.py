@@ -9,7 +9,7 @@ from app.database import get_cursor
 
 def get_user_usage(user_id: int) -> Dict[str, Any]:
     """
-    Calculates a user's usage for the last day, week, and month.
+    Calculates a user's usage for the last day, week, and month in a single query.
 
     Args:
         user_id: The ID of the user.
@@ -19,57 +19,59 @@ def get_user_usage(user_id: int) -> Dict[str, Any]:
     """
     log_prefix = f"[UsageService:User:{user_id}]"
     cursor = get_cursor()
-    
+
     today = datetime.now(timezone.utc).date()
     start_of_week = today - timedelta(days=today.weekday())
     start_of_month = today.replace(day=1)
 
     usage_stats = {
-        'daily': {'cost': 0, 'minutes': 0, 'workflows': 0},
-        'weekly': {'cost': 0, 'minutes': 0, 'workflows': 0},
+        'daily':   {'cost': 0, 'minutes': 0, 'workflows': 0},
+        'weekly':  {'cost': 0, 'minutes': 0, 'workflows': 0},
         'monthly': {'cost': 0, 'minutes': 0, 'workflows': 0},
     }
 
     try:
-        # Daily usage
         cursor.execute(
-            "SELECT SUM(cost) as cost, SUM(minutes) as minutes, SUM(workflows) as workflows FROM user_usage WHERE user_id = %s AND date = %s",
-            (user_id, today)
+            """
+            SELECT
+                SUM(CASE WHEN date = %s THEN cost      ELSE 0 END) AS daily_cost,
+                SUM(CASE WHEN date = %s THEN minutes   ELSE 0 END) AS daily_minutes,
+                SUM(CASE WHEN date = %s THEN workflows ELSE 0 END) AS daily_workflows,
+                SUM(CASE WHEN date >= %s THEN cost      ELSE 0 END) AS weekly_cost,
+                SUM(CASE WHEN date >= %s THEN minutes   ELSE 0 END) AS weekly_minutes,
+                SUM(CASE WHEN date >= %s THEN workflows ELSE 0 END) AS weekly_workflows,
+                SUM(CASE WHEN date >= %s THEN cost      ELSE 0 END) AS monthly_cost,
+                SUM(CASE WHEN date >= %s THEN minutes   ELSE 0 END) AS monthly_minutes,
+                SUM(CASE WHEN date >= %s THEN workflows ELSE 0 END) AS monthly_workflows
+            FROM user_usage
+            WHERE user_id = %s AND date >= %s
+            """,
+            (
+                today, today, today,
+                start_of_week, start_of_week, start_of_week,
+                start_of_month, start_of_month, start_of_month,
+                user_id, start_of_month,
+            )
         )
-        daily_usage = cursor.fetchone()
-        if daily_usage and daily_usage['cost'] is not None:
-            usage_stats['daily'] = {
-                'cost': float(daily_usage['cost']),
-                'minutes': int(daily_usage['minutes']),
-                'workflows': int(daily_usage['workflows']),
+        row = cursor.fetchone()
+        if row:
+            usage_stats = {
+                'daily': {
+                    'cost':      float(row['daily_cost'] or 0),
+                    'minutes':   int(row['daily_minutes'] or 0),
+                    'workflows': int(row['daily_workflows'] or 0),
+                },
+                'weekly': {
+                    'cost':      float(row['weekly_cost'] or 0),
+                    'minutes':   int(row['weekly_minutes'] or 0),
+                    'workflows': int(row['weekly_workflows'] or 0),
+                },
+                'monthly': {
+                    'cost':      float(row['monthly_cost'] or 0),
+                    'minutes':   int(row['monthly_minutes'] or 0),
+                    'workflows': int(row['monthly_workflows'] or 0),
+                },
             }
-
-        # Weekly usage
-        cursor.execute(
-            "SELECT SUM(cost) as cost, SUM(minutes) as minutes, SUM(workflows) as workflows FROM user_usage WHERE user_id = %s AND date >= %s",
-            (user_id, start_of_week)
-        )
-        weekly_usage = cursor.fetchone()
-        if weekly_usage and weekly_usage['cost'] is not None:
-            usage_stats['weekly'] = {
-                'cost': float(weekly_usage['cost']),
-                'minutes': int(weekly_usage['minutes']),
-                'workflows': int(weekly_usage['workflows']),
-            }
-
-        # Monthly usage
-        cursor.execute(
-            "SELECT SUM(cost) as cost, SUM(minutes) as minutes, SUM(workflows) as workflows FROM user_usage WHERE user_id = %s AND date >= %s",
-            (user_id, start_of_month)
-        )
-        monthly_usage = cursor.fetchone()
-        if monthly_usage and monthly_usage['cost'] is not None:
-            usage_stats['monthly'] = {
-                'cost': float(monthly_usage['cost']),
-                'minutes': int(monthly_usage['minutes']),
-                'workflows': int(monthly_usage['workflows']),
-            }
-            
     except Exception as e:
         logging.error(f"{log_prefix} Error calculating usage stats: {e}", exc_info=True)
     finally:

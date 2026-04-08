@@ -91,18 +91,28 @@ def count_all_users() -> int:
 def get_paginated_users_with_details(offset: int, limit: int) -> List[User]:
     """
     Retrieves a paginated list of User objects with details for the admin panel.
-    Optimized for performance using a single JOIN query.
+    Uses JOINs + GROUP BY instead of correlated subqueries for O(N) rather than O(N*M).
     """
     users_data = []
     sql = """
         SELECT
             u.*,
             r.name as role_name,
-            COALESCE((SELECT COUNT(*) FROM transcriptions WHERE user_id = u.id), 0) as total_transcriptions,
-            COALESCE((SELECT SUM(workflows) FROM user_usage WHERE user_id = u.id), 0) as total_workflows,
-            COALESCE((SELECT SUM(minutes) FROM user_usage WHERE user_id = u.id), 0.0) as total_minutes
+            COALESCE(tc.total_transcriptions, 0)  AS total_transcriptions,
+            COALESCE(uu.total_workflows, 0)        AS total_workflows,
+            COALESCE(uu.total_minutes, 0.0)        AS total_minutes
         FROM users u
         LEFT JOIN roles r ON u.role_id = r.id
+        LEFT JOIN (
+            SELECT user_id, COUNT(*) AS total_transcriptions
+            FROM transcriptions
+            GROUP BY user_id
+        ) tc ON tc.user_id = u.id
+        LEFT JOIN (
+            SELECT user_id, SUM(workflows) AS total_workflows, SUM(minutes) AS total_minutes
+            FROM user_usage
+            GROUP BY user_id
+        ) uu ON uu.user_id = u.id
         ORDER BY u.id ASC
         LIMIT %s OFFSET %s
     """
@@ -188,39 +198,70 @@ def get_users_hitting_limits() -> List[Dict[str, Any]]:
     users_hitting_limits = []
     log_prefix = "[DB:AdminUtils:Limits]"
     now = datetime.now(timezone.utc)
-    current_month_str = now.strftime('%Y-%m')
+    start_of_month = now.date().replace(day=1)
 
-    # Added workflow limits to query and checks
+    # Use CTEs to compute per-user aggregates once, then filter in the outer query.
+    # This replaces 11 correlated subqueries that previously ran per-row.
     sql = """
+        WITH transcription_totals AS (
+            SELECT user_id, COUNT(*) AS total_transcriptions
+            FROM transcriptions
+            GROUP BY user_id
+        ),
+        transcription_monthly AS (
+            SELECT user_id, COUNT(*) AS monthly_transcriptions
+            FROM transcriptions
+            WHERE created_at >= %s
+            GROUP BY user_id
+        ),
+        usage_totals AS (
+            SELECT user_id,
+                   SUM(minutes)   AS total_minutes,
+                   SUM(workflows) AS total_workflows
+            FROM user_usage
+            GROUP BY user_id
+        ),
+        usage_monthly AS (
+            SELECT user_id,
+                   SUM(minutes)   AS monthly_minutes,
+                   SUM(workflows) AS monthly_workflows
+            FROM user_usage
+            WHERE date >= %s
+            GROUP BY user_id
+        )
         SELECT
             u.id,
             u.username,
-            r.name as role_name,
+            r.name                                         AS role_name,
             r.max_transcriptions_total,
             r.max_minutes_total,
             r.max_transcriptions_monthly,
             r.max_minutes_monthly,
             r.max_workflows_total,
             r.max_workflows_monthly,
-            (SELECT COUNT(*) FROM transcriptions WHERE user_id = u.id) as total_transcriptions,
-            (SELECT SUM(minutes) FROM user_usage WHERE user_id = u.id) as total_minutes,
-            (SELECT SUM(workflows) FROM user_usage WHERE user_id = u.id) as total_workflows,
-            (SELECT COUNT(*) FROM transcriptions WHERE user_id = u.id AND DATE_FORMAT(created_at, '%%Y-%%m') = %s) as monthly_transcriptions,
-            (SELECT SUM(minutes) FROM user_usage WHERE user_id = u.id AND DATE_FORMAT(date, '%%Y-%%m') = %s) as monthly_minutes,
-            (SELECT SUM(workflows) FROM user_usage WHERE user_id = u.id AND DATE_FORMAT(date, '%%Y-%%m') = %s) as monthly_workflows
+            COALESCE(tt.total_transcriptions, 0)           AS total_transcriptions,
+            COALESCE(ut.total_minutes, 0)                  AS total_minutes,
+            COALESCE(ut.total_workflows, 0)                AS total_workflows,
+            COALESCE(tm.monthly_transcriptions, 0)         AS monthly_transcriptions,
+            COALESCE(um.monthly_minutes, 0)                AS monthly_minutes,
+            COALESCE(um.monthly_workflows, 0)              AS monthly_workflows
         FROM users u
         JOIN roles r ON u.role_id = r.id
+        LEFT JOIN transcription_totals  tt ON tt.user_id = u.id
+        LEFT JOIN transcription_monthly tm ON tm.user_id = u.id
+        LEFT JOIN usage_totals          ut ON ut.user_id = u.id
+        LEFT JOIN usage_monthly         um ON um.user_id = u.id
         WHERE
-            (r.max_transcriptions_total > 0 AND (SELECT COUNT(*) FROM transcriptions WHERE user_id = u.id) >= r.max_transcriptions_total)
-            OR (r.max_minutes_total > 0 AND (SELECT SUM(minutes) FROM user_usage WHERE user_id = u.id) >= r.max_minutes_total)
-            OR (r.max_transcriptions_monthly > 0 AND (SELECT COUNT(*) FROM transcriptions WHERE user_id = u.id AND DATE_FORMAT(created_at, '%%Y-%%m') = %s) >= r.max_transcriptions_monthly)
-            OR (r.max_minutes_monthly > 0 AND (SELECT SUM(minutes) FROM user_usage WHERE user_id = u.id AND DATE_FORMAT(date, '%%Y-%%m') = %s) >= r.max_minutes_monthly)
-            OR (r.max_workflows_monthly > 0 AND (SELECT SUM(workflows) FROM user_usage WHERE user_id = u.id AND DATE_FORMAT(date, '%%Y-%%m') = %s) >= r.max_workflows_monthly)
+            (r.max_transcriptions_total   > 0 AND COALESCE(tt.total_transcriptions,  0) >= r.max_transcriptions_total)
+            OR (r.max_minutes_total       > 0 AND COALESCE(ut.total_minutes,         0) >= r.max_minutes_total)
+            OR (r.max_transcriptions_monthly > 0 AND COALESCE(tm.monthly_transcriptions, 0) >= r.max_transcriptions_monthly)
+            OR (r.max_minutes_monthly     > 0 AND COALESCE(um.monthly_minutes,       0) >= r.max_minutes_monthly)
+            OR (r.max_workflows_monthly   > 0 AND COALESCE(um.monthly_workflows,     0) >= r.max_workflows_monthly)
         ORDER BY u.id
     """
     cursor = get_cursor()
     try:
-        cursor.execute(sql, (current_month_str, current_month_str, current_month_str, current_month_str, current_month_str, current_month_str))
+        cursor.execute(sql, (start_of_month, start_of_month))
         rows = cursor.fetchall()
         for row in rows:
             limit_hit = []
