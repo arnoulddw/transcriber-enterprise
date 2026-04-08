@@ -11,6 +11,7 @@ from app.core.decorators import admin_required, permission_required # Added perm
 from app.services import admin_management_service, pricing_service
 from app.services.admin_management_service import AdminServiceError # Specific exception
 from app.services.pricing_service import PricingServiceError
+from app.extensions import limiter
  
  # Define the Blueprint
 # The first argument is the blueprint name, used in url_for() calls (e.g., url_for('admin.list_users'))
@@ -21,7 +22,8 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 # --- User Management API Endpoints ---
 # ... (existing user endpoints remain unchanged) ...
 @admin_bp.route('/users', methods=['GET'])
-@admin_required # Protect this route, only admins can access
+@admin_required
+@limiter.limit("60 per minute")
 def list_users():
     """
     API endpoint for admins to list all users.
@@ -47,6 +49,7 @@ def list_users():
 
 @admin_bp.route('/users/<int:user_id>', methods=['GET'])
 @admin_required
+@limiter.limit("60 per minute")
 def get_user_details(user_id):
     """
     API endpoint for admins to get details and stats for a specific user.
@@ -72,6 +75,7 @@ def get_user_details(user_id):
 
 @admin_bp.route('/users', methods=['POST'])
 @admin_required
+@limiter.limit("20 per minute")
 def create_user():
     """
     API endpoint for admins to create a new user.
@@ -120,6 +124,7 @@ def create_user():
 
 @admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
 @admin_required
+@limiter.limit("20 per minute")
 def delete_user(user_id):
     """
     API endpoint for admins to delete a user account.
@@ -152,6 +157,7 @@ def delete_user(user_id):
 
 @admin_bp.route('/users/<int:user_id>/reset-password', methods=['POST'])
 @admin_required
+@limiter.limit("10 per minute")
 def reset_password(user_id):
     """
     API endpoint for admins to reset a user's password.
@@ -185,6 +191,7 @@ def reset_password(user_id):
 
 @admin_bp.route('/users/<int:user_id>/role', methods=['PUT'])
 @admin_required
+@limiter.limit("20 per minute")
 def update_user_role(user_id):
     """
     API endpoint for admins to update a user's role inline.
@@ -225,6 +232,7 @@ def update_user_role(user_id):
 @admin_bp.route('/template-workflows', methods=['POST'])
 @admin_required
 @permission_required('manage_workflow_templates')
+@limiter.limit("20 per minute")
 def create_template_workflow_api():
     """
     API endpoint for admins to create a new template workflow.
@@ -282,7 +290,8 @@ def create_template_workflow_api():
 
 @admin_bp.route('/template-workflows/<int:prompt_id>', methods=['PUT'])
 @admin_required
-@permission_required('manage_workflow_templates') # Added permission check
+@permission_required('manage_workflow_templates')
+@limiter.limit("20 per minute")
 def update_template_workflow_api(prompt_id):
     """
     API endpoint for admins to update an existing template workflow.
@@ -333,6 +342,7 @@ def update_template_workflow_api(prompt_id):
  
 @admin_bp.route('/pricing', methods=['GET', 'POST'])
 @admin_required
+@limiter.limit("30 per minute")
 def manage_pricing():
     """API endpoint to get or update pricing information."""
     log_prefix = f"[API:Admin:Pricing:User:{current_user.id}]"

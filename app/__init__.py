@@ -385,6 +385,18 @@ def create_app(config_class=Config) -> Flask:
         logging.debug(f"Request finished: {request.method} {request.path} - Status {response.status_code} ({user_info})")
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "frame-src https://accounts.google.com; "
+            "object-src 'none';"
+        )
+        if app.config.get('DEPLOYMENT_MODE') == 'multi':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response
 
     # Register Context Processors

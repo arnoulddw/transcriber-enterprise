@@ -32,7 +32,7 @@ def init_db_command() -> None:
             ("created_at", "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"),
             ("updated_at", "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
         ):
-            cursor.execute(f"SHOW COLUMNS FROM user_api_keys LIKE '{col_name}'")
+            cursor.execute("SHOW COLUMNS FROM user_api_keys LIKE %s", (col_name,))
             col_info = cursor.fetchone()
             cursor.fetchall()
             col_type = (col_info.get('Type') if isinstance(col_info, dict) else (col_info[1] if col_info else "")).lower()

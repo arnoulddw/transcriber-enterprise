@@ -337,7 +337,12 @@ def _ensure_default_model_seeded(
     )
 
 
+_ALLOWED_LLM_TABLES = {MODELS_TABLE}
+_ALLOWED_DEFAULT_COLUMNS = {"is_default", "is_default_title", "is_default_workflow"}
+
 def _table_has_rows(table_name: str) -> bool:
+    if table_name not in _ALLOWED_LLM_TABLES:
+        raise ValueError(f"Unexpected table: {table_name}")
     cursor = get_cursor()
     try:
         cursor.execute(f"SELECT 1 FROM {table_name} LIMIT 1")
@@ -413,6 +418,8 @@ def _upsert_model(
 
 
 def _set_default_flag(column: str, default_code: Optional[str]) -> None:
+    if column not in _ALLOWED_DEFAULT_COLUMNS:
+        raise ValueError(f"Unexpected column: {column}")
     cursor = get_cursor()
     if default_code:
         cursor.execute(
@@ -425,6 +432,8 @@ def _set_default_flag(column: str, default_code: Optional[str]) -> None:
 
 
 def _get_default_code(column: str) -> Optional[str]:
+    if column not in _ALLOWED_DEFAULT_COLUMNS:
+        raise ValueError(f"Unexpected column: {column}")
     cursor = get_cursor()
     sql = f"""
         SELECT code
