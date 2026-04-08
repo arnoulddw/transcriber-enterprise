@@ -52,7 +52,7 @@ class Config:
     WORKFLOW_LLM_MODEL = os.environ.get('WORKFLOW_LLM_MODEL', LLM_MODEL)
 
     # --- NEW: Centralized model lists ---
-    GEMINI_MODELS = os.environ.get('GEMINI_MODELS', 'gemini-2.0-flash').split(',')
+    GEMINI_MODELS = os.environ.get('GEMINI_MODELS', 'gemini-2.0-flash,gemini-3.0-flash,gemma-4-26b-a4b-it').split(',')
     OPENAI_MODELS = os.environ.get('OPENAI_MODELS', 'gpt-4o').split(',')
     # --- END NEW ---
 
