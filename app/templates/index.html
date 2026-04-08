@@ -22,7 +22,7 @@
                     <input type="file" id="audioFile" name="audio_file" required
                            accept=".mp3,.m4a,.wav,.ogg,.webm,.mpga,.mpeg"
                            class="sr-only">
-                    <span id="audioFilePath" class="ml-3 text-sm text-gray-500 truncate"
+                    <span id="audioFilePath" class="ml-3 text-sm text-text-muted truncate"
                           data-placeholder-long="{{ _('Select an audio file (mp3, wav, m4a...)') }}"
                           data-placeholder-short="{{ _('Select audio file…') }}">{{ _('Select an audio file (mp3, wav, m4a...)') }}</span>
                 </div>
@@ -134,9 +134,9 @@
         </div>
     {% endcall %}
 
-    {% set history_actions = ui.button(_('Clear All'), variant='secondary', id='clearAllBtn', icon='delete_forever', extra_classes='px-4 text-red-600 border border-red-500 hover:bg-red-50 focus:ring-red-400') if transcriptions else '' %}
+    {% set history_actions = ui.button(_('Clear All'), variant='secondary', id='clearAllBtn', icon='delete_forever', extra_classes='px-4 text-red-600 border border-red-500 hover:bg-danger/10 focus:ring-red-400') if transcriptions else '' %}
     {% call form_layout.card(title=_('Transcription History'), actions=history_actions) %}
-        <ul class="divide-y divide-gray-200" id="transcriptionHistory">
+        <ul class="divide-y divide-border-default" id="transcriptionHistory">
                 {% if transcriptions %}
                     {% for transcription in transcriptions %}
                         <li class="py-4"
@@ -164,11 +164,11 @@
                                     <div class="flex justify-between items-start gap-4">
                                         <div class="flex-grow min-w-0">
                                             <div class="title-wrapper">
-                                                <b id="title-{{ transcription.id }}" class="text-gray-800 font-medium sm:truncate leading-tight">
+                                                <b id="title-{{ transcription.id }}" class="text-text-strong font-medium sm:truncate leading-tight">
                                                     {{ transcription.generated_title if show_generated_title_icon else transcription.filename | e }}<i class="material-icons tiny text-primary align-middle ml-1 {{ 'hidden' if not show_generated_title_icon }}" id="title-icon-{{ transcription.id }}">auto_awesome</i>
                                                 </b>
                                             </div>
-                                            <p class="meta text-xs text-gray-500">
+                                            <p class="meta text-xs text-text-muted">
                                                 {% set api_name = API_NAME_MAP_FRONTEND.get(transcription.api_used, transcription.api_used | capitalize if transcription.api_used else 'Unknown API') %}
                                                 {% set lang_code = transcription.detected_language.strip() if transcription.detected_language else '' %}
                                                 {% set language_available = lang_code and lang_code | lower not in ['unknown', 'und'] %}
@@ -182,20 +182,20 @@
                                             </p>
                                         </div>
                                         <div class="secondary-content history-item-actions flex-shrink-0 flex space-x-1">
-                                            <button type="button" class="copy-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Copy Transcript') }}">
+                                            <button type="button" class="copy-btn p-2 rounded-full text-text-muted hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Copy Transcript') }}">
                                                 <i class="material-icons text-base">content_copy</i>
                                             </button>
                                             {% if user_permissions.allow_download_transcript %}
-                                            <button type="button" class="download-btn p-2 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Download Transcript') }}">
+                                            <button type="button" class="download-btn p-2 rounded-full text-text-muted hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary flex items-center" title="{{ _('Download Transcript') }}">
                                                 <i class="material-icons text-base">download</i>
                                             </button>
                                             {% endif %}
-                                            <button type="button" class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center" title="{{ _('Delete Transcript') }}">
+                                            <button type="button" class="delete-btn p-2 rounded-full text-text-muted hover:text-danger hover:bg-danger/10 focus:outline-none focus:ring-2 focus:ring-danger flex items-center" title="{{ _('Delete Transcript') }}">
                                                 <i class="material-icons text-base">delete</i>
                                             </button>
                                         </div>
                                     </div>
-                                    <p class="transcription-text text-sm text-gray-700 mt-2 mb-2"></p> {# Content populated by JS #}
+                                    <p class="transcription-text text-sm text-text-muted mt-2 mb-2"></p> {# Content populated by JS #}
                                     {% if user_permissions.allow_workflows %}
                                     {# MODIFICATION: Removed conditional hidden class #}
                                     <div class="start-workflow-action text-right mt-2.5">
@@ -205,11 +205,11 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                <div class="workflow-panel w-full mt-4 p-4 border border-gray-300 rounded-md bg-gray-50 relative pb-11 {{ 'hidden' if not should_display_workflow_panel }}"
+                                <div class="workflow-panel w-full mt-4 p-4 border border-border-default rounded-md bg-surface-muted relative pb-11 {{ 'hidden' if not should_display_workflow_panel }}"
                                      {% if transcription.llm_operation_id %}data-operation-id="{{ transcription.llm_operation_id }}"{% endif %}>
                                     {% if should_display_workflow_panel %}
                                         {% if llm_status == 'pending' or llm_status == 'processing' %}
-                                            <div class="flex flex-col items-center justify-center text-gray-500 min-h-[100px]">
+                                            <div class="flex flex-col items-center justify-center text-text-muted min-h-[100px]">
                                                 <span class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></span>
                                                 <span>{{ _('Processing Workflow...') }}</span>
                                             </div>
@@ -219,7 +219,7 @@
                                                     <div class="panel-title flex-grow flex items-center font-medium text-primary-dark text-lg leading-tight">
                                                         <i class="material-icons text-xl mr-2">auto_awesome</i>{{ _('Workflow Result') }}
                                                     </div>
-                                                    <div class="workflow-meta text-xs text-gray-500 leading-snug">
+                                                    <div class="workflow-meta text-xs text-text-muted leading-snug">
                                                         {{ _('Ran:') }} {% if transcription.llm_operation_ran_at %}<time datetime="{{ transcription.llm_operation_ran_at | datetime_tz }}">{{ transcription.llm_operation_ran_at | datetime_tz }}</time>{% else %}-{% endif %} |
                                                         {% if transcription.matched_workflow_title %}
                                                             {{ _('Workflow Label:') }} <span class="prompt-label-pill inline-block px-2 py-0.5 rounded-full text-xs font-medium ml-1 align-middle overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]" data-background-color="{{ transcription.matched_workflow_color | e }}">{{ transcription.matched_workflow_title | e }}</span>
@@ -231,15 +231,15 @@
                                                     </div>
                                                 </div>
                                                 <div class="workflow-actions flex-shrink-0 flex space-x-1">
-                                                    <button class="edit-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Edit Result"><i class="material-icons text-base">edit</i></button>
-                                                    <button class="copy-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Copy Result"><i class="material-icons text-base">content_copy</i></button>
+                                                    <button class="edit-workflow-btn p-1.5 rounded-full text-text-muted hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary" title="Edit Result"><i class="material-icons text-base">edit</i></button>
+                                                    <button class="copy-workflow-btn p-1.5 rounded-full text-text-muted hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary" title="Copy Result"><i class="material-icons text-base">content_copy</i></button>
                                                     {% if user_permissions.allow_download_transcript %}
-                                                    <button class="download-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary" title="Download Result"><i class="material-icons text-base">download</i></button>
+                                                    <button class="download-workflow-btn p-1.5 rounded-full text-text-muted hover:text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary" title="Download Result"><i class="material-icons text-base">download</i></button>
                                                     {% endif %}
-                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
+                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-text-muted hover:text-danger hover:bg-danger/10 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
                                                 </div>
                                             </div>
-                                            <div class="workflow-result-text text-sm text-gray-700 leading-relaxed break-words mt-2" data-full-text="{{ transcription.llm_operation_result | e }}">
+                                            <div class="workflow-result-text text-sm text-text-muted leading-relaxed break-words mt-2" data-full-text="{{ transcription.llm_operation_result | e }}">
                                                 {# Content populated by JS using marked.js if available, or preformatted text #}
                                             </div>
                                         {% elif llm_status == 'error' and has_meaningful_error %}
@@ -248,7 +248,7 @@
                                                     <div class="panel-title flex-grow flex items-center font-medium text-red-700 text-lg leading-tight">
                                                         <i class="material-icons text-xl mr-2">error_outline</i>{{ _('Workflow Error') }}
                                                     </div>
-                                                    <div class="workflow-meta text-xs text-gray-500 leading-snug">
+                                                    <div class="workflow-meta text-xs text-text-muted leading-snug">
                                                         {{ _('Attempted:') }} {% if transcription.llm_operation_ran_at %}<time datetime="{{ transcription.llm_operation_ran_at | datetime_tz }}">{{ transcription.llm_operation_ran_at | datetime_tz }}</time>{% else %}<time datetime="{{ transcription.created_at | datetime_tz }}">{{ transcription.created_at | datetime_tz }}</time>{% endif %} |
                                                         {% if transcription.matched_workflow_title %}
                                                             {{ _('Workflow Label:') }} <span class="prompt-label-pill inline-block px-2 py-0.5 rounded-full text-xs font-medium ml-1 align-middle overflow-hidden text-ellipsis whitespace-nowrap max-w-[60%]" data-background-color="{{ transcription.matched_workflow_color | e }}">{{ transcription.matched_workflow_title | e }}</span>
@@ -260,7 +260,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="workflow-actions flex-shrink-0 flex space-x-1">
-                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
+                                                    <button class="delete-workflow-btn p-1.5 rounded-full text-text-muted hover:text-danger hover:bg-danger/10 focus:outline-none focus:ring-2 focus:ring-red-500" title="Delete Result"><i class="material-icons text-base">delete</i></button>
                                                 </div>
                                             </div>
                                             <div class="workflow-result-text text-sm text-red-700 leading-relaxed break-words mt-2">{{ transcription.llm_operation_error | e }}</div>
@@ -271,17 +271,17 @@
                         </li>
                     {% endfor %}
                 {% else %}
-                    <li class="py-4 text-center text-gray-500" id="history-placeholder">{{ _('No completed transcriptions yet.') }}</li>
+                    <li class="py-4 text-center text-text-muted" id="history-placeholder">{{ _('No completed transcriptions yet.') }}</li>
                 {% endif %}
             </ul>
 
             {# Pagination #}
             {% if pagination %}
-            <div class="mt-6 border-t border-gray-200 pt-4 pagination-container">
+            <div class="mt-6 border-t border-border-default pt-4 pagination-container">
                 <div class="flex flex-col items-center"> {# Centering container for pagination and text #}
                     <nav class="relative z-0 inline-flex flex-wrap justify-center rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         <a href="{{ url_for('main.index', page=pagination.current_page - 1) if pagination.has_prev else '#' }}"
-                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 {{ 'pointer-events-none opacity-50' if not pagination.has_prev }}">
+                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border-default bg-surface text-sm font-medium text-text-muted hover:bg-surface-muted {{ 'pointer-events-none opacity-50' if not pagination.has_prev }}">
                             <span class="sr-only">{{ _('Previous') }}</span>
                             <i class="material-icons text-sm">chevron_left</i>
                         </a>
@@ -303,21 +303,21 @@
                                 <a href="{{ url_for('main.index', page=page_num) }}"
                                    aria-current="{{ 'page' if page_num == pagination.current_page else 'false' }}"
                                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                                          {% if page_num == pagination.current_page %} z-10 bg-primary-light border-primary text-primary-dark {% else %} bg-white border-gray-300 text-gray-500 hover:bg-gray-50 {% endif %}">
+                                          {% if page_num == pagination.current_page %} z-10 bg-primary-light border-primary text-primary-dark {% else %} bg-surface border-border-default text-text-muted hover:bg-surface-muted {% endif %}">
                                     {{ page_num }}
                                 </a>
                             {% elif ns.prev_show_page and not show_page %} {# Use ns.prev_show_page #}
-                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>
+                                <span class="relative inline-flex items-center px-4 py-2 border border-border-default bg-surface text-sm font-medium text-text-muted">...</span>
                             {% endif %}
                             {% set ns.prev_show_page = show_page %} {# Update namespace variable #}
                         {% endfor %}
                         <a href="{{ url_for('main.index', page=pagination.current_page + 1) if pagination.has_next else '#' }}"
-                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 {{ 'pointer-events-none opacity-50' if not pagination.has_next }}">
+                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border-default bg-surface text-sm font-medium text-text-muted hover:bg-surface-muted {{ 'pointer-events-none opacity-50' if not pagination.has_next }}">
                             <span class="sr-only">{{ _('Next') }}</span>
                             <i class="material-icons text-sm">chevron_right</i>
                         </a>
                     </nav>
-                    <div class="mt-3 text-sm text-gray-600">
+                    <div class="mt-3 text-sm text-text-muted">
                         {{ _('Showing %(length)s of %(total)s items', length=transcriptions|length, total=pagination.total_items) }}
                     </div>
                 </div>

@@ -67,10 +67,7 @@ class GeminiClient(BaseLLMClient):
     # --- MODIFIED: Accept config in _get_model_name and update default ---
     def _get_model_name(self, config: Dict[str, Any]) -> str:
         """Gets the configured Gemini model name from the passed config dictionary."""
-        provider_config = config.get('WORKFLOW_LLM_PROVIDER', 'gemini-2.0-flash') # Updated default
-        if provider_config.startswith('gemini'):
-            return provider_config
-        return 'gemini-2.0-flash' # Fallback default updated
+        return config.get('WORKFLOW_LLM_MODEL', 'gemini-2.0-flash')
     # --- END MODIFIED ---
 
     def generate_text(self, prompt: str, **kwargs) -> str:
@@ -129,8 +126,11 @@ class GeminiClient(BaseLLMClient):
         )
 
         try:
+            # Respect model overridden in kwargs, fallback to client's default model
+            actual_model = kwargs.get('model', self.model_name)
+            logger.info(f"Using actual_model: {actual_model}")
             response = self.client.models.generate_content(
-                model=self.model_name, # Use the stored model name
+                model=actual_model,
                 contents=[prompt],
                 config=generation_config
             )

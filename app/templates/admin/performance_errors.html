@@ -12,21 +12,21 @@
 {% block admin_content %}
     <section class="page-section space-y-6">
         {% set period_labels = {'24h': 'Last 24h', '7d': 'Last 7 Days', '30d': 'Last 30 Days', 'all': 'All Time'} %}
-        <p class="text-sm text-gray-600">Monitor the reliability of the transcription process and workflow analysis.</p>
+        <p class="text-sm text-text-muted">Monitor the reliability of the transcription process and workflow analysis.</p>
 
         {% if metrics.get('error') %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-                <i class="material-icons left tiny mr-2">warning</i>
-                <strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.
+            <div class="alert alert-danger" role="alert">
+                <i class="material-icons alert-icon">warning</i>
+                <div class="alert-content"><strong>Warning:</strong> {{ metrics.error }} Some metrics might be unavailable.</div>
             </div>
         {% endif %}
 
         {# Transcription Error Metrics #}
-        <h2 class="text-xl font-semibold text-gray-800">Transcription Performance</h2>
+        <h2 class="card-title">Transcription Performance</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {# Overall Transcription Error Rate Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Transcription Error Rate (%)</h3>
+        <div class="table-card p-6">
+            <h3 class="section-title mb-4">Overall Transcription Error Rate (%)</h3>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -50,8 +50,8 @@
             </div>
         </div>
         {# API-Specific Transcription Error Rates Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">API-Specific Transcription Error Rates (%)</h3>
+        <div class="table-card p-6">
+            <h3 class="section-title mb-4">API-Specific Transcription Error Rates (%)</h3>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -83,10 +83,10 @@
     </div>
 
     {# Common Transcription Error Types #}
-    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Transcription Error Messages (Top 10)</h3>
+    <div class="table-card p-6 mb-6">
+        <h3 class="section-title mb-4">Common Transcription Error Messages (Top 10)</h3>
         <div class="tab-group" id="transcriptionErrorTabGroup">
-            <div role="tablist" aria-label="Transcription Error Periods" class="border-b border-gray-200">
+            <div role="tablist" aria-label="Transcription Error Periods" class="border-b border-border-default">
                 <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
                     {% set transcription_error_periods = [
                         {'key': '24h', 'id_suffix': 'Trans24h', 'label': 'Last 24h'},
@@ -104,7 +104,7 @@
                         {% if loop.first %}data-headlessui-state="selected"{% endif %}
                         class="tab-button whitespace-nowrap py-3 px-1 sm:px-2 md:px-4 border-b-2 font-medium text-xs sm:text-sm
                                ui-selected:text-primary ui-selected:border-primary
-                               ui-not-selected:text-gray-500 ui-not-selected:hover:text-gray-700 ui-not-selected:hover:border-gray-300 ui-not-selected:border-transparent
+                               ui-not-selected:text-text-muted ui-not-selected:hover:text-text-strong ui-not-selected:hover:border-border-default ui-not-selected:border-transparent
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-75 rounded-t-md"
                     >
                         {{ period_info.label }}
@@ -144,7 +144,7 @@
                                 </table>
                             </div>
                         {% else %}
-                            <p class="text-gray-500 text-center py-4">No transcription errors recorded in this period.</p>
+                            <p class="text-text-muted text-center py-4">No transcription errors recorded in this period.</p>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -154,12 +154,12 @@
 
     {# Workflow Error Metrics #}
     <section class="page-section space-y-6">
-    <h2 class="text-xl font-semibold text-gray-800">Workflow Performance</h2>
+    <h2 class="card-title">Workflow Performance</h2>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {# Overall Workflow Error Rate Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Overall Workflow Error Rate (%)</h3>
+        <div class="table-card p-6">
+            <h3 class="section-title mb-4">Overall Workflow Error Rate (%)</h3>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -181,11 +181,11 @@
                     </tbody>
                 </table>
             </div>
-            <small class="text-gray-500 text-xs block mt-2">Based on workflows attempted (status not 'idle').</small>
+            <small class="text-text-muted text-xs block mt-2">Based on workflows attempted (status not 'idle').</small>
         </div>
         {# Workflow Model-Specific Error Rates Table #}
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h3 class="text-gray-700 font-semibold text-lg mb-4">Workflow Model Error Rates (%)</h3>
+        <div class="table-card p-6">
+            <h3 class="section-title mb-4">Workflow Model Error Rates (%)</h3>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -217,10 +217,10 @@
     </div>
 
     {# Common Workflow Error Types #}
-    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">Common Workflow Error Messages (Top 10)</h3>
+    <div class="table-card p-6 mb-6">
+        <h3 class="section-title mb-4">Common Workflow Error Messages (Top 10)</h3>
         <div class="tab-group" id="workflowErrorTabGroup">
-            <div role="tablist" aria-label="Workflow Error Periods" class="border-b border-gray-200">
+            <div role="tablist" aria-label="Workflow Error Periods" class="border-b border-border-default">
                 <nav class="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8" aria-label="Tabs">
                      {% set workflow_error_periods = [
                         {'key': '24h', 'id_suffix': 'Workflow24h', 'label': 'Last 24h'},
@@ -238,7 +238,7 @@
                         {% if loop.first %}data-headlessui-state="selected"{% endif %}
                         class="tab-button whitespace-nowrap py-3 px-1 sm:px-2 md:px-4 border-b-2 font-medium text-xs sm:text-sm
                                ui-selected:text-primary ui-selected:border-primary
-                               ui-not-selected:text-gray-500 ui-not-selected:hover:text-gray-700 ui-not-selected:hover:border-gray-300 ui-not-selected:border-transparent
+                               ui-not-selected:text-text-muted ui-not-selected:hover:text-text-strong ui-not-selected:hover:border-border-default ui-not-selected:border-transparent
                                focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-75 rounded-t-md"
                     >
                         {{ period_info.label }}
@@ -278,7 +278,7 @@
                                 </table>
                             </div>
                         {% else %}
-                            <p class="text-gray-500 text-center py-4">No workflow errors recorded in this period.</p>
+                            <p class="text-text-muted text-center py-4">No workflow errors recorded in this period.</p>
                         {% endif %}
                     </div>
                 {% endfor %}

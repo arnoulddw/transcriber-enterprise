@@ -243,11 +243,6 @@ These are processed by PostCSS with the Tailwind plugin.
     }
 }
 @layer components {
-    .bg-white.shadow-md.rounded-lg {
-        @apply bg-transparent shadow-none rounded-none border-0;
-    }
-}
-@layer components {
     .toast-container {
         @apply fixed inset-x-0 bottom-6 px-4 safe-area-bottom w-full z-[1200] flex flex-col items-center gap-2.5 pointer-events-none;
     }

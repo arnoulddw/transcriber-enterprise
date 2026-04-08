@@ -284,9 +284,57 @@ def _seed_models_from_config() -> None:
                 is_default_workflow=(code == default_workflow),
             )
 
+    # Ensure explicitly configured default models are seeded even if they were omitted from the provider *__MODELS lists
+    _ensure_default_model_seeded(default_general, config.get("LLM_PROVIDER", "GEMINI"), seen_codes, default_general, default_title, default_workflow, provider_name_map)
+    _ensure_default_model_seeded(default_title, config.get("TITLE_GENERATION_LLM_PROVIDER", "GEMINI"), seen_codes, default_general, default_title, default_workflow, provider_name_map)
+    _ensure_default_model_seeded(default_workflow, config.get("WORKFLOW_LLM_PROVIDER", "GEMINI"), seen_codes, default_general, default_title, default_workflow, provider_name_map)
+
     _set_default_flag("is_default", _resolve_default_code(default_general, seen_codes))
     _set_default_flag("is_default_title", _resolve_default_code(default_title, seen_codes))
     _set_default_flag("is_default_workflow", _resolve_default_code(default_workflow, seen_codes))
+
+
+def _ensure_default_model_seeded(
+    code: Optional[str],
+    provider: Optional[str],
+    seen_codes: List[str],
+    default_general: Optional[str],
+    default_title: Optional[str],
+    default_workflow: Optional[str],
+    provider_name_map: Dict[str, str],
+) -> None:
+    if not code or code in seen_codes:
+        return
+
+    provider_upper = _sanitize_provider(provider) or "GEMINI"
+    seen_codes.append(code)
+
+    metadata = _DEFAULT_MODEL_METADATA.get(code, {})
+    provider_metadata = _PROVIDER_METADATA.get(provider_upper, {})
+
+    display_name = provider_name_map.get(code, metadata.get("display_name") or code)
+    provider_display_name = provider_name_map.get(
+        provider_upper, provider_metadata.get("display_name") or provider_upper.title()
+    )
+
+    permission_key = metadata.get("permission_key", provider_metadata.get("permission_key"))
+    required_api_key = metadata.get("required_api_key", provider_metadata.get("required_api_key"))
+    provider_override = _sanitize_provider(metadata.get("provider") or provider_upper)
+    sort_order = metadata.get("sort_order", 999)
+
+    _upsert_model(
+        code=code,
+        provider=provider_override or provider_upper,
+        provider_display_name=provider_display_name,
+        display_name=display_name,
+        permission_key=permission_key,
+        required_api_key=required_api_key,
+        sort_order=sort_order,
+        is_active=True,
+        is_default=(code == default_general),
+        is_default_title=(code == default_title),
+        is_default_workflow=(code == default_workflow),
+    )
 
 
 def _table_has_rows(table_name: str) -> bool:

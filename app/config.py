@@ -44,15 +44,15 @@ class Config:
     DEFAULT_TRANSCRIPTION_PROVIDER = os.environ.get('DEFAULT_TRANSCRIPTION_PROVIDER', 'gpt-4o-transcribe')
     LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'GEMINI').upper()
     LLM_MODEL = os.environ.get('LLM_MODEL')
-    TITLE_GENERATION_LLM_PROVIDER = os.environ.get('TITLE_GENERATION_LLM_PROVIDER', LLM_PROVIDER).upper()
+    TITLE_GENERATION_LLM_PROVIDER = os.environ.get('TITLE_GENERATION_LLM_PROVIDER', 'GEMINI').upper()
     WORKFLOW_LLM_PROVIDER = os.environ.get('WORKFLOW_LLM_PROVIDER', LLM_PROVIDER).upper()
 
     # --- MODIFIED: Add specific model configs and API provider map ---
-    TITLE_GENERATION_LLM_MODEL = os.environ.get('TITLE_GENERATION_LLM_MODEL', LLM_MODEL)
+    TITLE_GENERATION_LLM_MODEL = os.environ.get('TITLE_GENERATION_LLM_MODEL', 'gemma-4-26b-a4b-it')
     WORKFLOW_LLM_MODEL = os.environ.get('WORKFLOW_LLM_MODEL', LLM_MODEL)
 
     # --- NEW: Centralized model lists ---
-    GEMINI_MODELS = os.environ.get('GEMINI_MODELS', 'gemini-2.0-flash').split(',')
+    GEMINI_MODELS = os.environ.get('GEMINI_MODELS', 'gemini-2.0-flash,gemini-3.0-flash,gemma-4-26b-a4b-it').split(',')
     OPENAI_MODELS = os.environ.get('OPENAI_MODELS', 'gpt-4o').split(',')
     # --- END NEW ---
 
@@ -66,7 +66,8 @@ class Config:
         "OPENAI": "OpenAI",
         # Specific Models (add more as needed for display)
         "gemini-2.0-flash": "Gemini 2.0 Flash",
-        "gemini-3.0-flash": "gemini-3.0-flash",
+        "gemini-3.0-flash": "Gemini 3.0 Flash",
+        "gemma-4-26b-a4b-it": "Gemma 4 26B A4B",
         "gpt-4o": "OpenAI GPT-4o",
     }
     # --- END MODIFIED ---

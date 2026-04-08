@@ -56,21 +56,21 @@
                                              class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transform opacity-0 scale-95 transition-ease-out duration-100 z-50"
                                              role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button-desktop" tabindex="-1">
                                             <div class="py-1" role="none">
-                                                <a href="#!" id="profileSettingsBtn" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">person_outline</i>{{ _('User Settings') }}</a>
+                                                <a href="#!" id="profileSettingsBtn" class="flex items-center px-4 py-2 text-sm text-text-muted hover:bg-surface-muted hover:text-text-strong" role="menuitem" tabindex="-1"><i class="material-icons tiny text-text-muted mr-2">person_outline</i>{{ _('User Settings') }}</a>
                                                 {% if current_user.role and current_user.role.allow_api_key_management %}
-                                                <a href="#!" id="apiKeysBtn" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">vpn_key</i>{{ _('Manage API Keys') }}</a>
+                                                <a href="#!" id="apiKeysBtn" class="flex items-center px-4 py-2 text-sm text-text-muted hover:bg-surface-muted hover:text-text-strong" role="menuitem" tabindex="-1"><i class="material-icons tiny text-text-muted mr-2">vpn_key</i>{{ _('Manage API Keys') }}</a>
                                                 {% endif %}
                                                 {% if user_permissions.allow_workflows %}
-                                                <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">playlist_add_check</i>{{ _('Manage your Workflows') }}</a>
+                                                <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-4 py-2 text-sm text-text-muted hover:bg-surface-muted hover:text-text-strong" role="menuitem" tabindex="-1"><i class="material-icons tiny text-text-muted mr-2">playlist_add_check</i>{{ _('Manage your Workflows') }}</a>
                                                 {% endif %}
                                                 {% set is_admin_user = current_user.role and current_user.role.access_admin_panel %}
                                                 {% if is_admin_user %}
-                                                <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">admin_panel_settings</i>{{ _('Admin Panel') }}</a>
+                                                <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-4 py-2 text-sm text-text-muted hover:bg-surface-muted hover:text-text-strong" role="menuitem" tabindex="-1"><i class="material-icons tiny text-text-muted mr-2">admin_panel_settings</i>{{ _('Admin Panel') }}</a>
                                                 {% endif %}
                                                 {% if current_user.role and (current_user.role.allow_api_key_management or is_admin_user or user_permissions.allow_workflows) %}
-                                                <div class="border-t border-gray-200 my-1" role="separator"></div>
+                                                <div class="border-t border-border-default my-1" role="separator"></div>
                                                 {% endif %}
-                                                <a href="{{ url_for('auth.logout') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem" tabindex="-1"><i class="material-icons tiny text-gray-500 mr-2">exit_to_app</i>{{ _('Logout') }}</a>
+                                                <a href="{{ url_for('auth.logout') }}" class="flex items-center px-4 py-2 text-sm text-text-muted hover:bg-surface-muted hover:text-text-strong" role="menuitem" tabindex="-1"><i class="material-icons tiny text-text-muted mr-2">exit_to_app</i>{{ _('Logout') }}</a>
                                             </div>
                                         </div>
                                     </div>
@@ -103,7 +103,7 @@
                                 <div class="py-1" role="none">
                                 {% set lang_map_full = {'en': 'English', 'es': _('Español'), 'fr': _('Français'), 'nl': _('Nederlands')} %}
                                     {% for lang_code in config.SUPPORTED_LANGUAGES %}
-                                        <a href="{{ url_for('main.set_language', lang=lang_code) }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1">{{ lang_map_full.get(lang_code, lang_code) }}</a>
+                                        <a href="{{ url_for('main.set_language', lang=lang_code) }}" class="text-text-muted block px-4 py-2 text-sm hover:bg-surface-muted" role="menuitem" tabindex="-1">{{ lang_map_full.get(lang_code, lang_code) }}</a>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -120,11 +120,11 @@
              class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-50 lg:hidden"
              role="dialog" aria-modal="true" aria-labelledby="mobile-nav-title" aria-hidden="true" tabindex="-1">
             <div class="p-4">
-                <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-                    <h2 id="mobile-nav-title" class="text-lg font-medium text-gray-800">
+                <div class="flex items-center justify-between mb-4 pb-2 border-b border-border-default">
+                    <h2 id="mobile-nav-title" class="text-lg font-medium text-text-strong">
                         {% if current_user.is_authenticated %}{{ display_name | default(current_user.username) }}{% else %}{{ _('Menu') }}{% endif %}
                     </h2>
-                    <button type="button" id="close-mobile-nav-button" class="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary flex items-center">
+                    <button type="button" id="close-mobile-nav-button" class="p-1 rounded-md text-text-muted hover:text-text-strong hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-primary flex items-center">
                         <span class="sr-only">{{ _('Close menu') }}</span>
                         <i class="material-icons">close</i>
                     </button>
@@ -132,37 +132,37 @@
 
                 {% if current_user.is_authenticated %}
                     <nav class="mt-2 space-y-1">
-                        <a href="#!" id="profileSettingsBtnMobile" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
-                            <i class="material-icons mr-3 text-gray-500">person_outline</i>{{ _('User Settings') }}
+                        <a href="#!" id="profileSettingsBtnMobile" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-text-muted">person_outline</i>{{ _('User Settings') }}
                         </a>
                         {% if current_user.role and current_user.role.allow_api_key_management %}
-                        <a href="#!" id="apiKeysBtnMobile" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
-                            <i class="material-icons mr-3 text-gray-500">vpn_key</i>{{ _('Manage API Keys') }}
+                        <a href="#!" id="apiKeysBtnMobile" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-text-muted">vpn_key</i>{{ _('Manage API Keys') }}
                         </a>
                         {% endif %}
                         {% if user_permissions.allow_workflows %}
-                        <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
-                            <i class="material-icons mr-3 text-gray-500">playlist_add_check</i>{{ _('Manage your Workflows') }}
+                        <a href="{{ url_for('main.manage_prompts') }}" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-text-muted">playlist_add_check</i>{{ _('Manage your Workflows') }}
                         </a>
                         {% endif %}
                         {% set is_admin_user = current_user.role and current_user.role.access_admin_panel %}
                         {% if is_admin_user %}
-                        <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
-                            <i class="material-icons mr-3 text-gray-500">admin_panel_settings</i>{{ _('Admin Panel') }}
+                        <a href="{{ url_for('admin_panel.dashboard') }}" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-text-muted">admin_panel_settings</i>{{ _('Admin Panel') }}
                         </a>
                         {% endif %}
-                        <div class="border-t border-gray-200 my-2"></div>
-                        <a href="{{ url_for('auth.logout') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">
-                            <i class="material-icons mr-3 text-gray-500">exit_to_app</i>{{ _('Logout') }}
+                        <div class="border-t border-border-default my-2"></div>
+                        <a href="{{ url_for('auth.logout') }}" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">
+                            <i class="material-icons mr-3 text-text-muted">exit_to_app</i>{{ _('Logout') }}
                         </a>
                     </nav>
                 {% else %}
                     <nav class="mt-2 space-y-1">
                         {% if request.endpoint != 'auth.login' %}
-                        <a href="{{ url_for('auth.login') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">{{ _('Login') }}</a>
+                        <a href="{{ url_for('auth.login') }}" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">{{ _('Login') }}</a>
                         {% endif %}
                         {% if request.endpoint != 'auth.register' %}
-                        <a href="{{ url_for('auth.register') }}" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md text-sm font-medium">{{ _('Register') }}</a>
+                        <a href="{{ url_for('auth.register') }}" class="flex items-center px-3 py-2 text-text-muted hover:bg-surface-muted hover:text-text-strong rounded-md text-sm font-medium">{{ _('Register') }}</a>
                         {% endif %}
                     </nav>
                 {% endif %}
