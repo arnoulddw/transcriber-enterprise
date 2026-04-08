@@ -445,8 +445,17 @@ def delete_all_workflow_results_for_user(user_id: int) -> int:
     deleted_count = 0
     try:
         cursor = get_cursor()
+        # Restrict to visible transcriptions only so that soft-deleted rows
+        # (is_hidden_from_user = TRUE) keep their workflow metadata; a user
+        # might restore a hidden item and still expect to see its results.
         cursor.execute(
-            "DELETE FROM llm_operations WHERE user_id = %s AND operation_type = 'workflow'",
+            """
+            DELETE lo FROM llm_operations lo
+            JOIN transcriptions t ON lo.transcription_id = t.id
+            WHERE lo.user_id = %s
+              AND lo.operation_type = 'workflow'
+              AND t.is_hidden_from_user = FALSE
+            """,
             (user_id,)
         )
         deleted_count = cursor.rowcount
@@ -461,6 +470,7 @@ def delete_all_workflow_results_for_user(user_id: int) -> int:
                 llm_operation_error  = NULL,
                 llm_operation_ran_at = NULL
             WHERE user_id = %s
+              AND is_hidden_from_user = FALSE
             """,
             (user_id,)
         )

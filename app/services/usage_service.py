@@ -23,6 +23,10 @@ def get_user_usage(user_id: int) -> Dict[str, Any]:
     today = datetime.now(timezone.utc).date()
     start_of_week = today - timedelta(days=today.weekday())
     start_of_month = today.replace(day=1)
+    # Use the earlier of the two boundaries so that weekly totals are correct
+    # when the current week started in the previous month (e.g. today is the
+    # 1st or 2nd of the month and Monday fell in the previous month).
+    earliest = min(start_of_week, start_of_month)
 
     usage_stats = {
         'daily':   {'cost': 0, 'minutes': 0, 'workflows': 0},
@@ -34,9 +38,9 @@ def get_user_usage(user_id: int) -> Dict[str, Any]:
         cursor.execute(
             """
             SELECT
-                SUM(CASE WHEN date = %s THEN cost      ELSE 0 END) AS daily_cost,
-                SUM(CASE WHEN date = %s THEN minutes   ELSE 0 END) AS daily_minutes,
-                SUM(CASE WHEN date = %s THEN workflows ELSE 0 END) AS daily_workflows,
+                SUM(CASE WHEN date = %s  THEN cost      ELSE 0 END) AS daily_cost,
+                SUM(CASE WHEN date = %s  THEN minutes   ELSE 0 END) AS daily_minutes,
+                SUM(CASE WHEN date = %s  THEN workflows ELSE 0 END) AS daily_workflows,
                 SUM(CASE WHEN date >= %s THEN cost      ELSE 0 END) AS weekly_cost,
                 SUM(CASE WHEN date >= %s THEN minutes   ELSE 0 END) AS weekly_minutes,
                 SUM(CASE WHEN date >= %s THEN workflows ELSE 0 END) AS weekly_workflows,
@@ -50,7 +54,7 @@ def get_user_usage(user_id: int) -> Dict[str, Any]:
                 today, today, today,
                 start_of_week, start_of_week, start_of_week,
                 start_of_month, start_of_month, start_of_month,
-                user_id, start_of_month,
+                user_id, earliest,
             )
         )
         row = cursor.fetchone()
