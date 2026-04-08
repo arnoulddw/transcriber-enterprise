@@ -307,7 +307,11 @@ def _seed_languages_from_config() -> None:
         _set_default_language(default_code)
 
 
+_ALLOWED_CATALOG_TABLES = {MODELS_TABLE, LANGUAGES_TABLE}
+
 def _table_has_rows(table_name: str) -> bool:
+    if table_name not in _ALLOWED_CATALOG_TABLES:
+        raise ValueError(f"Unexpected table: {table_name}")
     cursor = get_cursor()
     try:
         cursor.execute(f"SELECT 1 FROM {table_name} LIMIT 1")

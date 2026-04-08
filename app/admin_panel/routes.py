@@ -48,7 +48,7 @@ def dashboard():
         return render_template('admin/dashboard.html', metrics=metrics)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading dashboard: {e}", exc_info=True)
-        flash(f"Error loading dashboard: {e}", "danger")
+        flash("Error loading dashboard. Please check the logs.", "danger")
         return render_template('admin/dashboard.html', metrics={'error': 'Failed to load dashboard data.'})
     except Exception as e:
         logging.error(f"{log_prefix} Failed to load dashboard: {e}", exc_info=True)
@@ -71,7 +71,7 @@ def usage_analytics():
         return render_template('admin/usage_analytics.html', metrics=metrics, **context)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading usage analytics: {e}", exc_info=True)
-        flash(f"Error loading usage analytics: {e}", "danger")
+        flash("Error loading usage analytics. Please check the logs.", "danger")
         return render_template('admin/usage_analytics.html', metrics={'error': 'Failed to load usage data.'}, **context)
     except Exception as e:
         logging.error(f"{log_prefix} Failed to load usage analytics: {e}", exc_info=True)
@@ -94,7 +94,7 @@ def user_insights():
         return render_template('admin/user_insights.html', metrics=metrics)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading user insights: {e}", exc_info=True)
-        flash(f"Error loading user insights: {e}", "danger")
+        flash("Error loading user insights. Please check the logs.", "danger")
         return render_template('admin/user_insights.html', metrics={'error': 'Failed to load user insights data.'})
     except Exception as e:
         logging.error(f"{log_prefix} Failed to load user insights: {e}", exc_info=True)
@@ -116,7 +116,7 @@ def performance_errors():
         return render_template('admin/performance_errors.html', metrics=metrics, **context)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading performance/errors: {e}", exc_info=True)
-        flash(f"Error loading performance data: {e}", "danger")
+        flash("Error loading performance data. Please check the logs.", "danger")
         return render_template(
             'admin/performance_errors.html',
             metrics={'error': 'Failed to load performance data.'},
@@ -147,8 +147,8 @@ def manage_users():
         return render_template('admin/users.html', users=users, pagination=pagination, all_roles=all_roles)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading users: {e}", exc_info=True)
-        flash(f"Error loading users: {e}", "danger")
-        return render_template('admin/users.html', users=[], pagination=None, all_roles=[], error=str(e))
+        flash("Error loading users. Please check the logs.", "danger")
+        return render_template('admin/users.html', users=[], pagination=None, all_roles=[], error="Failed to load users.")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error loading users: {e}", exc_info=True)
         flash("An unexpected error occurred while loading the user list.", "danger")
@@ -170,7 +170,7 @@ def user_details(user_id):
         return render_template('admin/user_details.html', user_details=details, usage_stats=usage_stats)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading user details: {e}", exc_info=True)
-        flash(f"Error loading user details: {e}", "danger")
+        flash("Error loading user details. Please check the logs.", "danger")
         return redirect(url_for('admin_panel.manage_users'))
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error loading user details: {e}", exc_info=True)
@@ -190,8 +190,8 @@ def manage_roles():
         return render_template('admin/roles.html', roles=roles)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading roles: {e}", exc_info=True)
-        flash(f"Error loading roles: {e}", "danger")
-        return render_template('admin/roles.html', roles=[], error=str(e))
+        flash("Error loading roles. Please check the logs.", "danger")
+        return render_template('admin/roles.html', roles=[], error="Failed to load roles.")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error loading roles: {e}", exc_info=True)
         flash("An unexpected error occurred while loading the role list.", "danger")
@@ -246,7 +246,7 @@ def create_role():
             else: flash("Failed to create role. Please check logs.", "danger")
         except AdminServiceError as e:
             logging.error(f"{log_prefix} Service error creating role '{form.name.data}': {e}")
-            flash(f"Error creating role: {e}", "danger")
+            flash("Error creating role. Please check the logs.", "danger")
         except Exception as e:
             logging.error(f"{log_prefix} Unexpected error creating role '{form.name.data}': {e}", exc_info=True)
             flash("An unexpected error occurred while creating the role.", "danger")
@@ -368,7 +368,7 @@ def edit_role(role_id):
             else: flash("Failed to update role. Please check logs.", "danger")
         except AdminServiceError as e:
             logging.error(f"{log_prefix} Service error updating role '{form.name.data}': {e}")
-            flash(f"Error updating role: {e}", "danger")
+            flash("Error updating role. Please check the logs.", "danger")
         except Exception as e:
             logging.error(f"{log_prefix} Unexpected error updating role '{form.name.data}': {e}", exc_info=True)
             flash("An unexpected error occurred while updating the role.", "danger")
@@ -388,7 +388,7 @@ def delete_role(role_id):
         flash(f"Role (ID: {role_id}) deleted successfully.", "success")
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error deleting role: {e}")
-        flash(f"Error deleting role: {e}", "danger")
+        flash("Error deleting role. Please check the logs.", "danger")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error deleting role: {e}", exc_info=True)
         flash("An unexpected error occurred while deleting the role.", "danger")
@@ -409,8 +409,8 @@ def manage_template_workflows():
         return render_template('admin/template_prompts.html', templates=templates)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading template workflows: {e}", exc_info=True)
-        flash(f"Error loading template workflows: {e}", "danger")
-        return render_template('admin/template_prompts.html', templates=[], error=str(e))
+        flash("Error loading template workflows. Please check the logs.", "danger")
+        return render_template('admin/template_prompts.html', templates=[], error="Failed to load template workflows.")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error loading template workflows: {e}", exc_info=True)
         flash("An unexpected error occurred while loading the template workflow list.", "danger")
@@ -457,7 +457,7 @@ def delete_template_workflow(prompt_id):
         flash(f"Template workflow (ID: {prompt_id}) deleted successfully.", "success")
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error deleting template workflow: {e}")
-        flash(f"Error deleting template workflow: {e}", "danger")
+        flash("Error deleting template workflow. Please check the logs.", "danger")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error deleting template workflow: {e}", exc_info=True)
         flash("An unexpected error occurred while deleting the template workflow.", "danger")
@@ -507,7 +507,7 @@ def costs():
                                active_workflow_model=active_workflow_model)
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error loading costs page: {e}", exc_info=True)
-        flash(f"Error loading costs page: {e}", "danger")
+        flash("Error loading costs page. Please check the logs.", "danger")
         return render_template('admin/costs.html', metrics={'error': 'Failed to load costs data.'})
     except Exception as e:
         logging.error(f"{log_prefix} Failed to load costs page: {e}", exc_info=True)

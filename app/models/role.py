@@ -92,11 +92,16 @@ def _safe_close(cursor, log_prefix: str = ""):
         # The cursor is managed by the application context, so we don't close it here.
         pass
 
+_NORMALIZE_ALLOWED_TABLES = {"roles"}
+_NORMALIZE_ALLOWED_COLUMNS = {"created_at", "updated_at"}
+
 def _normalize_timestamp_column(table: str, column: str, log_prefix: str) -> None:
     """
     Converts string/ISO timestamps in a column to MySQL-compatible DATETIME before altering to TIMESTAMP.
     This avoids ALTER failures on legacy values such as ISO strings with timezone suffixes.
     """
+    if table not in _NORMALIZE_ALLOWED_TABLES or column not in _NORMALIZE_ALLOWED_COLUMNS:
+        raise ValueError(f"Unexpected table/column in _normalize_timestamp_column: {table}.{column}")
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -124,7 +129,7 @@ def _normalize_timestamp_column(table: str, column: str, log_prefix: str) -> Non
                 logging.warning(f"{log_prefix} Could not parse timestamp '{raw_str}' in {table}.{column} (id={row.get('id')}). Skipping.")
                 continue
             try:
-                cursor.execute(f"UPDATE {table} SET {column} = %s WHERE id = %s", (normalized, row["id"]))
+                cursor.execute(f"UPDATE {table} SET {column} = %s WHERE id = %s", (normalized, row["id"]))  # nosec: table/column whitelisted above
             except Exception as update_err:
                 logging.warning(f"{log_prefix} Failed to normalize {table}.{column} for id={row.get('id')}: {update_err}")
         conn.commit()
