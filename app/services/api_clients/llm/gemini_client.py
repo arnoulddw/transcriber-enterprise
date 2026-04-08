@@ -129,8 +129,11 @@ class GeminiClient(BaseLLMClient):
         )
 
         try:
+            # Respect model overridden in kwargs, fallback to client's default model
+            actual_model = kwargs.get('model', self.model_name)
+            logger.info(f"Using actual_model: {actual_model}")
             response = self.client.models.generate_content(
-                model=self.model_name, # Use the stored model name
+                model=actual_model,
                 contents=[prompt],
                 config=generation_config
             )
