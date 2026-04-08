@@ -2,6 +2,8 @@
 # Contains business logic for fetching and calculating admin dashboard metrics.
 
 import logging
+import threading
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, List, Tuple
 
@@ -19,6 +21,28 @@ from mysql.connector import Error as MySQLError
 
 # Import the shared exception class
 from .exceptions import AdminServiceError
+
+# ---------------------------------------------------------------------------
+# Simple in-process TTL cache for admin metrics.
+# Admin pages are read-only aggregations; caching for 60 s reduces DB load
+# from 30+ queries per page load to near-zero between cache refreshes.
+# ---------------------------------------------------------------------------
+_METRICS_CACHE_TTL = 60  # seconds
+_metrics_cache: Dict[str, tuple] = {}  # key -> (value, expires_at)
+_metrics_cache_lock = threading.Lock()
+
+
+def _cache_get(key: str) -> Any:
+    with _metrics_cache_lock:
+        entry = _metrics_cache.get(key)
+        if entry and time.monotonic() < entry[1]:
+            return entry[0]
+    return None
+
+
+def _cache_set(key: str, value: Any) -> None:
+    with _metrics_cache_lock:
+        _metrics_cache[key] = (value, time.monotonic() + _METRICS_CACHE_TTL)
 
 # --- Helper Functions ---
 
@@ -54,7 +78,7 @@ def _get_supported_llm_models() -> Tuple[List[str], Dict[str, str]]:
     return codes, display_map
 
 # --- Dashboard Metrics ---
-def get_admin_dashboard_metrics() -> Dict[str, Any]:
+def get_admin_dashboard_metrics() -> Dict[str, Any]:  # noqa: C901
     """
     Retrieves key metrics for the new admin dashboard overview.
     Requires app context for database access.
@@ -63,15 +87,18 @@ def get_admin_dashboard_metrics() -> Dict[str, Any]:
     Error rates are calculated based on all relevant jobs.
     """
     log_prefix = "[SERVICE:Admin:Dashboard]"
+    cached = _cache_get('dashboard')
+    if cached is not None:
+        return cached
     metrics = {
         'total_users': 0,
-        'active_users': {}, 
-        'jobs_submitted': {}, 
-        'minutes_processed': {}, 
-        'error_rate': {}, 
-        'workflows_run': {}, 
-        'workflow_error_rate': {}, 
-        'error': None 
+        'active_users': {},
+        'jobs_submitted': {},
+        'minutes_processed': {},
+        'error_rate': {},
+        'workflows_run': {},
+        'workflow_error_rate': {},
+        'error': None
     }
     time_periods = _get_time_periods()
     # Define relevant statuses for volume/duration metrics
@@ -112,6 +139,7 @@ def get_admin_dashboard_metrics() -> Dict[str, Any]:
                 workflow_error_rate_percent = _safe_division(total_workflow_errors, total_workflows_attempted) * 100
                 metrics['workflow_error_rate'][key] = round(workflow_error_rate_percent, 2)
 
+        _cache_set('dashboard', metrics)
         logging.debug(f"{log_prefix} Retrieved dashboard metrics.")
         return metrics
 
@@ -135,6 +163,9 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
     Language distribution remains based on 'finished' jobs.
     """
     log_prefix = "[SERVICE:Admin:UsageAnalytics]"
+    cached = _cache_get('usage_analytics')
+    if cached is not None:
+        return cached
     metrics = {
         'jobs_submitted': {},
         'minutes_processed': {},
@@ -230,6 +261,7 @@ def get_usage_analytics_metrics() -> Dict[str, Any]:
                 model_dist = transcription_utils.get_workflow_model_distribution(start, end)
                 metrics['workflow_model_distribution'][key] = {model: model_dist.get(model, 0) for model in supported_workflow_models}
 
+        _cache_set('usage_analytics', metrics)
         logging.debug(f"{log_prefix} Retrieved usage analytics metrics.")
         return metrics
 
@@ -251,6 +283,9 @@ def get_user_insights_metrics() -> Dict[str, Any]:
     (No changes needed for this function based on the task, as it doesn't directly use status filters from transcription_utils)
     """
     log_prefix = "[SERVICE:Admin:UserInsights]"
+    cached = _cache_get('user_insights')
+    if cached is not None:
+        return cached
     metrics = {
         'new_signups': {},
         'users_hitting_limits': [],
@@ -266,6 +301,7 @@ def get_user_insights_metrics() -> Dict[str, Any]:
 
             metrics['users_hitting_limits'] = user_utils.get_users_hitting_limits()
 
+        _cache_set('user_insights', metrics)
         logging.debug(f"{log_prefix} Retrieved user insights metrics.")
         return metrics
 
@@ -287,6 +323,9 @@ def get_performance_error_metrics() -> Dict[str, Any]:
     Transcription error rates are calculated based on all relevant jobs (finished, cancelled, error).
     """
     log_prefix = "[SERVICE:Admin:PerformanceErrors]"
+    cached = _cache_get('performance_errors')
+    if cached is not None:
+        return cached
     metrics = {
         'overall_transcription_error_rate': {},
         'api_transcription_error_rates': {},
@@ -356,6 +395,7 @@ def get_performance_error_metrics() -> Dict[str, Any]:
                 common_workflow = transcription_utils.get_common_workflow_error_messages(start, end, limit=10)
                 metrics['common_workflow_errors'][key] = common_workflow
 
+        _cache_set('performance_errors', metrics)
         logging.debug(f"{log_prefix} Retrieved performance and error metrics.")
         return metrics
 
@@ -373,6 +413,9 @@ def get_cost_analytics() -> Dict[str, Any]:
     Retrieves cost analytics for the Costs page.
     """
     log_prefix = "[SERVICE:Admin:CostAnalytics]"
+    cached = _cache_get('cost_analytics')
+    if cached is not None:
+        return cached
     metrics = {
         'by_component': {},
         'by_role': {},
@@ -403,6 +446,7 @@ def get_cost_analytics() -> Dict[str, Any]:
                         'cost_per_user': _safe_division(data.get('total_cost', 0.0), data.get('user_count', 1))
                     }
 
+        _cache_set('cost_analytics', metrics)
         logging.debug(f"{log_prefix} Retrieved cost analytics.")
         return metrics
 
@@ -420,6 +464,10 @@ def get_user_usage_metrics(user_id: int) -> Dict[str, Any]:
     Retrieves detailed usage metrics for a specific user for the admin user details page.
     """
     log_prefix = f"[SERVICE:Admin:UserUsageMetrics:{user_id}]"
+    cache_key = f'user_usage_metrics:{user_id}'
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
     metrics = {
         'costs': {},
         'transcriptions': {},
@@ -467,6 +515,7 @@ def get_user_usage_metrics(user_id: int) -> Dict[str, Any]:
                     start, end, user_id=user_id, status='error'
                 )
 
+        _cache_set(cache_key, metrics)
         logging.debug(f"{log_prefix} Retrieved user usage metrics.")
         return metrics
 

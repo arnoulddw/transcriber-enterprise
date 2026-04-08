@@ -453,13 +453,23 @@ def clear_public_api_key(user_id: int) -> bool:
 
 
 def get_all_users() -> List[User]:
-    sql = 'SELECT * FROM users ORDER BY username'
+    # JOIN roles so callers (e.g. cleanup task) never need extra per-user role queries.
+    sql = 'SELECT u.*, r.name as role_name FROM users u LEFT JOIN roles r ON u.role_id = r.id ORDER BY u.username'
     users = []
     cursor = get_cursor()
     try:
         cursor.execute(sql)
         rows = cursor.fetchall()
-        users = [user for row in rows if (user := _map_row_to_user(row)) is not None]
+        for row in rows:
+            user = _map_row_to_user(row)
+            if user and user.role_id is not None:
+                try:
+                    role_snapshot = get_role_by_id(user.role_id) if get_role_by_id else None
+                    user._role = role_snapshot
+                except Exception:
+                    pass
+            if user:
+                users.append(user)
         logger.debug(f"[DB:User] Retrieved {len(users)} users.")
     except MySQLError as err:
         logger.error(f"[DB:User] Error retrieving all users: {err}", exc_info=True)
