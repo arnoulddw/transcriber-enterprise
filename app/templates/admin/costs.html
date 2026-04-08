@@ -4,23 +4,23 @@
 {% block subtitle %}Costs{% endblock %}
 
 {% block admin_content %}
-    <p class="text-sm text-gray-600 mb-6">{{ _('Manage the costs of the different services and view cost analytics.') }}</p>
+    <p class="text-sm text-text-muted mb-6">{{ _('Manage the costs of the different services and view cost analytics.') }}</p>
 
-    <div class="bg-white shadow-md rounded-lg p-6 space-y-4 mb-8">
-        <h2 class="text-gray-700 font-semibold text-2xl mb-6">{{ _('Pricing Configuration') }}</h2>
+    <div class="table-card p-6 space-y-4 mb-8">
+        <h2 class="card-title mb-6">{{ _('Pricing Configuration') }}</h2>
         <form id="pricing-form" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="flex flex-col md:flex-row md:space-x-8 space-y-8 md:space-y-0">
                 <!-- Transcription Models -->
                 <div class="flex-1">
-                    <h3 class="text-gray-700 font-semibold text-lg">{{ _('Transcription Models') }}</h3>
+                    <h3 class="section-title">{{ _('Transcription Models') }}</h3>
                     <div class="text-right mb-2">
-                        <span class="text-sm text-gray-500">Price per Minute ($)</span>
+                        <span class="text-sm text-text-muted">Price per Minute ($)</span>
                     </div>
                     <div class="space-y-2">
                         {% for key, name in transcription_models.items()|sort %}
                         <div class="flex items-center justify-between">
-                            <label for="transcription-{{ key.upper() }}" class="text-gray-800">{{ name }}</label>
+                            <label for="transcription-{{ key.upper() }}" class="text-text-strong">{{ name }}</label>
                             <input type="number" step="0.00001" id="transcription-{{ key.upper() }}" name="transcription-{{ key.upper() }}" class="input-control w-32 text-right" data-type="transcription">
                         </div>
                         {% endfor %}
@@ -28,20 +28,20 @@
                 </div>
 
                 <!-- Separator -->
-                <div class="border-t border-gray-200 md:border-t-0 md:border-l md:border-gray-200"></div>
+                <div class="border-t border-border-default md:border-t-0 md:border-l md:border-border-default"></div>
 
                 <!-- Title Generations -->
                 <div class="flex-1">
-                    <h3 class="text-gray-700 font-semibold text-lg">{{ _('Title Generations') }}</h3>
+                    <h3 class="section-title">{{ _('Title Generations') }}</h3>
                     <div class="text-right mb-2">
-                        <span class="text-sm text-gray-500">Price per Execution ($)</span>
+                        <span class="text-sm text-text-muted">Price per Execution ($)</span>
                     </div>
                     <div class="space-y-2">
                         {% for provider_name, models in title_generation_models.items()|sort %}
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="title_generation-{{ model_id }}" class="text-gray-800">{{ model_name }}</label>
+                                    <label for="title_generation-{{ model_id }}" class="text-text-strong">{{ model_name }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input type="number" step="0.00001" id="title_generation-{{ model_id }}" name="title_generation-{{ model_id }}" class="input-control w-32 text-right" data-type="title_generation">
@@ -53,20 +53,20 @@
                 </div>
 
                 <!-- Separator -->
-                <div class="border-t border-gray-200 md:border-t-0 md:border-l md:border-gray-200"></div>
+                <div class="border-t border-border-default md:border-t-0 md:border-l md:border-border-default"></div>
 
                 <!-- Workflows -->
                 <div class="flex-1">
-                    <h3 class="text-gray-700 font-semibold text-lg">{{ _('Workflows') }}</h3>
+                    <h3 class="section-title">{{ _('Workflows') }}</h3>
                     <div class="text-right mb-2">
-                        <span class="text-sm text-gray-500">Price per Execution ($)</span>
+                        <span class="text-sm text-text-muted">Price per Execution ($)</span>
                     </div>
                     <div class="space-y-2">
                         {% for provider_name, models in workflow_models.items()|sort %}
                             {% for model_id, model_name in models.items()|sort %}
                             <div class="flex items-center justify-between mt-2">
                                 <div>
-                                    <label for="workflow-{{ model_id }}" class="text-gray-800">{{ model_name }}</label>
+                                    <label for="workflow-{{ model_id }}" class="text-text-strong">{{ model_name }}</label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input type="number" step="0.00001" id="workflow-{{ model_id }}" name="workflow-{{ model_id }}" class="input-control w-32 text-right" data-type="workflow">
@@ -85,11 +85,11 @@
         </form>
     </div>
 
-    <div class="bg-white shadow-md rounded-lg p-6 space-y-4">
-        <h2 class="text-gray-700 font-semibold text-2xl mb-6">{{ _('Cost Analytics') }}</h2>
+    <div class="table-card p-6 space-y-4">
+        <h2 class="card-title mb-6">{{ _('Cost Analytics') }}</h2>
 
         <!-- By Component -->
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">{{ _('By Component') }}</h3>
+        <h3 class="section-title mb-4">{{ _('By Component') }}</h3>
         <div class="table-card overflow-x-auto mb-8">
             <table class="table-shell min-w-full divide-y divide-border-default data-table">
                 <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -116,7 +116,7 @@
         </div>
 
         <!-- By Role -->
-        <h3 class="text-gray-700 font-semibold text-lg mb-4">{{ _('By Role') }}</h3>
+        <h3 class="section-title mb-4">{{ _('By Role') }}</h3>
         <div class="table-card overflow-x-auto mt-4">
             <table class="table-shell min-w-full divide-y divide-border-default data-table">
                 <thead class="bg-surface-muted hidden sm:table-header-group">

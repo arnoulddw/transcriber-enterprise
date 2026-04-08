@@ -40,8 +40,8 @@
     {% set period_labels = [('24h', _('Last 24h')), ('7d', _('Last 7 Days')), ('30d', _('Last 30 Days')), ('all', _('All Time'))] %}
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-gray-700 font-semibold text-lg mb-4">{{ _('Active Users (Submitted Job)') }}</h2>
+        <div class="table-card p-6">
+            <h2 class="section-title mb-4">{{ _('Active Users (Submitted Job)') }}</h2>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -66,8 +66,8 @@
             </div>
         </div>
 
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-gray-700 font-semibold text-lg mb-4">{{ _('Jobs Submitted') }}</h2>
+        <div class="table-card p-6">
+            <h2 class="section-title mb-4">{{ _('Jobs Submitted') }}</h2>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -94,8 +94,8 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-gray-700 font-semibold text-lg mb-4">{{ _('Workflows Run') }}</h2>
+        <div class="table-card p-6">
+            <h2 class="section-title mb-4">{{ _('Workflows Run') }}</h2>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
@@ -120,8 +120,8 @@
             </div>
         </div>
 
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-gray-700 font-semibold text-lg mb-4">{{ _('Error Rates') }}</h2>
+        <div class="table-card p-6">
+            <h2 class="section-title mb-4">{{ _('Error Rates') }}</h2>
             <div class="table-card overflow-x-auto mt-4">
                 <table class="table-shell min-w-full divide-y divide-border-default data-table">
                     <thead class="bg-surface-muted hidden sm:table-header-group">
