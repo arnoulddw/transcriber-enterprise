@@ -139,7 +139,7 @@ class Config:
     RATELIMIT_STORAGE_URI = "memory://" # Consider redis for production
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    # SESSION_COOKIE_SECURE = DEPLOYMENT_MODE == 'multi' # Enable in production with HTTPS
+    SESSION_COOKIE_SECURE = DEPLOYMENT_MODE == 'multi'
     PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS = int(os.environ.get('PASSWORD_RESET_TOKEN_MAX_AGE_SECONDS', 3600))
 
 

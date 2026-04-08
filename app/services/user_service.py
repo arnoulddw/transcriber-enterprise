@@ -118,7 +118,7 @@ def save_user_api_key(user_id: int, service: str, api_key: str) -> bool:
     service = service.lower()
 
     if service == 'gemini' and not _validate_gemini_api_key_format(api_key):
-        logger.warning(f"Invalid Google Gemini API key format provided. Key: '{api_key[:10]}...'")
+        logger.warning("Invalid Google Gemini API key format provided.")
         raise ValueError("Invalid Google Gemini API key format. Key should start with 'AIzaSy'.")
 
     try:
