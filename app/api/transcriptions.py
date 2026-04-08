@@ -771,15 +771,13 @@ def clear_transcriptions():
 
     try:
         from app.services import workflow_service
-        all_user_transcriptions = transcription_model.get_all_transcriptions(user_id, limit=None)
-        cleared_workflows = 0
-        for t in all_user_transcriptions:
-            try:
-                workflow_service.delete_workflow_result(user_id, t['id'])
-                cleared_workflows += 1
-            except Exception as wf_clear_err:
-                logging.error(f"{log_prefix} Error clearing workflow ops for job {t['id']} during clear all: {wf_clear_err}")
-        logging.info(f"{log_prefix} Attempted to clear associated workflow LLM operation(s) for {cleared_workflows} transcriptions.")
+        # Bulk-delete all workflow LLM operations for this user in 2 SQL statements
+        # instead of fetching every transcription row (with MEDIUMTEXT) and looping.
+        try:
+            cleared_workflows = workflow_service.delete_all_workflow_results_for_user(user_id)
+            logging.info(f"{log_prefix} Bulk-cleared {cleared_workflows} workflow LLM operation(s).")
+        except Exception as wf_clear_err:
+            logging.error(f"{log_prefix} Error bulk-clearing workflow ops during clear all: {wf_clear_err}")
 
         deleted_count = transcription_model.clear_transcriptions(user_id)
         logging.info(f"{log_prefix} {deleted_count} transcriptions soft-deleted successfully.")

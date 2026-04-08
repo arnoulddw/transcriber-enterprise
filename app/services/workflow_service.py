@@ -430,3 +430,53 @@ def delete_workflow_result(user_id: int, transcription_id: str) -> None:
         except Exception as e:
             logger.error(f"Unexpected error deleting workflow operations: {e}", exc_info=True)
             raise WorkflowError("Unexpected error deleting workflow result(s).") from e
+
+
+def delete_all_workflow_results_for_user(user_id: int) -> int:
+    """
+    Deletes all workflow LLM operation records for a user and clears the
+    associated fields on their transcription rows — in two bulk SQL statements
+    instead of one round-trip per transcription.
+
+    Returns the number of llm_operations rows deleted.
+    """
+    log = get_logger(__name__, user_id=user_id, component="WorkflowService")
+    log.debug("Bulk-deleting all workflow results for user.")
+    deleted_count = 0
+    try:
+        cursor = get_cursor()
+        # Restrict to visible transcriptions only so that soft-deleted rows
+        # (is_hidden_from_user = TRUE) keep their workflow metadata; a user
+        # might restore a hidden item and still expect to see its results.
+        cursor.execute(
+            """
+            DELETE lo FROM llm_operations lo
+            JOIN transcriptions t ON lo.transcription_id = t.id
+            WHERE lo.user_id = %s
+              AND lo.operation_type = 'workflow'
+              AND t.is_hidden_from_user = FALSE
+            """,
+            (user_id,)
+        )
+        deleted_count = cursor.rowcount
+        get_db().commit()
+
+        cursor.execute(
+            """
+            UPDATE transcriptions
+            SET llm_operation_id     = NULL,
+                llm_operation_status = NULL,
+                llm_operation_result = NULL,
+                llm_operation_error  = NULL,
+                llm_operation_ran_at = NULL
+            WHERE user_id = %s
+              AND is_hidden_from_user = FALSE
+            """,
+            (user_id,)
+        )
+        get_db().commit()
+        log.info(f"Bulk-deleted {deleted_count} workflow LLM operation record(s) for user.")
+    except MySQLError as db_err:
+        log.error(f"Database error bulk-deleting workflow operations: {db_err}", exc_info=True)
+        raise WorkflowError("Database error during bulk workflow delete.") from db_err
+    return deleted_count

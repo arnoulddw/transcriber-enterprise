@@ -3,12 +3,43 @@
 
 import logging
 import os
+import threading
+import time
 from flask import current_app
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 
 from mysql.connector import Error as MySQLError
 from app.database import get_db, get_cursor
+
+# --- Simple in-process TTL cache for roles (they change very rarely) ---
+_ROLE_CACHE_TTL = 300  # seconds
+_role_cache: Dict[int, tuple] = {}   # role_id -> (Role, expires_at)
+_role_cache_lock = threading.Lock()
+
+
+def _get_cached_role(role_id: int) -> Optional['Role']:
+    with _role_cache_lock:
+        entry = _role_cache.get(role_id)
+        if entry and time.monotonic() < entry[1]:
+            return entry[0]
+    return None
+
+
+def _set_cached_role(role_id: int, role: Optional['Role']) -> None:
+    if role is None:
+        return
+    with _role_cache_lock:
+        _role_cache[role_id] = (role, time.monotonic() + _ROLE_CACHE_TTL)
+
+
+def invalidate_role_cache(role_id: Optional[int] = None) -> None:
+    """Call after any role update. Pass role_id to evict one entry, or None to flush all."""
+    with _role_cache_lock:
+        if role_id is None:
+            _role_cache.clear()
+        else:
+            _role_cache.pop(role_id, None)
 
 # ----- Helper Functions -----
 
@@ -395,9 +426,15 @@ def create_role(name: str, description: Optional[str] = None, permissions: Optio
 
 def get_role_by_id(role_id: int) -> Optional[Role]:
     """
-    Retrieve a role by ID using a fresh buffered cursor to avoid interference
-    from any previous unconsumed result sets on the request-scoped cursor.
+    Retrieve a role by ID. Results are cached for _ROLE_CACHE_TTL seconds to
+    avoid an extra DB round-trip on every authenticated request.
+    Uses a fresh buffered cursor to avoid interference from any previous
+    unconsumed result sets on the request-scoped cursor.
     """
+    cached = _get_cached_role(role_id)
+    if cached is not None:
+        return cached
+
     sql = 'SELECT * FROM roles WHERE id = %s'
     role: Optional[Role] = None
     local_cursor = None
@@ -416,6 +453,7 @@ def get_role_by_id(role_id: int) -> Optional[Role]:
             except Exception as diag_err:
                 logging.warning(f"[DB:Role] Diagnostic count failed for get_role_by_id({role_id}): {diag_err}")
         role = _map_row_to_role(row)
+        _set_cached_role(role_id, role)
     except MySQLError as err:
         logging.error(f"[DB:Role] Error retrieving role by ID '{role_id}': {err}", exc_info=True)
         role = None
@@ -556,6 +594,7 @@ def update_role(role_id: int, role_data: Dict[str, Any]) -> bool:
         cursor.execute(sql, tuple(sql_values))
         get_db().commit()
         if cursor.rowcount > 0:
+            invalidate_role_cache(role_id)
             logging.info(f"{log_prefix} Role updated successfully.")
             return True
         else:
@@ -612,6 +651,7 @@ def delete_role(role_id: int) -> Tuple[bool, str]:
         delete_cursor.execute("DELETE FROM roles WHERE id = %s", (role_id,))
         get_db().commit()
         if delete_cursor.rowcount > 0:
+            invalidate_role_cache(role_id)
             logging.info(f"{log_prefix} Role '{role_name}' deleted successfully.")
             return True, f"Role '{role_name}' deleted successfully."
         else:
