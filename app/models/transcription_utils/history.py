@@ -272,17 +272,22 @@ def physically_delete_hidden_records(retention_period_days: int) -> int:
     return deleted_count
 
 
-def count_visible_user_transcriptions(user_id: int) -> int:
+def count_visible_user_transcriptions(user_id: int, search_query: Optional[str] = None) -> int:
     """Counts the total number of visible and finished transcription records for a user."""
     log_prefix = f"[DB:History:User:{user_id}]"
     sql = (
         'SELECT COUNT(*) as count FROM transcriptions '
         'WHERE user_id = %s AND is_hidden_from_user = FALSE AND status = %s'
     )
+    params: list = [user_id, 'finished']
+    if search_query and search_query.strip():
+        pattern = f"%{search_query.strip()}%"
+        sql += ' AND (filename LIKE %s OR generated_title LIKE %s OR transcription_text LIKE %s)'
+        params.extend([pattern, pattern, pattern])
     cursor = get_cursor()
     count = 0
     try:
-        cursor.execute(sql, (user_id, 'finished'))
+        cursor.execute(sql, tuple(params))
         result = cursor.fetchone()
         count = result['count'] if result else 0
         logging.debug(
@@ -305,15 +310,24 @@ def get_paginated_transcriptions(
     user_id: int,
     page: int,
     per_page: int,
+    search_query: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Retrieves a paginated list of visible and finished transcription records for a user,
     ordered by creation date DESC. Includes the latest associated LLM operation ID.
+    Optionally filters by search_query across filename, generated_title, and transcription_text.
     """
     log_prefix = f"[DB:History:User:{user_id}:Page:{page}]"
     offset = (page - 1) * per_page
 
-    sql = """
+    search_clause = ""
+    search_params: tuple = ()
+    if search_query and search_query.strip():
+        pattern = f"%{search_query.strip()}%"
+        search_clause = " AND (t.filename LIKE %s OR t.generated_title LIKE %s OR t.transcription_text LIKE %s)"
+        search_params = (pattern, pattern, pattern)
+
+    sql = f"""
         WITH RankedOperations AS (
             SELECT
                 lo.id AS llm_operation_id,
@@ -329,11 +343,11 @@ def get_paginated_transcriptions(
             ro.llm_operation_id
         FROM transcriptions t
         LEFT JOIN RankedOperations ro ON t.id = ro.transcription_id AND ro.rn = 1
-        WHERE t.user_id = %s AND t.is_hidden_from_user = FALSE AND t.status = %s
+        WHERE t.user_id = %s AND t.is_hidden_from_user = FALSE AND t.status = %s{search_clause}
         ORDER BY t.is_pinned DESC, t.created_at DESC
         LIMIT %s OFFSET %s
     """
-    params = (user_id, user_id, 'finished', per_page, offset)
+    params = (user_id, user_id, 'finished') + search_params + (per_page, offset)
 
     transcriptions: List[Dict[str, Any]] = []
     cursor = get_cursor()

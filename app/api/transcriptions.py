@@ -6,6 +6,7 @@ import uuid
 import threading
 import logging
 import json
+import math
 from flask import Blueprint, request, jsonify, current_app
 from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
@@ -19,6 +20,7 @@ from flask_login import login_required, current_user
 from app.config import Config
 from app.services import transcription_service, file_service, user_service, pricing_service
 from app.models import transcription as transcription_model
+from app.models import transcription_utils
 from app.models import transcription_catalog as transcription_catalog_model
 from app.models import user as user_model
 from app.models.user import User # For type hinting
@@ -687,6 +689,44 @@ def get_transcriptions():
     except Exception as e:
         logging.exception(f"{log_prefix} Error fetching transcription history:")
         return jsonify({'error': _('We could not retrieve your transcription history. Please try again.')}), 500
+
+@transcriptions_bp.route('/transcriptions/search', methods=['GET'])
+@login_required
+def search_transcriptions():
+    """Search user's transcription history. Returns paginated JSON results."""
+    user_id = current_user.id
+    q = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    log_prefix = f"[API:Search:User:{user_id}]"
+
+    try:
+        total = transcription_utils.count_visible_user_transcriptions(
+            user_id, search_query=q or None
+        )
+        items = []
+        total_pages = 0
+        if total > 0:
+            total_pages = math.ceil(total / per_page)
+            page = max(1, min(page, total_pages))
+            items = transcription_utils.get_paginated_transcriptions(
+                user_id, page, per_page, search_query=q or None
+            )
+        logging.debug("%s Search q=%r returned %s/%s results (page %s).", log_prefix, q, len(items), total, page)
+        return jsonify({
+            'items': items,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': total_pages,
+            'has_prev': page > 1,
+            'has_next': page < total_pages,
+            'query': q,
+        }), 200
+    except Exception:
+        logging.exception("%s Error searching transcriptions:", log_prefix)
+        return jsonify({'error': _('Search failed. Please try again.')}), 500
+
 
 @transcriptions_bp.route('/transcriptions/<transcription_id>', methods=['DELETE'])
 @login_required
