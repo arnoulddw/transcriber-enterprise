@@ -39,7 +39,7 @@
                     <div class="space-y-2">
                         {% for provider_name, models in title_generation_models.items()|sort %}
                             {% for model_id, model_name in models.items()|sort %}
-                            <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center justify-between gap-4 mt-2">
                                 <div>
                                     <label for="title_generation-{{ model_id }}" class="text-text-strong">{{ model_name }}</label>
                                 </div>
@@ -64,7 +64,7 @@
                     <div class="space-y-2">
                         {% for provider_name, models in workflow_models.items()|sort %}
                             {% for model_id, model_name in models.items()|sort %}
-                            <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center justify-between gap-4 mt-2">
                                 <div>
                                     <label for="workflow-{{ model_id }}" class="text-text-strong">{{ model_name }}</label>
                                 </div>
