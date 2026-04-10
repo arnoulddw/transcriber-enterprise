@@ -139,13 +139,13 @@
         {# Search input #}
         {% if transcriptions or request.args.get('q') %}
         <div class="mb-4 relative flex items-center">
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                 <i class="material-icons text-text-muted text-base" aria-hidden="true">search</i>
             </div>
             <input type="search" id="historySearch"
                    placeholder="{{ _('Search transcriptions…') }}"
                    autocomplete="off"
-                   class="input-control pl-9 pr-9 w-full"
+                   class="input-control pl-11 pr-10 w-full"
                    aria-label="{{ _('Search transcription history') }}">
             <button id="historySearchClear" type="button"
                     class="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-strong hidden"
@@ -327,7 +327,7 @@
                                 <a href="{{ url_for('main.index', page=page_num) }}"
                                    aria-current="{{ 'page' if page_num == pagination.current_page else 'false' }}"
                                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium
-                                          {% if page_num == pagination.current_page %} z-10 bg-primary-light border-primary text-primary-dark {% else %} bg-surface border-border-default text-text-muted hover:bg-surface-muted {% endif %}">
+                                          {% if page_num == pagination.current_page %} z-10 bg-primary-light border-primary text-white {% else %} bg-surface border-border-default text-text-muted hover:bg-surface-muted {% endif %}">
                                     {{ page_num }}
                                 </a>
                             {% elif ns.prev_show_page and not show_page %} {# Use ns.prev_show_page #}
