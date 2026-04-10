@@ -44,6 +44,12 @@ def _cache_set(key: str, value: Any) -> None:
     with _metrics_cache_lock:
         _metrics_cache[key] = (value, time.monotonic() + _METRICS_CACHE_TTL)
 
+
+def invalidate_metrics_cache() -> None:
+    """Clear all cached metrics. Intended for use in tests to prevent cache bleed between test runs."""
+    with _metrics_cache_lock:
+        _metrics_cache.clear()
+
 # --- Helper Functions ---
 
 def _get_time_periods() -> Dict[str, Dict[str, Optional[datetime]]]:

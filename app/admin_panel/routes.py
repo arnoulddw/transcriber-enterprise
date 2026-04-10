@@ -388,7 +388,7 @@ def delete_role(role_id):
         flash(f"Role (ID: {role_id}) deleted successfully.", "success")
     except AdminServiceError as e:
         logging.error(f"{log_prefix} Service error deleting role: {e}")
-        flash("Error deleting role. Please check the logs.", "danger")
+        flash(f"Error deleting role: {e}", "danger")
     except Exception as e:
         logging.error(f"{log_prefix} Unexpected error deleting role: {e}", exc_info=True)
         flash("An unexpected error occurred while deleting the role.", "danger")

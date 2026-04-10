@@ -8,6 +8,7 @@ def clean_db(app):
     """Truncate all tables in the test database and reset auto-increment."""
     with app.app_context():
         from app.database import get_db
+        from app.models.role import invalidate_role_cache
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
@@ -28,6 +29,9 @@ def clean_db(app):
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
         cursor.close()
+        # Invalidate in-memory role cache so stale entries from previous tests
+        # don't cause ID collisions after AUTO_INCREMENT reset.
+        invalidate_role_cache()
 
 @pytest.fixture(scope='function')
 def logged_in_client(app, clean_db):
@@ -198,11 +202,16 @@ def app():
 
     with app.app_context():
         from app.database import get_db
+        from app.models.role import invalidate_role_cache
+        from app.services.admin_metrics_service import invalidate_metrics_cache
         cursor = get_db().cursor()
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
         cursor.execute("DROP TABLE IF EXISTS user_prompts, template_prompts, llm_operations, transcriptions, user_usage, users, roles;")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         get_db().commit()
+        # Clear in-memory caches to prevent bleed into the next test's app instance.
+        invalidate_role_cache()
+        invalidate_metrics_cache()
         from app.database import close_db
         close_db()
         # Reset the global DB pool after each test to prevent config leakage
