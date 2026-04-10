@@ -204,6 +204,14 @@ def init_db_command() -> None:
             logger.info("Adding 'cost' column (DECIMAL(10, 5)).")
             cursor.execute("ALTER TABLE transcriptions ADD COLUMN cost DECIMAL(10, 5) DEFAULT NULL AFTER pending_workflow_origin_prompt_id")
 
+        # Check and add is_pinned
+        cursor.execute("SHOW COLUMNS FROM transcriptions LIKE 'is_pinned'")
+        is_pinned_col_exists = cursor.fetchone()
+        cursor.fetchall()
+        if not is_pinned_col_exists:
+            logger.info("Adding 'is_pinned' column (BOOLEAN).")
+            cursor.execute("ALTER TABLE transcriptions ADD COLUMN is_pinned BOOLEAN NOT NULL DEFAULT FALSE AFTER cost")
+
         # --- Add/Check Indexes ---
         index_checks = {
             'idx_transcription_created_at': 'created_at',
@@ -211,7 +219,8 @@ def init_db_command() -> None:
             'idx_transcription_language': 'detected_language',
             'idx_transcription_user_hidden_created': 'user_id, is_hidden_from_user, created_at',
             'idx_transcription_hidden_date': 'is_hidden_from_user, hidden_date',
-            'idx_title_generation_status': 'title_generation_status'
+            'idx_title_generation_status': 'title_generation_status',
+            'idx_transcription_user_pinned_created': 'user_id, is_pinned, created_at',
         }
         for idx_name, col_def in index_checks.items():
             cursor.execute(f"SHOW INDEX FROM transcriptions WHERE Key_name = '{idx_name}'")

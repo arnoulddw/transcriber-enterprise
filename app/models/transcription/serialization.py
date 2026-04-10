@@ -32,6 +32,7 @@ def _map_row_to_transcription_dict(row: Dict[str, Any]) -> Optional[Dict[str, An
     row['context_prompt_used'] = bool(row.get('context_prompt_used', False))
     row['downloaded'] = bool(row.get('downloaded', False))
     row['is_hidden_from_user'] = bool(row.get('is_hidden_from_user', False))
+    row['is_pinned'] = bool(row.get('is_pinned', False))
 
     # Convert datetime fields to string if they are datetime objects
     datetime_fields = ['hidden_date', 'llm_operation_ran_at']

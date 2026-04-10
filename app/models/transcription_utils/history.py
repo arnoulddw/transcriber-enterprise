@@ -344,7 +344,7 @@ def get_paginated_transcriptions(
         FROM transcriptions t
         LEFT JOIN RankedOperations ro ON t.id = ro.transcription_id AND ro.rn = 1
         WHERE t.user_id = %s AND t.is_hidden_from_user = FALSE AND t.status = %s{search_clause}
-        ORDER BY t.created_at DESC
+        ORDER BY t.is_pinned DESC, t.created_at DESC
         LIMIT %s OFFSET %s
     """
     params = (user_id, user_id, 'finished') + search_params + (per_page, offset)

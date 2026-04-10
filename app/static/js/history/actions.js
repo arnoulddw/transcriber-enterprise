@@ -259,5 +259,45 @@ function deleteTranscription(transcriptionId, transcriptionItemElement) {
 }
 window.deleteTranscription = deleteTranscription;
 
-    History.actions = { handleUndoRestore, logDownload, downloadTranscription, handleClearAll, deleteTranscription };
+function togglePin(transcriptionId, transcriptionItemElement) {
+    const logPrefix = `[HistoryJS:togglePin:${transcriptionId ? transcriptionId.substring(0, 8) : 'unknown'}]`;
+    window.logger.debug(logPrefix, "Pin toggle requested.");
+
+    const pinButton = transcriptionItemElement?.querySelector('.pin-btn');
+    if (pinButton) {
+        pinButton.disabled = true;
+        pinButton.classList.add('opacity-60', 'pointer-events-none', 'cursor-not-allowed');
+    }
+
+    fetch(`/api/transcriptions/${transcriptionId}/toggle_pin`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': window.csrfToken }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json()
+                .catch(() => ({ error: `HTTP error! Status: ${response.status}` }))
+                .then(errData => { throw new Error(errData.error || `HTTP error! Status: ${response.status}`); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        window.logger.info(logPrefix, `Pin toggled. New state: ${data.is_pinned}`);
+        window.location.reload();
+    })
+    .catch(error => {
+        window.logger.error(logPrefix, 'Error toggling pin:', error);
+        if (pinButton) {
+            pinButton.disabled = false;
+            pinButton.classList.remove('opacity-60', 'pointer-events-none', 'cursor-not-allowed');
+        }
+        window.showNotification(
+            `Error: ${window.escapeHtml(error?.message || 'Unknown error')}`,
+            'error', 5000, false
+        );
+    });
+}
+window.togglePin = togglePin;
+
+    History.actions = { handleUndoRestore, logDownload, downloadTranscription, handleClearAll, deleteTranscription, togglePin };
 })(window);

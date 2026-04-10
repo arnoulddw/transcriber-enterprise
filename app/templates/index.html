@@ -159,8 +159,9 @@
         <ul class="divide-y divide-border-default" id="transcriptionHistory">
                 {% if transcriptions %}
                     {% for transcription in transcriptions %}
-                        <li class="py-4"
+                        <li class="py-4{% if transcription.is_pinned %} border-l-2 border-amber-400 pl-2{% endif %}"
                             data-transcription-id="{{ transcription.id }}"
+                            data-is-pinned="{{ 'true' if transcription.is_pinned else 'false' }}"
                             data-full-text="{{ transcription.transcription_text | default('[Transcription text not available]', true) }}"
                             data-poll-title="{{ 'true' if transcription.should_poll_title else 'false' }}"
                             {# REMOVED: data-language attribute is no longer needed here #}
@@ -210,6 +211,9 @@
                                                 <i class="material-icons text-base">download</i>
                                             </button>
                                             {% endif %}
+                                            <button type="button" class="pin-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary flex items-center {% if transcription.is_pinned %}text-amber-500 hover:text-amber-600 hover:bg-amber-50{% else %}text-text-muted hover:text-primary hover:bg-primary/10{% endif %}" title="{{ _('Unpin') if transcription.is_pinned else _('Pin to top') }}">
+                                                <i class="material-icons text-base">push_pin</i>
+                                            </button>
                                             <button type="button" class="delete-btn p-2 rounded-full text-text-muted hover:text-danger hover:bg-danger/10 focus:outline-none focus:ring-2 focus:ring-danger flex items-center" title="{{ _('Delete Transcript') }}">
                                                 <i class="material-icons text-base">delete</i>
                                             </button>

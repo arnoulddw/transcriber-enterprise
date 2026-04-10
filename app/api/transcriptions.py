@@ -864,6 +864,35 @@ def log_download(transcription_id):
         logging.exception(f"{log_prefix} Error logging download:")
         return jsonify({'error': _('We could not log the download because of an internal error. Please try again.')}), 500
 
+@transcriptions_bp.route('/transcriptions/<transcription_id>/toggle_pin', methods=['POST'])
+@login_required
+def toggle_pin(transcription_id):
+    """API endpoint to toggle the is_pinned flag for a transcription."""
+    user_id = current_user.id
+    short_job_id = transcription_id[:8] if transcription_id else 'invalid'
+    log_prefix = f"[API:TogglePin:JOB:{short_job_id}:User:{user_id}]"
+    logging.debug(f"{log_prefix} Request received.")
+
+    try:
+        success, new_pinned = transcription_model.toggle_transcription_pin(transcription_id, user_id)
+        if success:
+            logging.info(f"{log_prefix} Pin toggled. New state: {new_pinned}.")
+            return jsonify({'is_pinned': new_pinned}), 200
+        job_data = transcription_model.get_transcription_by_id(transcription_id)
+        if not job_data:
+            logging.warning(f"{log_prefix} Toggle pin failed: job not found.")
+            return jsonify({'error': _('We could not find that transcription.')}), 404
+        elif job_data.get('user_id') != user_id:
+            logging.warning(f"{log_prefix} Toggle pin failed: ownership mismatch.")
+            return jsonify({'error': _('You do not have permission to modify this transcription.')}), 403
+        else:
+            logging.warning(f"{log_prefix} Toggle pin failed for unknown reason.")
+            return jsonify({'error': _('Could not toggle pin. Please try again.')}), 500
+    except Exception as e:
+        logging.exception(f"{log_prefix} Error toggling pin:")
+        return jsonify({'error': _('An internal error occurred. Please try again.')}), 500
+
+
 @transcriptions_bp.route('/transcriptions/<transcription_id>/title', methods=['GET'])
 @login_required
 def get_title_status(transcription_id):
