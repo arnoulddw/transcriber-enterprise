@@ -75,7 +75,7 @@ def _update_progress(app: Flask, job_id: str, message: str, is_error: bool = Fal
     Formats, optionally logs, and saves a progress message for a job.
     Requires an active Flask application context to update the database.
     """
-    logger = get_logger(__name__, **context)
+    logger = get_logger(__name__, job_id=job_id, **context)
     if log_message:
         log_level = "error" if is_error else "info"
         getattr(logger, log_level)(message)
@@ -137,7 +137,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             _update_progress(app, job_id, "Processing started. Validating permissions...", user_id=user_id)
 
             user = user_model.get_user_by_id(user_id)
-            logger.info(f"PERMISSION_CHECK: Loaded user for transcription - user_id={user_id}, username={getattr(user, 'username', None)}, role_id={getattr(user, 'role_id', None)}, has_cached_role={getattr(user, '_role', None) is not None if user else 'n/a'}")
+            logger.debug("User loaded for transcription.", extra={"role_id": getattr(user, 'role_id', None), "has_cached_role": getattr(user, '_role', None) is not None if user else 'n/a'})
             if not user:
                 raise PermissionError("User not found. Cannot start transcription.")
             # Conditionally handle/pin role snapshot to avoid cross-test/async drift while preserving test patches
@@ -182,24 +182,19 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
                 logger.error(f"Failed to resolve catalog metadata for model '{api_choice}': {catalog_err}", exc_info=True)
 
             # Diagnostic logging for permission context
-            # Reuse resolved role_obj above; add deeper diagnostics about sources
             try:
-                live_role = None if current_app.testing else user.role
                 source = 'cached' if role_snapshot is not None else ('testing-skip' if current_app.testing else 'db')
-                logger.info(
-                    f"PERMISSION_CHECK: uid={user.id}, username={user.username}, is_auth={getattr(user, 'is_authenticated', False)}, "
-                    f"role_id={getattr(user, 'role_id', None)}, role_name={getattr(role_obj, 'name', None)}, "
-                    f"perm='{api_permission}', role_attr_val={getattr(role_obj, api_permission, None)}, "
-                    f"source={source}, live_role_name={getattr(live_role, 'name', None) if live_role else None}, "
-                    f"testing_mode={current_app.testing}"
+                logger.debug(
+                    "Permission context resolved.",
+                    extra={"permission": api_permission, "role": getattr(role_obj, 'name', None), "role_source": source}
                 )
             except Exception as diag_err:
-                logger.error(f"PERMISSION_CHECK: Failed to log diagnostic info: {diag_err}", exc_info=True)
+                logger.error(f"Failed to log permission diagnostic info: {diag_err}", exc_info=True)
 
             allowed_perm = bool(api_permission) and check_permission(user, api_permission)
-            logger.info(f"PERMISSION_CHECK: check_permission(user={user.id}, '{api_permission}') -> {allowed_perm}")
+            logger.debug("Permission check result.", extra={"permission": api_permission, "allowed": allowed_perm})
             if not allowed_perm:
-                logger.error(f"PERMISSION_CHECK: DENIED - user_id={user.id}, username={user.username}, role_name={getattr(role_obj, 'name', None)}, permission={api_permission}")
+                logger.warning("Permission denied.", extra={"permission": api_permission, "role": getattr(role_obj, 'name', None)})
                 raise PermissionError(f"Permission denied to use the '{api_display_name}' API.")
 
             file_size_mb = 0.0
@@ -258,7 +253,7 @@ def process_transcription(app: Flask, job_id: str, user_id: int, temp_filename: 
             _update_progress(app, job_id, f"Calculated and recorded cost: {format_currency(cost_to_add)}.", user_id=user_id)
             # --- END MODIFIED ---
 
-            _update_progress(app, job_id, "PHASE_MARKER:UPLOAD_COMPLETE", user_id=user_id)
+            _update_progress(app, job_id, "PHASE_MARKER:UPLOAD_COMPLETE", user_id=user_id, log_message=False)
 
             transcription_model.update_job_status(job_id, 'processing')
             logger.debug(f"Handing off to API client '{api_choice}'.")

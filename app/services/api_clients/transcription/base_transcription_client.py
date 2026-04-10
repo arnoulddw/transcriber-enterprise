@@ -231,6 +231,8 @@ class BaseTranscriptionClient(ABC):
 
         if is_error:
             self.logger.error(message)
+        elif message.startswith("PHASE_MARKER:"):
+            self.logger.debug(message)
         else:
             self.logger.info(message)
 

@@ -37,7 +37,7 @@ from app.initialization import (
     create_initialization_marker,
     run_initialization_sequence
 )
-from app.logging_config import setup_logging
+from app.logging_config import setup_logging, get_logger
 from app.cli import register_cli_commands
 # Import MySQL error class for specific handling if needed later
 from mysql.connector import Error as MySQLError
@@ -54,76 +54,74 @@ def initialize_app_resources(app: Flask):
     Uses a non-blocking file lock (fcntl.flock) to ensure only one process succeeds.
     """
     global _background_thread_started_in_process, _file_lock_handle
-    log_prefix = f"[SYSTEM:InitResources:PID:{os.getpid()}]"
+    logger = get_logger(__name__, component="System:Init")
 
     is_main_process_or_prod = not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
 
     if not is_main_process_or_prod:
-        logging.debug(f"{log_prefix} Skipping resource initialization in Flask debug reloader sub-process.")
+        logger.debug("Skipping resource initialization in Flask debug reloader sub-process.")
         return
 
     if _background_thread_started_in_process:
-        logging.debug(f"{log_prefix} Background task already started in this process. Skipping.")
+        logger.debug("Background task already started in this process. Skipping.")
         return
 
     lock_file_path = app.config.get('TASK_LOCK_FILE')
     if not lock_file_path:
-        logging.error(f"{log_prefix} TASK_LOCK_FILE not configured. Cannot initialize resources safely.")
+        logger.error("TASK_LOCK_FILE not configured. Cannot initialize resources safely.")
         return
 
-    logging.debug(f"{log_prefix} Attempting to acquire file lock for resource initialization: {lock_file_path}")
+    logger.debug(f"Attempting to acquire file lock: {lock_file_path}")
 
     try:
-        # Ensure runtime directory exists before trying to open lock file
         runtime_dir = os.path.dirname(lock_file_path)
         os.makedirs(runtime_dir, exist_ok=True)
 
         _file_lock_handle = open(lock_file_path, 'a')
         fcntl.flock(_file_lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-        logging.debug(f"{log_prefix} Successfully acquired file lock.")
+        logger.debug("File lock acquired.")
         initialization_done = False
         try:
-            with app.app_context(): # Context needed for initialization checks/runs
+            with app.app_context():
                 if not check_initialization_marker(app.config):
-                    logging.debug(f"{log_prefix} Initialization marker not found. Running initialization sequence...")
-                    # This now runs MySQL schema creation etc.
+                    logger.debug("Initialization marker not found. Running initialization sequence...")
                     run_initialization_sequence(app)
                     create_initialization_marker(app.config)
                     initialization_done = True
-                    logging.info(f"{log_prefix} Initialization sequence completed and marker created.")
+                    logger.info("Initialization sequence completed and marker created.")
                 else:
-                    logging.debug(f"{log_prefix} Initialization marker found. Skipping initialization sequence.")
+                    logger.debug("Initialization marker found. Skipping initialization sequence.")
                     initialization_done = True
 
             if initialization_done:
-                logging.debug(f"{log_prefix} Proceeding to start background tasks...")
+                logger.debug("Proceeding to start background tasks...")
                 cleanup_thread = threading.Thread(target=run_cleanup_task, args=(app,), daemon=True)
                 cleanup_thread.start()
                 _background_thread_started_in_process = True
-                logging.debug(f"{log_prefix} Background cleanup task thread initiated.")
+                logger.debug("Background cleanup task thread initiated.")
             else:
-                 logging.error(f"{log_prefix} Initialization sequence failed. Background tasks will NOT start.")
-                 fcntl.flock(_file_lock_handle.fileno(), fcntl.LOCK_UN)
-                 _file_lock_handle.close()
-                 _file_lock_handle = None
+                logger.error("Initialization sequence failed. Background tasks will NOT start.")
+                fcntl.flock(_file_lock_handle.fileno(), fcntl.LOCK_UN)
+                _file_lock_handle.close()
+                _file_lock_handle = None
 
-        except Exception as e: # Catches MySQLError from initialization
-             logging.critical(f"{log_prefix} CRITICAL ERROR during initialization or task startup after acquiring lock: {e}", exc_info=True)
-             try:
-                 fcntl.flock(_file_lock_handle.fileno(), fcntl.LOCK_UN)
-                 _file_lock_handle.close()
-                 _file_lock_handle = None
-             except Exception as lock_release_err:
-                  logging.error(f"{log_prefix} Failed to release lock after error: {lock_release_err}")
+        except Exception as e:
+            logger.critical(f"CRITICAL ERROR during initialization or task startup after acquiring lock: {e}", exc_info=True)
+            try:
+                fcntl.flock(_file_lock_handle.fileno(), fcntl.LOCK_UN)
+                _file_lock_handle.close()
+                _file_lock_handle = None
+            except Exception as lock_release_err:
+                logger.error(f"Failed to release lock after error: {lock_release_err}")
 
     except BlockingIOError:
-        logging.debug(f"{log_prefix} File lock already held by another process. Skipping resource initialization.")
+        logger.debug("File lock already held by another process. Skipping resource initialization.")
         if _file_lock_handle:
             _file_lock_handle.close()
             _file_lock_handle = None
     except Exception as e:
-        logging.error(f"{log_prefix} Error acquiring file lock: {e}", exc_info=True)
+        logger.error(f"Error acquiring file lock: {e}", exc_info=True)
         if _file_lock_handle:
             try: _file_lock_handle.close()
             except Exception: pass
@@ -212,9 +210,9 @@ def create_app(config_class=Config) -> Flask:
             logging.warning("[SYSTEM] Could not manage startup banner flag at %s (%s); emitting log anyway.", flag_path, err)
             return True
 
+    _sys_logger = get_logger(__name__, component="System")
     if _should_emit_startup_banner():
-        logging.info(f"[SYSTEM] Flask app created. Deployment Mode: {app.config['DEPLOYMENT_MODE']}")
-        logging.info(f"[SYSTEM] Configured Timezone (TZ): {app.config.get('TZ', 'Not Set - Defaulting to UTC')}")
+        _sys_logger.info("Flask app created.", extra={"deployment_mode": app.config['DEPLOYMENT_MODE'], "timezone": app.config.get('TZ', 'UTC')})
 
     # --- MODIFIED: Define locale selector function before initializing Babel ---
     def get_locale_selector():
@@ -250,7 +248,7 @@ def create_app(config_class=Config) -> Flask:
     mail.init_app(app)
     # --- MODIFIED: Initialize Babel with the selector function ---
     babel.init_app(app, locale_selector=get_locale_selector, timezone_selector=get_timezone_selector)
-    logging.debug("[SYSTEM] Flask extensions initialized (Bcrypt, LoginManager, CSRF, Limiter, Mail, Babel).")
+    _sys_logger.debug("Flask extensions initialized (Bcrypt, LoginManager, CSRF, Limiter, Mail, Babel).")
 
     # Initialize Database Handling
     init_db(app)
@@ -283,24 +281,25 @@ def create_app(config_class=Config) -> Flask:
         return babel_format_percent(normalized_value)
 
     app.jinja_env.globals['format_percent'] = custom_format_percent
-    logging.debug("[SYSTEM] Registered Jinja filters (datetime_tz, contrast_color, raw_number) and globals (custom_format_currency, format_number, format_percent).")
+    _sys_logger.debug("Registered Jinja filters and globals.")
 
     # Configure Flask-Login User Loader
     @login_manager.user_loader
     def load_user(user_id_str: str) -> Optional[User]:
-        log_prefix = "[AUTH:UserLoader]"
         try:
             user_id = int(user_id_str)
+            _loader_logger = get_logger(__name__, user_id=user_id, component="Auth:UserLoader")
             user = user_model.get_user_by_id(user_id)
-            if user: logging.debug(f"{log_prefix} User {user_id} loaded successfully.")
-            else: logging.warning(f"{log_prefix} User {user_id} not found in database.")
+            if user: _loader_logger.debug("User loaded successfully.")
+            else: _loader_logger.warning("User not found in database.")
             return user
         except ValueError:
-            logging.warning(f"{log_prefix} Invalid user_id format received: {user_id_str}")
+            get_logger(__name__, component="Auth:UserLoader").warning(f"Invalid user_id format received: {user_id_str}")
             return None
         except Exception as e:
-            if isinstance(e, MySQLError): logging.error(f"{log_prefix} MySQL error loading user {user_id_str}: {e}", exc_info=True)
-            else: logging.error(f"{log_prefix} Error loading user {user_id_str}: {e}", exc_info=True)
+            _loader_logger = get_logger(__name__, component="Auth:UserLoader")
+            if isinstance(e, MySQLError): _loader_logger.error(f"MySQL error loading user {user_id_str}: {e}", exc_info=True)
+            else: _loader_logger.error(f"Error loading user {user_id_str}: {e}", exc_info=True)
             return None
 
     # Register Blueprints
@@ -321,7 +320,7 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(admin_panel_bp)
     app.register_blueprint(workflows_bp)
     app.register_blueprint(llm_bp)
-    logging.debug("[SYSTEM] Blueprints registered.")
+    _sys_logger.debug("Blueprints registered.")
 
 
     # Register Request Hooks
@@ -329,34 +328,30 @@ def create_app(config_class=Config) -> Flask:
     def before_request_func():
         g.user = current_user if current_user.is_authenticated else None
         g.role = g.user.role if g.user else None
+        _req_logger = get_logger(__name__, component="Request")
         user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.debug(f"Request started: {request.method} {request.path} from {request.remote_addr} ({user_info})")
+        _req_logger.debug(f"Request started: {request.method} {request.path} from {request.remote_addr} ({user_info})")
 
-
-        # Test bypass: when running tests, skip initialization gating
         if current_app.testing:
-            logging.debug("[TEST] Bypassing initialization gate in testing mode.")
+            _req_logger.debug("Bypassing initialization gate in testing mode.")
             g.initialization_complete = True
         else:
             g.initialization_complete = False
             try:
-                # --- FIX: Safely check for key before accessing ---
                 if 'INIT_MARKER_FILE' in current_app.config:
                     g.initialization_complete = check_initialization_marker()
                 else:
-                    # If the key isn't even present, we are in a pre-init state (like test setup)
-                    # where this check should be skipped.
-                    logging.debug("[SYSTEM] Skipping initialization check: INIT_MARKER_FILE not in config.")
-                    g.initialization_complete = False # Explicitly false
+                    _req_logger.debug("Skipping initialization check: INIT_MARKER_FILE not in config.")
+                    g.initialization_complete = False
             except Exception as init_check_err:
-                logging.error(f"[SYSTEM] Error checking initialization marker during request: {init_check_err}")
+                _req_logger.error(f"Error checking initialization marker during request: {init_check_err}")
 
         allowed_endpoints = ['static', 'auth.login', 'auth.register', 'auth.forgot_password', 'auth.reset_password_request', 'auth.google_callback', 'main.set_language']
         if (not g.initialization_complete and
                 request.endpoint and
                 request.endpoint not in allowed_endpoints and
                 not request.endpoint.startswith('static')):
-            logging.warning(f"Initialization pending. Blocking request to {request.endpoint}. Returning 503.")
+            _req_logger.warning(f"Initialization pending. Blocking request to {request.endpoint}. Returning 503.")
             return jsonify({'error': _('Service temporarily unavailable. Initialization in progress.')}), 503
 
         if (app.config['DEPLOYMENT_MODE'] == 'multi' and
@@ -367,22 +362,22 @@ def create_app(config_class=Config) -> Flask:
             if request.path.startswith('/api/v1/transcribe'):
                 auth_header = request.headers.get('Authorization', '')
                 if auth_header and auth_header.lower().startswith('bearer '):
-                    logging.debug("[AUTH] Allowing public API token flow for /api/v1/transcribe.")
+                    _req_logger.debug("Allowing public API token flow for /api/v1/transcribe.")
                     return None
             is_api_request = request.path.startswith('/api/') or \
                              ('Accept' in request.headers and 'application/json' in request.headers['Accept'])
             if is_api_request:
-                 logging.warning(f"[AUTH] Unauthorized API access attempt: {request.method} {request.path}")
-                 return jsonify({'error': _('Authentication required.')}), 401
+                _req_logger.warning(f"Unauthorized API access attempt: {request.method} {request.path}")
+                return jsonify({'error': _('Authentication required.')}), 401
             else:
-                 logging.debug(f"Redirecting unauthenticated user to login page. Requested endpoint: {request.endpoint}")
-                 flash(_l("Please log in to access this page."), "info")
-                 return redirect(url_for('auth.login', next=request.url))
+                _req_logger.debug(f"Redirecting unauthenticated user to login. Endpoint: {request.endpoint}")
+                flash(_l("Please log in to access this page."), "info")
+                return redirect(url_for('auth.login', next=request.url))
 
     @app.after_request
     def after_request_func(response):
         user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.debug(f"Request finished: {request.method} {request.path} - Status {response.status_code} ({user_info})")
+        get_logger(__name__, component="Request").debug(f"Request finished: {request.method} {request.path} - {response.status_code} ({user_info})")
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = (
@@ -409,16 +404,17 @@ def create_app(config_class=Config) -> Flask:
         user_permissions = {}
         from app.models import transcription_catalog as transcription_catalog_model
 
+        _ctx_logger = get_logger(__name__, component="Context")
         try:
             catalog_models = transcription_catalog_model.get_active_models()
         except Exception as catalog_err:
-            logging.error(f"[Context] Failed to load transcription models from catalog: {catalog_err}", exc_info=True)
+            _ctx_logger.error(f"Failed to load transcription models from catalog: {catalog_err}", exc_info=True)
             catalog_models = []
 
         try:
             supported_languages = transcription_catalog_model.get_language_map()
         except Exception as lang_err:
-            logging.error(f"[Context] Failed to load transcription languages from catalog: {lang_err}", exc_info=True)
+            _ctx_logger.error(f"Failed to load transcription languages from catalog: {lang_err}", exc_info=True)
             supported_languages = app.config.get('SUPPORTED_LANGUAGE_NAMES', {})
 
         supported_ui_languages = app.config.get('SUPPORTED_LANGUAGES', [])
@@ -437,7 +433,7 @@ def create_app(config_class=Config) -> Flask:
 
         if is_multi and user:
             try: initial_key_status = user_service.get_user_api_key_status(user.id)
-            except Exception as e: logging.error(f"Error fetching initial key status for user {user.id}: {e}", exc_info=True)
+            except Exception as e: _ctx_logger.error(f"Error fetching initial key status: {e}", exc_info=True)
             if role:
                 user_permissions = {
                     'use_api_assemblyai': role.use_api_assemblyai,
@@ -524,45 +520,46 @@ def create_app(config_class=Config) -> Flask:
         )
 
     # Register Error Handlers
+    _err_logger = get_logger(__name__, component="ErrorHandler")
+
     @app.errorhandler(404)
     def not_found_error(error):
-        user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.warning(f"404 Not Found: {request.path} (Referer: {request.referrer}) ({user_info})")
+        _err_logger.warning(f"404 Not Found: {request.path}", extra={"referer": request.referrer, "user_id": current_user.id if current_user.is_authenticated else None})
         if request.path.startswith('/api/'): return jsonify({'error': _('Not Found')}), 404
         return render_template('errors/404.html'), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
         original_exception = getattr(error, "original_exception", error)
-        logging.error(f"500 Internal Server Error: {request.path} ({user_info})", exc_info=original_exception)
+        _err_logger.error(f"500 Internal Server Error: {request.path}", exc_info=original_exception, extra={"user_id": current_user.id if current_user.is_authenticated else None})
         try:
             db_conn = getattr(g, 'db_conn', None)
-            if db_conn: logging.info("[DB:Error] Attempting rollback due to 500 error."); db_conn.rollback(); logging.info("[DB:Error] Rollback successful.")
-        except MySQLError as db_err: logging.error(f"[DB:Error] MySQL error during rollback in 500 handler: {db_err}")
-        except Exception as db_err: logging.error(f"[DB:Error] Non-MySQL error during rollback in 500 handler: {db_err}")
+            if db_conn:
+                _err_logger.debug("Attempting rollback due to 500 error.")
+                db_conn.rollback()
+                _err_logger.debug("Rollback successful.")
+        except MySQLError as db_err: _err_logger.error(f"MySQL error during rollback in 500 handler: {db_err}")
+        except Exception as db_err: _err_logger.error(f"Error during rollback in 500 handler: {db_err}")
         if request.path.startswith('/api/'): return jsonify({'error': _('Internal Server Error')}), 500
         return render_template('errors/500.html'), 500
 
     @app.errorhandler(403)
     def forbidden_error(error):
-        user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.warning(f"403 Forbidden: {request.path} ({user_info}). Reason: {error.description}")
+        _err_logger.warning(f"403 Forbidden: {request.path}", extra={"reason": error.description, "user_id": current_user.id if current_user.is_authenticated else None})
         if request.path.startswith('/api/'): return jsonify({'error': _('Forbidden'), 'message': error.description}), 403
         flash(error.description or _l("You do not have permission to access this page."), "danger")
         return render_template('errors/403.html'), 403
 
     @app.errorhandler(401)
     def unauthorized_error(error):
-        user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.warning(f"401 Unauthorized: {request.path} ({user_info}). Reason: {error.description}")
+        _err_logger.warning(f"401 Unauthorized: {request.path}", extra={"reason": error.description, "user_id": current_user.id if current_user.is_authenticated else None})
         if request.path.startswith('/api/'): return jsonify({'error': _('Unauthorized'), 'message': error.description or _('Authentication required.')}), 401
         else: flash(error.description or _l("Authentication required to access this page."), "warning"); return redirect(url_for('auth.login', next=request.url))
 
     @app.errorhandler(429)
     def ratelimit_handler(e):
         g.user = current_user if current_user.is_authenticated else None
-        logging.warning(f"Rate limit exceeded: {e.description} for {request.remote_addr} at {request.path}")
+        _err_logger.warning(f"Rate limit exceeded at {request.path}", extra={"client_ip": request.remote_addr, "description": e.description})
         if request.path.startswith('/api/'):
             api_error_message = _('Too many requests. Please wait a moment and try again.')
             description_text = (e.description or "").strip()
@@ -579,9 +576,7 @@ def create_app(config_class=Config) -> Flask:
 
     @app.errorhandler(413)
     def payload_too_large_error(error):
-        user_info = f"User:{current_user.id}" if current_user.is_authenticated else "Anonymous"
-        logging.warning(f"413 Payload Too Large: {request.path} ({user_info}). Request content length: {request.content_length}")
-        # All file uploads go to API endpoints, so we can assume JSON response is desired.
+        _err_logger.warning(f"413 Payload Too Large: {request.path}", extra={"content_length": request.content_length, "user_id": current_user.id if current_user.is_authenticated else None})
         max_size_bytes = current_app.config.get('MAX_CONTENT_LENGTH', 0)
         max_size_mb = round(max_size_bytes / (1024*1024))
         error_message = _('File is too large. The maximum allowed file size is %(size)sMB.', size=max_size_mb)
@@ -595,5 +590,5 @@ def create_app(config_class=Config) -> Flask:
     # --- MODIFIED: REMOVED old locale selector definition ---
 
     register_cli_commands(app)
-    logging.info("[SYSTEM] Application initialization complete.")
+    _sys_logger.info("Application initialization complete.")
     return app

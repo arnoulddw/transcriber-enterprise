@@ -14,7 +14,7 @@ def init_db_command() -> None:
     """
     cursor = get_cursor()
     logger = get_logger(__name__, component="DB:Schema:MySQL")
-    logger.info("Checking/Initializing 'transcriptions' table schema...")
+    logger.info("[DB:Schema:MySQL] Checking/Initializing 'transcriptions' table schema...")
 
     try:
         # --- Dependency Check: Ensure 'users' table exists first ---
@@ -239,7 +239,7 @@ def init_db_command() -> None:
                 logger.info(f"Converting '{col_name}' column on 'transcriptions' table to TIMESTAMP.")
                 cursor.execute(f"ALTER TABLE transcriptions MODIFY COLUMN {col_name} TIMESTAMP NULL DEFAULT NULL")
         get_db().commit()
-        logger.info("'transcriptions' table schema verified/initialized.")
+        logger.info("[DB:Schema:MySQL] 'transcriptions' table schema verified/initialized.")
 
     except MySQLError as err:
         logger.error(f"MySQL error during 'transcriptions' table initialization: {err}", exc_info=True)
