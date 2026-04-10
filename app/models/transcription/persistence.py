@@ -255,6 +255,34 @@ def clear_transcriptions(user_id: int) -> int:
     return hidden_count
 
 
+def toggle_transcription_pin(transcription_id: str, user_id: int) -> tuple[bool, bool]:
+    """Toggles the is_pinned flag for a transcription owned by the user.
+
+    Returns (success, new_is_pinned).
+    """
+    logger = get_logger(__name__, job_id=transcription_id, user_id=user_id, component="DB:Pin")
+    sql = "UPDATE transcriptions SET is_pinned = NOT is_pinned WHERE id = %s AND user_id = %s AND is_hidden_from_user = FALSE"
+    cursor = get_cursor()
+    try:
+        cursor.execute(sql, (transcription_id, user_id))
+        get_db().commit()
+        if cursor.rowcount > 0:
+            cursor.execute("SELECT is_pinned FROM transcriptions WHERE id = %s", (transcription_id,))
+            row = cursor.fetchone()
+            cursor.fetchall()
+            new_state = bool(row['is_pinned']) if row else False
+            logger.info(f"Toggled is_pinned to {new_state}.")
+            return True, new_state
+        logger.warning("Pin toggle failed: transcription not found, not owned by user, or already hidden.")
+        return False, False
+    except MySQLError as err:
+        logger.error(f"Error toggling pin: {err}", exc_info=True)
+        get_db().rollback()
+        return False, False
+    finally:
+        pass
+
+
 def mark_transcription_as_downloaded(transcription_id: str, user_id: int) -> bool:
     """Sets the 'downloaded' flag to TRUE for a specific job owned by the user."""
     logger = get_logger(__name__, job_id=transcription_id, user_id=user_id, component="DB:DownloadLog")

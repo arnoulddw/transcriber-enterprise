@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
         historyList.addEventListener('click', function(event) {
             const copyBtn = event.target.closest('.transcript-panel .copy-btn');
             const downloadBtn = event.target.closest('.transcript-panel .download-btn');
+            const pinBtn = event.target.closest('.transcript-panel .pin-btn');
             const deleteBtn = event.target.closest('.transcript-panel .delete-btn');
             const transcriptionItem = event.target.closest('li[data-transcription-id]'); 
 
@@ -38,9 +39,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.downloadTranscription(transcriptionId, fullText, `${baseFilename}_transcription`); 
                 return; 
             }
+            if (pinBtn && transcriptionId) {
+                window.togglePin(transcriptionId, transcriptionItem);
+                return;
+            }
             if (deleteBtn && transcriptionId) {
-                window.deleteTranscription(transcriptionId, transcriptionItem); 
-                return; 
+                window.deleteTranscription(transcriptionId, transcriptionItem);
+                return;
             }
         });
         window.logger.debug(historyLogPrefix, "Transcription action listeners attached via delegation.");

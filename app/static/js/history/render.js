@@ -41,8 +41,10 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
     }
 
     const listItem = document.createElement('li');
-    listItem.className = 'py-4'; 
+    const isPinned = !!transcription.is_pinned;
+    listItem.className = 'py-4' + (isPinned ? ' border-l-2 border-amber-400 pl-2' : '');
     listItem.dataset.transcriptionId = transcription.id;
+    listItem.dataset.isPinned = isPinned ? 'true' : 'false';
     listItem.dataset.fullText = transcription.transcription_text || '[Transcription text not available]';
     listItem.dataset.initialPollTitle = shouldPollTitle ? 'true' : 'false';
 
@@ -84,6 +86,11 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
             <i class="material-icons text-base">download</i>
         </button>
     ` : '';
+    const pinButtonHtml = `
+        <button type="button" class="pin-btn p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary flex items-center ${isPinned ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50' : 'text-gray-500 hover:text-primary hover:bg-gray-100'}" title="${isPinned ? (window.i18n.unpin || 'Unpin') : (window.i18n.pinToTop || 'Pin to top')}">
+            <i class="material-icons text-base">push_pin</i>
+        </button>
+    `;
     
     const historyItemContentClasses = ['history-item-content', 'flex', 'flex-col'];
     
@@ -133,6 +140,7 @@ window.logger.debug(logPrefix, "Attempting to add/update history item:", transcr
                             <i class="material-icons text-base">content_copy</i>
                         </button>
                         ${downloadButtonHtml}
+                        ${pinButtonHtml}
                         <button type="button" class="delete-btn p-2 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center" title="Delete Transcript">
                             <i class="material-icons text-base">delete</i>
                         </button>
