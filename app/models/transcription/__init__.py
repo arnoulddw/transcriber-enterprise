@@ -10,6 +10,7 @@ from .persistence import (
     restore_transcription,
     clear_transcriptions,
     mark_transcription_as_downloaded,
+    toggle_transcription_pin,
 )
 from .services import (
     update_job_progress,
@@ -33,6 +34,7 @@ __all__ = [
     "restore_transcription",
     "clear_transcriptions",
     "mark_transcription_as_downloaded",
+    "toggle_transcription_pin",
     "update_job_progress",
     "update_job_status",
     "set_job_error",
